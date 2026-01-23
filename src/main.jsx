@@ -6,10 +6,17 @@ import App from './App.jsx'
 import Home from './pages/Home.jsx'
 import Heroes from './pages/Heroes.jsx'
 import Community from './pages/Community.jsx'
-import Info from './pages/Info.jsx'
 import HeroDetail from './pages/HeroDetail.jsx'
 import Pets from './pages/Pets.jsx'
 import PetDetail from './pages/PetDetail.jsx'
+import GuidesAdventure from './pages/GuidesAdventure.jsx'
+import GuidesRaid from './pages/GuidesRaid.jsx'
+import GuidesArena from './pages/GuidesArena.jsx'
+import GuidesTotalWar from './pages/GuidesTotalWar.jsx'
+import GuidesGrowthDungeon from './pages/GuidesGrowthDungeon.jsx'
+import GuildSiege from './pages/GuildSiege.jsx'
+import GuildWar from './pages/GuildWar.jsx'
+import GuildExpedition from './pages/GuildExpedition.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -22,7 +29,14 @@ createRoot(document.getElementById('root')).render(
         <Route path="/pets" element={<Pets />} />
         <Route path="/pets/:petId" element={<PetDetail />} />
         <Route path="/community" element={<Community />} />
-        <Route path="/info" element={<Info />} />
+        <Route path="/guides/adventure" element={<GuidesAdventure />} />
+        <Route path="/guides/raid" element={<GuidesRaid />} />
+        <Route path="/guides/arena" element={<GuidesArena />} />
+        <Route path="/guides/total-war" element={<GuidesTotalWar />} />
+        <Route path="/guides/growth-dungeon" element={<GuidesGrowthDungeon />} />
+        <Route path="/guild/siege" element={<GuildSiege />} />
+        <Route path="/guild/guild-war" element={<GuildWar />} />
+        <Route path="/guild/expedition" element={<GuildExpedition />} />
       </Route>
       </Routes>
     </BrowserRouter>

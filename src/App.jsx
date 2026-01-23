@@ -5,6 +5,7 @@ import { heroes } from './data/heroes'
 function App() {
   const [searchTerm, setSearchTerm] = useState('')
   const trimmedSearch = searchTerm.trim()
+  const [openMenu, setOpenMenu] = useState(null)
   const navigate = useNavigate()
 
   const searchResults = useMemo(() => {
@@ -97,9 +98,38 @@ function App() {
         <NavLink to="/community" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>
           커뮤니티
         </NavLink>
-        <NavLink to="/info" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>
-          정보
-        </NavLink>
+        <div
+          className={`nav-dropdown${openMenu === 'guides' ? ' is-open' : ''}`}
+          onMouseEnter={() => setOpenMenu('guides')}
+          onMouseLeave={() => setOpenMenu(null)}
+        >
+          <button className="nav-link nav-link--dropdown" type="button">
+            공략
+            <span className="nav-caret" aria-hidden="true">▾</span>
+          </button>
+          <div className="nav-dropdown-menu" role="menu">
+            <NavLink to="/guides/adventure" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>모험</NavLink>
+            <NavLink to="/guides/raid" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>레이드</NavLink>
+            <NavLink to="/guides/arena" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>결투장</NavLink>
+            <NavLink to="/guides/total-war" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>총력전</NavLink>
+            <NavLink to="/guides/growth-dungeon" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>성장던전</NavLink>
+          </div>
+        </div>
+        <div
+          className={`nav-dropdown${openMenu === 'guild' ? ' is-open' : ''}`}
+          onMouseEnter={() => setOpenMenu('guild')}
+          onMouseLeave={() => setOpenMenu(null)}
+        >
+          <button className="nav-link nav-link--dropdown" type="button">
+            길드
+            <span className="nav-caret" aria-hidden="true">▾</span>
+          </button>
+          <div className="nav-dropdown-menu" role="menu">
+            <NavLink to="/guild/siege" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>공성전</NavLink>
+            <NavLink to="/guild/guild-war" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>길드전</NavLink>
+            <NavLink to="/guild/expedition" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>강림원정대</NavLink>
+          </div>
+        </div>
       </nav>
       <section className="hero-search" aria-label="Hero search">
         <div className="hero-search-inner">
