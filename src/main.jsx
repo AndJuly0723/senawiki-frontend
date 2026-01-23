@@ -7,17 +7,19 @@ import Home from './pages/Home.jsx'
 import Heroes from './pages/Heroes.jsx'
 import Community from './pages/Community.jsx'
 import Info from './pages/Info.jsx'
+import HeroDetail from './pages/HeroDetail.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
         <Route element={<App />}>
-          <Route index element={<Home />} />
-          <Route path="/heroes" element={<Heroes />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/info" element={<Info />} />
-        </Route>
+        <Route index element={<Home />} />
+        <Route path="/heroes" element={<Heroes />} />
+        <Route path="/heroes/:heroId" element={<HeroDetail />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/info" element={<Info />} />
+      </Route>
       </Routes>
     </BrowserRouter>
   </StrictMode>,

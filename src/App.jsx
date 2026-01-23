@@ -1,6 +1,25 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { heroes } from './data/heroes'
 
 function App() {
+  const [searchTerm, setSearchTerm] = useState('')
+  const trimmedSearch = searchTerm.trim()
+  const navigate = useNavigate()
+
+  const searchResults = useMemo(() => {
+    if (!trimmedSearch) return []
+    const query = trimmedSearch.toLowerCase()
+    return heroes.filter((hero) => hero.name.toLowerCase().includes(query))
+  }, [trimmedSearch])
+
+  const handleSearch = () => {
+    if (searchResults.length > 0) {
+      navigate(`/heroes/${searchResults[0].id}`)
+      setSearchTerm('')
+    }
+  }
+
   return (
     <div className="app">
       <header className="site-header">
@@ -78,11 +97,38 @@ function App() {
             type="search"
             placeholder="영웅 검색"
             aria-label="영웅 검색"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                handleSearch()
+              }
+            }}
           />
-          <button className="hero-search-button" type="button">
+          <button className="hero-search-button" type="button" onClick={handleSearch}>
             검색
           </button>
         </div>
+        {trimmedSearch && (
+          <div className="hero-search-results" role="listbox" aria-label="영웅 검색 결과">
+            {searchResults.length === 0 ? (
+              <div className="hero-search-empty">검색 결과가 없습니다.</div>
+            ) : (
+              searchResults.map((hero) => (
+                <Link
+                  key={hero.id}
+                  to={`/heroes/${hero.id}`}
+                  className="hero-search-item"
+                  onClick={() => setSearchTerm('')}
+                >
+                  <img src={hero.image} alt="" aria-hidden="true" />
+                  <span>{hero.name}</span>
+                </Link>
+              ))
+            )}
+          </div>
+        )}
       </section>
       <main className="page">
         <Outlet />
