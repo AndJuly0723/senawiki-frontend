@@ -135,6 +135,139 @@ body {
   padding: 6px 10px;
 }
 
+.community {
+  margin-top: 16px;
+}
+
+.community-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.community-title h1 {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+
+.community-title p {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.community-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.community-icon-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: #1f1f1f;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.community-icon-button:hover {
+  background: #2a2a2a;
+}
+
+.community-icon-button svg {
+  width: 24px;
+  height: 24px;
+  fill: #ffffff;
+}
+
+.community-icon-button--search svg {
+  width: 30px;
+  height: 30px;
+}
+
+.community-table {
+  background: #1c1c1c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.community-header,
+.community-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 90px 70px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.community-header {
+  background: #202020;
+  font-weight: 700;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.community-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.community-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+}
+
+.community-row:last-child {
+  border-bottom: none;
+}
+
+.community-row.is-pinned {
+  background: #2a2a2a;
+}
+
+.col-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.post-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.post-icon {
+  opacity: 0.7;
+}
+
+.post-badge {
+  background: #ffffff;
+  color: #1a1a1a;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.col-author,
+.col-date,
+.col-views {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+}
+
 .pet-card {
   background: #f6a62b;
   color: #1d1000;
@@ -820,6 +953,16 @@ body {
 
   .pet-filter select {
     width: 120px;
+  }
+
+  .community-header,
+  .community-row {
+    grid-template-columns: 1fr 70px 60px 50px;
+    font-size: 12px;
+  }
+
+  .community-toolbar {
+    align-items: flex-start;
   }
 
   .hero-detail-layout {
