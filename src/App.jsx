@@ -75,6 +75,14 @@ function App() {
             </text>
           </svg>
         </NavLink>
+        <div className="auth-actions">
+          <button className="auth-button auth-button--ghost" type="button">
+            로그인
+          </button>
+          <button className="auth-button" type="button">
+            회원가입
+          </button>
+        </div>
       </header>
       <nav className="site-nav" aria-label="Primary">
         <NavLink to="/" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>
@@ -82,6 +90,9 @@ function App() {
         </NavLink>
         <NavLink to="/heroes" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>
           영웅
+        </NavLink>
+        <NavLink to="/pets" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>
+          펫
         </NavLink>
         <NavLink to="/community" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>
           커뮤니티
