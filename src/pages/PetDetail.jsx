@@ -40,7 +40,9 @@ function PetDetail() {
           <section className="hero-skills">
             <div className="hero-skills-header">스킬</div>
             <div className="hero-skill-row">
-              <div className="hero-skill-icon" />
+              <div className="hero-skill-icon">
+                <img src={`/images/petskill/${pet.id}/skill.png`} alt="" aria-hidden="true" />
+              </div>
               <div className="hero-skill-body">
                 <h3>펫 스킬 (추가 예정)</h3>
                 <p>설명 영역입니다. 추후 스킬 이미지와 텍스트를 채워주세요.</p>

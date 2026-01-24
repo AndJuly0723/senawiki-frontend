@@ -314,6 +314,19 @@ export const heroes = Object.keys(heroNameMap).map((id) => {
   const meta = typeLabel ? typeMeta[typeLabel] : null
   const gradeLabel = nameToGrade[name]
   const grade = gradeLabel ? gradeMeta[gradeLabel] : null
+  const overrides = {
+    choseon: ['영웅 합성', '교환 상점'],
+    ryan: ['영웅 소환', '영웅 합성', '조합', '교환 상점'],
+    amelia: ['영웅 소환', '영웅 합성', '조합', '교환 상점'],
+    shane: ['영웅 소환', '영웅 합성', '조합', '교환 상점'],
+    pascal: ['영웅 소환', '영웅 합성', '조합', '교환 상점'],
+    espada: ['영웅 소환', '영웅 합성', '조합', '교환 상점'],
+  }
+  const skillOverrides = {
+    shane: { hasSkill2: false },
+    aragon: { hasSkill2: false },
+    ballista: { hasSkill2: false },
+  }
 
   return {
     id,
@@ -324,5 +337,13 @@ export const heroes = Object.keys(heroNameMap).map((id) => {
     typeIcon: meta?.icon ?? '',
     grade: grade?.key ?? 'unknown',
     gradeLabel: grade?.label ?? '미분류',
+    acquisition: overrides[id] ?? (grade?.key === 'rare'
+      ? ['영웅 소환', '영웅 합성', '조합']
+      : grade?.key === 'sena'
+        ? ['영웅 합성', '무한의 탑', '교환 상점']
+        : grade?.key === 'legend' || grade?.key === 'special'
+          ? ['영웅 소환', '영웅 합성', '조합']
+          : []),
+    hasSkill2: skillOverrides[id]?.hasSkill2 ?? true,
   }
 })

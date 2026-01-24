@@ -32,7 +32,11 @@ function HeroDetail() {
             </div>
             <div className="hero-meta-row">
               <span>획득 경로</span>
-              <strong>추가 예정</strong>
+              {hero.acquisition && hero.acquisition.length > 0 ? (
+                <span className="hero-meta-list">{hero.acquisition.join(', ')}</span>
+              ) : (
+                <strong>추가 예정</strong>
+              )}
             </div>
           </div>
           <div className="hero-role">
@@ -47,28 +51,38 @@ function HeroDetail() {
           <section className="hero-skills">
             <div className="hero-skills-header">스킬</div>
             <div className="hero-skill-row">
-              <div className="hero-skill-icon" />
+              <div className="hero-skill-icon">
+                <img src={`/images/heroskill/${hero.id}/basic.png`} alt="" aria-hidden="true" />
+              </div>
               <div className="hero-skill-body">
                 <h3>기본 공격 (추가 예정)</h3>
                 <p>설명 영역입니다. 추후 스킬 이미지와 텍스트를 채워주세요.</p>
               </div>
             </div>
             <div className="hero-skill-row">
-              <div className="hero-skill-icon" />
+              <div className="hero-skill-icon">
+                <img src={`/images/heroskill/${hero.id}/skill1.png`} alt="" aria-hidden="true" />
+              </div>
               <div className="hero-skill-body">
                 <h3>스킬 1 (추가 예정)</h3>
                 <p>설명 영역입니다. 추후 스킬 이미지와 텍스트를 채워주세요.</p>
               </div>
             </div>
-            <div className="hero-skill-row">
-              <div className="hero-skill-icon" />
-              <div className="hero-skill-body">
-                <h3>스킬 2 (추가 예정)</h3>
-                <p>설명 영역입니다. 추후 스킬 이미지와 텍스트를 채워주세요.</p>
+            {hero.hasSkill2 && (
+              <div className="hero-skill-row">
+                <div className="hero-skill-icon">
+                  <img src={`/images/heroskill/${hero.id}/skill2.png`} alt="" aria-hidden="true" />
+                </div>
+                <div className="hero-skill-body">
+                  <h3>스킬 2 (추가 예정)</h3>
+                  <p>설명 영역입니다. 추후 스킬 이미지와 텍스트를 채워주세요.</p>
+                </div>
               </div>
-            </div>
+            )}
             <div className="hero-skill-row">
-              <div className="hero-skill-icon" />
+              <div className="hero-skill-icon">
+                <img src={`/images/heroskill/${hero.id}/passive.png`} alt="" aria-hidden="true" />
+              </div>
               <div className="hero-skill-body">
                 <h3>패시브 (추가 예정)</h3>
                 <p>설명 영역입니다. 추후 스킬 이미지와 텍스트를 채워주세요.</p>
