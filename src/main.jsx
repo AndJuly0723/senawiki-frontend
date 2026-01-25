@@ -17,6 +17,7 @@ import GuidesTotalWar from './pages/GuidesTotalWar.jsx'
 import GuidesGrowthDungeon from './pages/GuidesGrowthDungeon.jsx'
 import GuidesGrowthStage from './pages/GuidesGrowthStage.jsx'
 import GuildSiege from './pages/GuildSiege.jsx'
+import GuildSiegeDay from './pages/GuildSiegeDay.jsx'
 import GuildWar from './pages/GuildWar.jsx'
 import GuildExpedition from './pages/GuildExpedition.jsx'
 
@@ -39,6 +40,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/guides/growth-dungeon" element={<GuidesGrowthDungeon />} />
         <Route path="/guides/growth-dungeon/:stageId" element={<GuidesGrowthStage />} />
         <Route path="/guild/siege" element={<GuildSiege />} />
+        <Route path="/guild/siege/:day" element={<GuildSiegeDay />} />
         <Route path="/guild/guild-war" element={<GuildWar />} />
         <Route path="/guild/expedition" element={<GuildExpedition />} />
       </Route>
