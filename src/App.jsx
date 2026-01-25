@@ -24,7 +24,7 @@ function App() {
   return (
     <div className="app">
       <header className="site-header">
-        <NavLink className="brand" to="/" aria-label="SENA.WiKi home">
+        <NavLink className="brand" to="/" aria-label="SENAWiKi home">
           <svg
             className="brand-logo"
             viewBox="0 0 520 160"
@@ -72,7 +72,7 @@ function App() {
               fontWeight="700"
               letterSpacing="2"
             >
-              SENA.WiKi
+              SENAWiKi
             </text>
           </svg>
         </NavLink>

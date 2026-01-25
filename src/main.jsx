@@ -11,6 +11,7 @@ import Pets from './pages/Pets.jsx'
 import PetDetail from './pages/PetDetail.jsx'
 import GuidesAdventure from './pages/GuidesAdventure.jsx'
 import GuidesRaid from './pages/GuidesRaid.jsx'
+import GuidesRaidStage from './pages/GuidesRaidStage.jsx'
 import GuidesArena from './pages/GuidesArena.jsx'
 import GuidesTotalWar from './pages/GuidesTotalWar.jsx'
 import GuidesGrowthDungeon from './pages/GuidesGrowthDungeon.jsx'
@@ -32,6 +33,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/community" element={<Community />} />
         <Route path="/guides/adventure" element={<GuidesAdventure />} />
         <Route path="/guides/raid" element={<GuidesRaid />} />
+        <Route path="/guides/raid/:raidId" element={<GuidesRaidStage />} />
         <Route path="/guides/arena" element={<GuidesArena />} />
         <Route path="/guides/total-war" element={<GuidesTotalWar />} />
         <Route path="/guides/growth-dungeon" element={<GuidesGrowthDungeon />} />

@@ -1,15 +1,12 @@
-﻿import { useEffect, useMemo, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+﻿import { Link, useParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
 import { heroes } from '../data/heroes'
 import { pets } from '../data/pets'
 
-const stageMeta = {
-  fire: '불의 원소 던전',
-  water: '물의 원소 던전',
-  earth: '땅의 원소 던전',
-  light: '빛의 원소 던전',
-  dark: '암흑의 원소 던전',
-  gold: '골드 던전',
+const raidMeta = {
+  'ruin-eye': '파멸의 눈동자',
+  'bull-demon-king': '우마왕',
+  'iron-devourer': '강철의 포식자',
 }
 
 const formationBackPositions = {
@@ -19,75 +16,68 @@ const formationBackPositions = {
   protect: [3],
 }
 
-function GuidesGrowthStage() {
-  const { stageId } = useParams()
+const raidDecks = [
+  {
+    id: 'raid-1',
+    title: '불의 원소 던전 공략 덱',
+    author: '관리자',
+    skillOrder: '비스킷1-헤브니아1-유이1-스파이크1-스파이크2-유이2',
+    createdAt: '2026-01-25',
+    likes: 12,
+    dislikes: 1,
+    heroes: ['유이', '헤브니아', '라이언', '스파이크', '비스킷'],
+    pet: '윈디',
+    formation: {
+      id: 'balance',
+      label: '밸런스진형',
+    },
+  },
+  {
+    id: 'raid-2',
+    title: '불의 원소 던전 공략 덱',
+    author: '관리자',
+    skillOrder: '비스킷1-스파이크1-스파이크2-유이1-라니아1-헤브니아1-라니아2',
+    createdAt: '2026-01-24',
+    likes: 8,
+    dislikes: 2,
+    heroes: ['유이', '라니아', '스파이크', '헤브니아', '비스킷'],
+    pet: '윈디',
+    formation: {
+      id: 'protect',
+      label: '보호진형',
+    },
+  },
+]
+
+function GuidesRaidStage() {
+  const { raidId } = useParams()
+  const label = raidMeta[raidId] ?? '레이드'
   const [equipmentHero, setEquipmentHero] = useState(null)
+  const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState('likes')
-  const label = stageMeta[stageId] ?? '성장던전'
-  const heroByName = new Map(heroes.map((hero) => [hero.name, hero]))
-  const petByName = new Map(pets.map((pet) => [pet.name, pet]))
+  const heroByName = useMemo(() => new Map(heroes.map((hero) => [hero.name, hero])), [])
+  const petByName = useMemo(() => new Map(pets.map((pet) => [pet.name, pet])), [])
 
-  const decksByStage = {
-    fire: [
-      {
-        id: 'fire-1',
-        title: '불의 원소 던전 공략 덱',
-        author: '관리자',
-        skillOrder: '비스킷1-헤브니아1-유이1-스파이크1-스파이크2-유이2',
-        createdAt: '2026-01-25',
-        likes: 12,
-        dislikes: 1,
-        heroes: ['유이', '헤브니아', '라이언', '스파이크', '비스킷'],
-        pet: '윈디',
-        formation: {
-          id: 'balance',
-          label: '밸런스진형',
-          image: '/images/formation/balance.png',
-        },
-      },
-      {
-        id: 'fire-2',
-        title: '불의 원소 던전 공략 덱',
-        author: '관리자',
-        skillOrder: '비스킷1-스파이크1-스파이크2-유이1-라니아1-헤브니아1-라니아2',
-        createdAt: '2026-01-24',
-        likes: 8,
-        dislikes: 2,
-        heroes: ['유이', '라니아', '스파이크', '헤브니아', '비스킷'],
-        pet: '윈디',
-        formation: {
-          id: 'protect',
-          label: '보호진형',
-          image: '/images/formation/protect.png',
-        },
-      },
-    ],
-  }
+  useEffect(() => {
+    setEquipmentHero(null)
+    setPage(1)
+  }, [raidId])
 
-  const decks = decksByStage[stageId] ?? []
+  useEffect(() => {
+    setPage(1)
+  }, [sortBy])
 
   const pageSize = 6
   const sortedDecks = useMemo(() => {
-    const list = [...decks]
+    const list = [...raidDecks]
     if (sortBy === 'likes') {
       list.sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0))
     } else if (sortBy === 'createdAt') {
       list.sort((a, b) => new Date(b.createdAt ?? 0) - new Date(a.createdAt ?? 0))
     }
     return list
-  }, [decks, sortBy])
-  const totalPages = Math.ceil(sortedDecks.length / pageSize)
-  const [page, setPage] = useState(1)
-
-  useEffect(() => {
-    setPage(1)
-    setEquipmentHero(null)
-  }, [stageId])
-
-  useEffect(() => {
-    setPage(1)
   }, [sortBy])
-
+  const totalPages = Math.ceil(sortedDecks.length / pageSize)
   const currentPage = Math.min(page, Math.max(totalPages, 1))
   const pagedDecks = useMemo(() => {
     const start = (currentPage - 1) * pageSize
@@ -95,12 +85,12 @@ function GuidesGrowthStage() {
   }, [sortedDecks, currentPage])
 
   return (
-    <section className="growth-stage">
-      <Link to="/guides/growth-dungeon" className="hero-back">← 성장던전</Link>
+    <section className="raid-stage">
+      <Link to="/guides/raid" className="hero-back">← 레이드</Link>
       <div className="community-toolbar">
         <div className="community-title">
           <h1>{label}</h1>
-          <p>해당 던전의 공략덱 추가는 회원만 가능합니다.</p>
+          <p>레이드 공략덱 추가는 회원만 가능합니다.</p>
         </div>
         <div className="community-actions">
           <div className="deck-sort">
@@ -118,79 +108,75 @@ function GuidesGrowthStage() {
         </div>
       </div>
       <div className="deck-list">
-        {decks.length === 0 ? (
-          <div className="deck-empty">등록된 덱이 없습니다.</div>
-        ) : (
-          pagedDecks.map((deck) => (
-            <div key={deck.id} className="deck-card">
-              <div className="deck-head" aria-hidden="true" />
-              <div className="deck-layout">
-                <div className="deck-center">
-                  <div className="deck-row">
-                    <div className="deck-units deck-units--lineup">
-                      {deck.heroes.map((name, index) => {
-                        const hero = heroByName.get(name)
-                        const backPositions = formationBackPositions[deck.formation.id] ?? []
-                        const isBack = backPositions.includes(index + 1)
-                        return hero ? (
-                          <button
-                            key={name}
-                            type="button"
-                            className={`deck-unit deck-unit-button${isBack ? ' is-back' : ''}`}
-                            onClick={() => setEquipmentHero(hero)}
-                            aria-label={`${hero.name} 장비 보기`}
-                          >
-                            <img src={hero.image} alt={hero.name} />
-                            <span>{hero.name}</span>
-                          </button>
-                        ) : null
-                      })}
-                      {(() => {
-                        const pet = petByName.get(deck.pet)
-                        return pet ? (
-                          <div className="deck-unit deck-unit--pet">
-                            <img src={pet.image} alt={pet.name} />
-                            <span>{pet.name}</span>
-                          </div>
-                        ) : null
-                      })()}
-                    </div>
+        {pagedDecks.map((deck) => (
+          <div key={deck.id} className="deck-card">
+            <div className="deck-head" aria-hidden="true" />
+            <div className="deck-layout">
+              <div className="deck-center">
+                <div className="deck-row">
+                  <div className="deck-units deck-units--lineup">
+                    {deck.heroes.map((name, index) => {
+                      const hero = heroByName.get(name)
+                      const backPositions = formationBackPositions[deck.formation.id] ?? []
+                      const isBack = backPositions.includes(index + 1)
+                      return hero ? (
+                        <button
+                          key={name}
+                          type="button"
+                          className={`deck-unit deck-unit-button${isBack ? ' is-back' : ''}`}
+                          onClick={() => setEquipmentHero(hero)}
+                          aria-label={`${hero.name} 장비 보기`}
+                        >
+                          <img src={hero.image} alt={hero.name} />
+                          <span>{hero.name}</span>
+                        </button>
+                      ) : null
+                    })}
+                    {(() => {
+                      const pet = petByName.get(deck.pet)
+                      return pet ? (
+                        <div className="deck-unit deck-unit--pet">
+                          <img src={pet.image} alt={pet.name} />
+                          <span>{pet.name}</span>
+                        </div>
+                      ) : null
+                    })()}
                   </div>
                 </div>
               </div>
-              <div className="deck-meta">
-                <div className="deck-meta-row">
-                  <span className="deck-meta-label">작성자</span>
-                  <span className="deck-meta-value">{deck.author}</span>
-                </div>
-                <div className="deck-meta-row">
-                  <span className="deck-meta-label">진형</span>
-                  <span className="deck-meta-value">{deck.formation.label}</span>
-                </div>
-                <div className="deck-meta-row deck-meta-row--skill">
-                  <span className="deck-meta-label">스킬순서</span>
-                  <span className="deck-meta-value deck-meta-value--skill">{deck.skillOrder}</span>
-                </div>
+            </div>
+            <div className="deck-meta">
+              <div className="deck-meta-row">
+                <span className="deck-meta-label">작성자</span>
+                <span className="deck-meta-value">{deck.author}</span>
               </div>
-              <div className="deck-reactions">
-                <button className="deck-reaction-button" type="button" aria-label="추천">
-                  <svg className="deck-reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M2 10h4v10H2V10zm20 2c0-1.1-.9-2-2-2h-6.3l1-4.6.02-.22c0-.3-.12-.58-.32-.78L13.7 3 7.6 9.1c-.38.38-.6.9-.6 1.4V19c0 1.1.9 2 2 2h7c.82 0 1.54-.5 1.84-1.26l2.16-5.05c.06-.17.1-.34.1-.52v-2z" />
-                  </svg>
-                  <span>추천</span>
-                  <span className="deck-reaction-count">{deck.likes}</span>
-                </button>
-                <button className="deck-reaction-button deck-reaction-button--down" type="button" aria-label="비추천">
-                  <svg className="deck-reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M22 14h-4V4h4v10zM4 12c0 1.1.9 2 2 2h6.3l-1 4.6-.02.22c0 .3.12.58.32.78L12.3 21l6.1-6.1c.38-.38.6-.9.6-1.4V5c0-1.1-.9-2-2-2H10c-.82 0-1.54.5-1.84 1.26L6 9.31c-.06.17-.1.34-.1.52v2z" />
-                  </svg>
-                  <span>비추천</span>
-                  <span className="deck-reaction-count">{deck.dislikes}</span>
-                </button>
+              <div className="deck-meta-row">
+                <span className="deck-meta-label">진형</span>
+                <span className="deck-meta-value">{deck.formation.label}</span>
+              </div>
+              <div className="deck-meta-row deck-meta-row--skill">
+                <span className="deck-meta-label">스킬순서</span>
+                <span className="deck-meta-value deck-meta-value--skill">{deck.skillOrder}</span>
               </div>
             </div>
-          ))
-        )}
+            <div className="deck-reactions">
+              <button className="deck-reaction-button" type="button" aria-label="추천">
+                <svg className="deck-reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2 10h4v10H2V10zm20 2c0-1.1-.9-2-2-2h-6.3l1-4.6.02-.22c0-.3-.12-.58-.32-.78L13.7 3 7.6 9.1c-.38.38-.6.9-.6 1.4V19c0 1.1.9 2 2 2h7c.82 0 1.54-.5 1.84-1.26l2.16-5.05c.06-.17.1-.34.1-.52v-2z" />
+                </svg>
+                <span>추천</span>
+                <span className="deck-reaction-count">{deck.likes}</span>
+              </button>
+              <button className="deck-reaction-button deck-reaction-button--down" type="button" aria-label="비추천">
+                <svg className="deck-reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M22 14h-4V4h4v10zM4 12c0 1.1.9 2 2 2h6.3l-1 4.6-.02.22c0 .3.12.58.32.78L12.3 21l6.1-6.1c.38-.38.6-.9.6-1.4V5c0-1.1-.9-2-2-2H10c-.82 0-1.54.5-1.84 1.26L6 9.31c-.06.17-.1.34-.1.52v2z" />
+                </svg>
+                <span>비추천</span>
+                <span className="deck-reaction-count">{deck.dislikes}</span>
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
       
       {equipmentHero ? (
@@ -302,8 +288,7 @@ function GuidesGrowthStage() {
         </div>
       ) : null}
     </section>
-
   )
 }
 
-export default GuidesGrowthStage
+export default GuidesRaidStage
