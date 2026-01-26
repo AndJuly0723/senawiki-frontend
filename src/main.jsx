@@ -6,6 +6,9 @@ import App from './App.jsx'
 import Home from './pages/Home.jsx'
 import Heroes from './pages/Heroes.jsx'
 import Community from './pages/Community.jsx'
+import CommunityWrite from './pages/CommunityWrite.jsx'
+import CommunityDetail from './pages/CommunityDetail.jsx'
+import CommunityEdit from './pages/CommunityEdit.jsx'
 import HeroDetail from './pages/HeroDetail.jsx'
 import Pets from './pages/Pets.jsx'
 import PetDetail from './pages/PetDetail.jsx'
@@ -32,6 +35,9 @@ createRoot(document.getElementById('root')).render(
         <Route path="/pets" element={<Pets />} />
         <Route path="/pets/:petId" element={<PetDetail />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/community/write" element={<CommunityWrite />} />
+        <Route path="/community/:id" element={<CommunityDetail />} />
+        <Route path="/community/:id/edit" element={<CommunityEdit />} />
         <Route path="/guides/adventure" element={<GuidesAdventure />} />
         <Route path="/guides/raid" element={<GuidesRaid />} />
         <Route path="/guides/raid/:raidId" element={<GuidesRaidStage />} />
