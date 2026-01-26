@@ -11,15 +11,16 @@ export const fetchCommunityPost = (id) =>
 export const increaseCommunityView = (id) =>
   post(`${COMMUNITY_ENDPOINT}/${id}/view`)
 
-const buildCommunityRequest = ({ guestName, guestPassword, title, content }) => ({
+const buildCommunityRequest = ({ guestName, guestPassword, title, content, notice }) => ({
   title,
   content,
   guestName,
   guestPassword,
+  notice,
 })
 
-export const createCommunityPost = ({ guestName, guestPassword, title, content, file }) => {
-  const requestBody = buildCommunityRequest({ guestName, guestPassword, title, content })
+export const createCommunityPost = ({ guestName, guestPassword, title, content, notice, file }) => {
+  const requestBody = buildCommunityRequest({ guestName, guestPassword, title, content, notice })
   if (!file) {
     return post(COMMUNITY_ENDPOINT, requestBody)
   }
@@ -36,8 +37,11 @@ export const createCommunityPost = ({ guestName, guestPassword, title, content, 
   })
 }
 
-export const updateCommunityPost = (id, { guestName, guestPassword, title, content, file }) => {
-  const requestBody = buildCommunityRequest({ guestName, guestPassword, title, content })
+export const updateCommunityPost = (
+  id,
+  { guestName, guestPassword, title, content, notice, file },
+) => {
+  const requestBody = buildCommunityRequest({ guestName, guestPassword, title, content, notice })
   if (!file) {
     return put(`${COMMUNITY_ENDPOINT}/${id}`, requestBody)
   }
@@ -54,7 +58,14 @@ export const updateCommunityPost = (id, { guestName, guestPassword, title, conte
   })
 }
 
-export const deleteCommunityPost = (id, { guestName, guestPassword }) =>
-  del(`${COMMUNITY_ENDPOINT}/${id}`, {
-    params: { guestName, guestPassword },
+export const deleteCommunityPost = (id, params) => {
+  if (!params) {
+    return del(`${COMMUNITY_ENDPOINT}/${id}`)
+  }
+  return del(`${COMMUNITY_ENDPOINT}/${id}`, {
+    params: {
+      guestName: params.guestName,
+      guestPassword: params.guestPassword,
+    },
   })
+}

@@ -16,7 +16,15 @@ const formatDate = (value) => {
 const normalizePost = (post, index) => ({
   id: post.id ?? post.postId ?? post.communityId ?? post._id ?? `post-${index}`,
   title: post.title ?? post.subject ?? '',
-  author: post.authorName ?? post.author ?? post.writer ?? post.name ?? '익명',
+  author:
+    post.authorNickname ??
+    post.nickname ??
+    post.authorName ??
+    post.author ??
+    post.writer ??
+    post.name ??
+    post.email ??
+    '익명',
   date: formatDate(post.createdAt ?? post.created_at ?? post.date),
   views: post.viewCount ?? post.views ?? 0,
   hasFile: Boolean(

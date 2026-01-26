@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { createCommunityPost } from '../api/endpoints/community'
+import { getStoredUser, isAdminUser } from '../utils/authStorage'
 
 function CommunityWrite() {
   const navigate = useNavigate()
@@ -9,8 +10,20 @@ function CommunityWrite() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [attachment, setAttachment] = useState(null)
+  const [notice, setNotice] = useState(false)
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const [currentUser, setCurrentUser] = useState(getStoredUser())
+  const isAdmin = isAdminUser(currentUser)
+  const isGuest = !currentUser
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setCurrentUser(getStoredUser())
+    }
+    window.addEventListener('authchange', handleAuthChange)
+    return () => window.removeEventListener('authchange', handleAuthChange)
+  }, [])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -19,10 +32,11 @@ function CommunityWrite() {
 
     try {
       await createCommunityPost({
-        guestName: guestName.trim(),
-        guestPassword,
+        guestName: isGuest ? guestName.trim() : undefined,
+        guestPassword: isGuest ? guestPassword : undefined,
         title: title.trim(),
         content: content.trim(),
+        notice: isAdmin ? notice : undefined,
         file: attachment,
       })
       setStatus('success')
@@ -42,7 +56,11 @@ function CommunityWrite() {
       <div className="community-toolbar">
         <div className="community-title">
           <h1>글 작성</h1>
-          <p>비회원은 이름과 비밀번호를 입력해야 합니다.</p>
+          <p>
+            {isGuest
+              ? '비회원은 이름과 비밀번호를 입력해야 합니다.'
+              : '회원은 바로 글을 작성할 수 있습니다.'}
+          </p>
         </div>
         <div className="community-actions">
           <Link className="community-icon-button" to="/community" aria-label="목록으로">
@@ -55,30 +73,32 @@ function CommunityWrite() {
 
       <div className="community-write-card">
         <form className="community-form" onSubmit={handleSubmit}>
-          <div className="community-form-grid">
-            <label className="community-form-field">
-              <span className="community-form-label">이름</span>
-              <input
-                className="community-form-input"
-                type="text"
-                placeholder="비회원 이름"
-                value={guestName}
-                onChange={(event) => setGuestName(event.target.value)}
-                required
-              />
-            </label>
-            <label className="community-form-field">
-              <span className="community-form-label">비밀번호</span>
-              <input
-                className="community-form-input"
-                type="password"
-                placeholder="글 수정/삭제용 비밀번호"
-                value={guestPassword}
-                onChange={(event) => setGuestPassword(event.target.value)}
-                required
-              />
-            </label>
-          </div>
+          {isGuest ? (
+            <div className="community-form-grid">
+              <label className="community-form-field">
+                <span className="community-form-label">이름</span>
+                <input
+                  className="community-form-input"
+                  type="text"
+                  placeholder="비회원 이름"
+                  value={guestName}
+                  onChange={(event) => setGuestName(event.target.value)}
+                  required
+                />
+              </label>
+              <label className="community-form-field">
+                <span className="community-form-label">비밀번호</span>
+                <input
+                  className="community-form-input"
+                  type="password"
+                  placeholder="글 수정/삭제용 비밀번호"
+                  value={guestPassword}
+                  onChange={(event) => setGuestPassword(event.target.value)}
+                  required
+                />
+              </label>
+            </div>
+          ) : null}
 
           <label className="community-form-field">
             <span className="community-form-label">제목</span>
@@ -103,6 +123,17 @@ function CommunityWrite() {
               required
             />
           </label>
+
+          {isAdmin ? (
+            <label className="community-form-field community-form-checkbox">
+              <input
+                type="checkbox"
+                checked={notice}
+                onChange={(event) => setNotice(event.target.checked)}
+              />
+              <span>공지글로 등록</span>
+            </label>
+          ) : null}
 
           <div className="community-form-field">
             <span className="community-form-label">첨부파일</span>

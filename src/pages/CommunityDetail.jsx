@@ -5,6 +5,7 @@ import {
   fetchCommunityPost,
   increaseCommunityView,
 } from '../api/endpoints/community'
+import { getStoredUser, isAdminUser } from '../utils/authStorage'
 
 const formatDateTime = (value) => {
   if (!value) return '-'
@@ -31,6 +32,7 @@ function CommunityDetail() {
   const [guestName, setGuestName] = useState('')
   const [guestPassword, setGuestPassword] = useState('')
   const [actionError, setActionError] = useState('')
+  const isAdmin = isAdminUser(getStoredUser())
 
   useEffect(() => {
     let isActive = true
@@ -64,6 +66,7 @@ function CommunityDetail() {
   }, [id])
 
   const isGuest = post?.authorType === 'GUEST'
+  const isNotice = Boolean(post?.notice)
   const createdAt = useMemo(() => formatDateTime(post?.createdAt), [post?.createdAt])
   const fileUrl = post?.fileDownloadUrl
   const isImage = post?.fileContentType?.startsWith('image/')
@@ -83,10 +86,15 @@ function CommunityDetail() {
   const handleDelete = async () => {
     setActionError('')
     try {
-      await deleteCommunityPost(id, {
-        guestName: guestName.trim(),
-        guestPassword,
-      })
+      await deleteCommunityPost(
+        id,
+        isAdmin
+          ? null
+          : {
+              guestName: guestName.trim(),
+              guestPassword,
+            },
+      )
       navigate('/community')
     } catch (error) {
       const message =
@@ -124,34 +132,38 @@ function CommunityDetail() {
       </button>
       {menuOpen ? (
         <div className="community-action-menu" role="menu">
-          <button
-            className="community-action-item"
-            type="button"
-            onClick={() => {
-              setMenuOpen(false)
-              if (isGuest) {
-                openModal('edit')
-              } else {
-                navigate(`/community/${id}/edit`)
-              }
-            }}
-          >
-            수정
-          </button>
-          <button
-            className="community-action-item community-action-item--danger"
-            type="button"
-            onClick={() => {
-              setMenuOpen(false)
-              if (isGuest) {
-                openModal('delete')
-              } else {
-                handleDelete()
-              }
-            }}
-          >
-            삭제
-          </button>
+          {(!isNotice || isAdmin) && (
+            <button
+              className="community-action-item"
+              type="button"
+              onClick={() => {
+                setMenuOpen(false)
+                if (isGuest && !isAdmin) {
+                  openModal('edit')
+                } else {
+                  navigate(`/community/${id}/edit`)
+                }
+              }}
+            >
+              수정
+            </button>
+          )}
+          {(!isNotice || isAdmin) && (
+            <button
+              className="community-action-item community-action-item--danger"
+              type="button"
+              onClick={() => {
+                setMenuOpen(false)
+                if (isGuest && !isAdmin) {
+                  openModal('delete')
+                } else {
+                  handleDelete()
+                }
+              }}
+            >
+              삭제
+            </button>
+          )}
         </div>
       ) : null}
     </div>
@@ -224,8 +236,18 @@ function CommunityDetail() {
           <button className="community-modal-backdrop" type="button" onClick={closeModal} />
           <div className="community-modal-card">
             <div className="community-modal-header">
-              <h2>{modalMode === 'delete' ? '게시글 삭제' : '게시글 수정'}</h2>
-              <p>비회원 비밀번호를 입력해주세요.</p>
+              <div>
+                <h2>{modalMode === 'delete' ? '게시글 삭제' : '게시글 수정'}</h2>
+                <p>비회원 비밀번호를 입력해주세요.</p>
+              </div>
+              <button
+                className="community-modal-close"
+                type="button"
+                onClick={closeModal}
+                aria-label="닫기"
+              >
+                ✕
+              </button>
             </div>
             <div className="community-modal-body">
               <label>

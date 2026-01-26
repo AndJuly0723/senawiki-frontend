@@ -1,12 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { heroes } from './data/heroes'
+import { clearAuth, getStoredUser } from './utils/authStorage'
 
 function App() {
   const [searchTerm, setSearchTerm] = useState('')
   const trimmedSearch = searchTerm.trim()
   const [openMenu, setOpenMenu] = useState(null)
   const navigate = useNavigate()
+  const [currentUser, setCurrentUser] = useState(getStoredUser())
 
   const searchResults = useMemo(() => {
     if (!trimmedSearch) return []
@@ -20,6 +22,14 @@ function App() {
       setSearchTerm('')
     }
   }
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setCurrentUser(getStoredUser())
+    }
+    window.addEventListener('authchange', handleAuthChange)
+    return () => window.removeEventListener('authchange', handleAuthChange)
+  }, [])
 
   return (
     <div className="app">
@@ -77,12 +87,30 @@ function App() {
           </svg>
         </NavLink>
         <div className="auth-actions">
-          <button className="auth-button auth-button--ghost" type="button">
-            로그인
-          </button>
-          <button className="auth-button" type="button">
-            회원가입
-          </button>
+          {currentUser ? (
+            <>
+              <span className="auth-user">{currentUser.nickname ?? currentUser.name}</span>
+              <button
+                className="auth-button auth-button--ghost"
+                type="button"
+                onClick={() => {
+                  clearAuth()
+                  navigate('/')
+                }}
+              >
+                로그아웃
+              </button>
+            </>
+          ) : (
+            <>
+              <Link className="auth-button auth-button--ghost" to="/login">
+                로그인
+              </Link>
+              <Link className="auth-button" to="/register">
+                회원가입
+              </Link>
+            </>
+          )}
         </div>
       </header>
       <nav className="site-nav" aria-label="Primary">

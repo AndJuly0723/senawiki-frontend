@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { fetchCommunityPost, updateCommunityPost } from '../api/endpoints/community'
+import { getStoredUser, isAdminUser } from '../utils/authStorage'
 
 function CommunityEdit() {
   const { id } = useParams()
@@ -13,8 +14,10 @@ function CommunityEdit() {
   const [attachment, setAttachment] = useState(null)
   const [authorType, setAuthorType] = useState('GUEST')
   const [fileOriginalName, setFileOriginalName] = useState('')
+  const [notice, setNotice] = useState(false)
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const isAdmin = isAdminUser(getStoredUser())
 
   useEffect(() => {
     let isActive = true
@@ -29,6 +32,7 @@ function CommunityEdit() {
         setContent(data?.content ?? '')
         setAuthorType(data?.authorType ?? 'GUEST')
         setFileOriginalName(data?.fileOriginalName ?? '')
+        setNotice(Boolean(data?.notice))
         setStatus('success')
       } catch (error) {
         if (isActive) {
@@ -58,6 +62,7 @@ function CommunityEdit() {
         guestPassword: authorType === 'GUEST' ? guestPassword : undefined,
         title: title.trim(),
         content: content.trim(),
+        notice: isAdmin ? notice : undefined,
         file: attachment,
       })
       setStatus('success')
@@ -140,6 +145,17 @@ function CommunityEdit() {
               required
             />
           </label>
+
+          {isAdmin ? (
+            <label className="community-form-field community-form-checkbox">
+              <input
+                type="checkbox"
+                checked={notice}
+                onChange={(event) => setNotice(event.target.checked)}
+              />
+              <span>공지글로 설정</span>
+            </label>
+          ) : null}
 
           <div className="community-form-field">
             <span className="community-form-label">첨부파일</span>
