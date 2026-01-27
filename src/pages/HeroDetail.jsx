@@ -28,7 +28,7 @@ function HeroDetail() {
           <div className="hero-profile-meta">
             <div className="hero-meta-row">
               <span>별명</span>
-              <strong>추가 예정</strong>
+              {hero.nickname ? <strong>{hero.nickname}</strong> : <strong>추가 예정</strong>}
             </div>
             <div className="hero-meta-row">
               <span>획득 경로</span>
@@ -55,8 +55,7 @@ function HeroDetail() {
                 <img src={`/images/heroskill/${hero.id}/basic.png`} alt="" aria-hidden="true" />
               </div>
               <div className="hero-skill-body">
-                <h3>기본 공격 (추가 예정)</h3>
-                <p>설명 영역입니다. 추후 스킬 이미지와 텍스트를 채워주세요.</p>
+                <h3>기본 공격</h3>
               </div>
             </div>
             <div className="hero-skill-row">
@@ -64,8 +63,7 @@ function HeroDetail() {
                 <img src={`/images/heroskill/${hero.id}/skill1.png`} alt="" aria-hidden="true" />
               </div>
               <div className="hero-skill-body">
-                <h3>스킬 1 (추가 예정)</h3>
-                <p>설명 영역입니다. 추후 스킬 이미지와 텍스트를 채워주세요.</p>
+                <h3>스킬 1</h3>
               </div>
             </div>
             {hero.hasSkill2 && (
@@ -74,8 +72,7 @@ function HeroDetail() {
                   <img src={`/images/heroskill/${hero.id}/skill2.png`} alt="" aria-hidden="true" />
                 </div>
                 <div className="hero-skill-body">
-                  <h3>스킬 2 (추가 예정)</h3>
-                  <p>설명 영역입니다. 추후 스킬 이미지와 텍스트를 채워주세요.</p>
+                  <h3>스킬 2</h3>
                 </div>
               </div>
             )}
@@ -84,8 +81,7 @@ function HeroDetail() {
                 <img src={`/images/heroskill/${hero.id}/passive.png`} alt="" aria-hidden="true" />
               </div>
               <div className="hero-skill-body">
-                <h3>패시브 (추가 예정)</h3>
-                <p>설명 영역입니다. 추후 스킬 이미지와 텍스트를 채워주세요.</p>
+                <h3>패시브</h3>
               </div>
             </div>
           </section>
@@ -94,13 +90,17 @@ function HeroDetail() {
       <section className="hero-content">
         <div className="hero-section-header">영웅 사용 콘텐츠</div>
         <div className="hero-section-body">
-          추후 내용을 추가할 예정입니다.
+          {hero.usage && hero.usage.length > 0
+            ? hero.usage.join(', ')
+            : '추후 내용을 추가할 예정입니다.'}
         </div>
       </section>
       <section className="hero-gear">
         <div className="hero-section-header">영웅 장비</div>
         <div className="hero-section-body">
-          추후 내용을 추가할 예정입니다.
+          {hero.gear && hero.gear.length > 0
+            ? hero.gear.join(', ')
+            : '추후 내용을 추가할 예정입니다.'}
         </div>
       </section>
       <section className="hero-comments">

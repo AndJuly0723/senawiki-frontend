@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import ScrollToTop from './components/ScrollToTop'
 import { heroes } from './data/heroes'
 import { clearAuth, getStoredUser } from './utils/authStorage'
 
@@ -33,6 +34,7 @@ function App() {
 
   return (
     <div className="app">
+      <ScrollToTop />
       <header className="site-header">
         <NavLink className="brand" to="/" aria-label="SENAWiKi home">
           <svg

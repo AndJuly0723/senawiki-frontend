@@ -1,10 +1,26 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { heroes } from '../data/heroes'
 
 function Heroes() {
   const [gradeFilter, setGradeFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
+
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem('heroesScrollY')
+    const nextScroll = savedScroll ? Number(savedScroll) : 0
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: Number.isNaN(nextScroll) ? 0 : nextScroll, behavior: 'auto' })
+    })
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('heroesScrollY', String(window.scrollY))
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const gradeOrder = {
     sena: 0,
