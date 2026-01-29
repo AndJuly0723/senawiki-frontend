@@ -1955,6 +1955,24 @@ body {
 }
 
 .hero-skill-body p {
+  padding-left: 12px;
+}
+
+.pet-skill-target {
+  font-weight: 700;
+}
+
+.pet-skill-target--ally {
+  color: #2f80ed;
+}
+
+.pet-skill-target--enemy {
+  color: #d32f2f;
+}
+
+
+
+.hero-skill-body p {
   margin: 0;
   color: rgba(255, 255, 255, 0.7);
   font-size: 14px;

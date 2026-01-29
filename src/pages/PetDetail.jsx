@@ -4,6 +4,31 @@ import { pets } from '../data/pets'
 function PetDetail() {
   const { petId } = useParams()
   const pet = pets.find((item) => item.id === petId)
+  const resolvePetTargets = () => {
+    if (pet?.skill?.targets) {
+      return pet.skill.targets
+    }
+    if (pet?.skill?.target) {
+      return [pet.skill.target]
+    }
+    return []
+  }
+  const renderPetSkillLine = (line, target, index) => (
+    <span key={`${line}-${index}`}>
+      {index > 0 ? <br /> : null}
+      {target ? (
+        <span
+          className={`pet-skill-target ${
+            target === '모든 적군' ? 'pet-skill-target--enemy' : 'pet-skill-target--ally'
+          }`}
+        >
+          [{target}]
+        </span>
+      ) : null}
+      {target ? ' ' : ''}
+      {line}
+    </span>
+  )
 
   if (!pet) {
     return (
@@ -44,8 +69,51 @@ function PetDetail() {
                 <img src={`/images/petskill/${pet.id}/skill.png`} alt="" aria-hidden="true" />
               </div>
               <div className="hero-skill-body">
-                <h3>펫 스킬 (추가 예정)</h3>
-                <p>설명 영역입니다. 추후 스킬 이미지와 텍스트를 채워주세요.</p>
+                <h3>
+                  {pet.skill?.name ?? '펫의 응원'}
+                </h3>
+                {pet.skill?.descriptionLines ? (
+                  <p>
+                    {(() => {
+                      const targets = resolvePetTargets()
+                      if (targets.length === pet.skill.descriptionLines.length) {
+                        return pet.skill.descriptionLines.map((line, index) =>
+                          renderPetSkillLine(line, targets[index], index),
+                        )
+                      }
+                      if (targets.length === 1) {
+                        return pet.skill.descriptionLines.map((line, index) =>
+                          renderPetSkillLine(line, targets[0], index),
+                        )
+                      }
+                      return pet.skill.descriptionLines.map((line, index) =>
+                        renderPetSkillLine(line, '', index),
+                      )
+                    })()}
+                  </p>
+                ) : pet.skill?.description ? (
+                  <p>
+                    {(() => {
+                      const targets = resolvePetTargets()
+                      return targets.length > 0 ? (
+                        <>
+                          <span
+                            className={`pet-skill-target ${
+                              targets[0] === '모든 적군'
+                                ? 'pet-skill-target--enemy'
+                                : 'pet-skill-target--ally'
+                            }`}
+                          >
+                            [{targets[0]}]
+                          </span>{' '}
+                          {pet.skill.description}
+                        </>
+                      ) : (
+                        pet.skill.description
+                      )
+                    })()}
+                  </p>
+                ) : null}
               </div>
             </div>
           </section>

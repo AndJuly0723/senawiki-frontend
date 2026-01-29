@@ -259,6 +259,20 @@ const heroUsageById = {
   sylvia: ['없음'],
   ariel: ['공성전', '강림원정대'],
   asura: ['레이드'],
+  evan: ['공성전', '레이드'],
+  yui: ['레이드', '성장 던전'],
+  jane: ['성장 던전'],
+  zhaoyun: ['성장 던전'],
+  joker: ['성장 던전'],
+  jin: ['공성전'],
+  karon: ['레이드'],
+  karin: ['없음'],
+  catty: ['성장 던전'],
+  cleo: ['성장 던전', '공성전'],
+  chloe: ['성장 던전', '공성전'],
+  pungyeon: ['성장 던전', '공성전'],
+  hebnia: ['성장 던전'],
+  hellenia: ['길드전', '결투장', '총력전'],
 }
 
 const heroGearById = {
@@ -336,6 +350,20 @@ const heroGearById = {
   sylvia: ['복수자세트'],
   ariel: ['수문장세트', '선봉장세트'],
   asura: ['추적자세트', '수문장세트'],
+  evan: ['수호자세트', '수문장세트'],
+  yui: ['성기사세트'],
+  jane: ['복수자세트'],
+  zhaoyun: ['선봉장세트'],
+  joker: ['수문장세트'],
+  jin: ['복수자세트'],
+  karon: ['성기사세트', '수문장세트'],
+  karin: ['성기사세트'],
+  catty: ['수문장세트'],
+  cleo: ['수문장세트', '주술사세트'],
+  chloe: ['수문장세트', '조율자세트'],
+  pungyeon: ['복수자세트', '암살자세트'],
+  hebnia: ['선봉장세트'],
+  hellenia: ['수문장세트', '조율자세트'],
 }
 
 const heroTypeByName = {

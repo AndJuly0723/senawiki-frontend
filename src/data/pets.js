@@ -58,6 +58,129 @@ const petGradeByName = {
   ],
 }
 
+const petSkillById = {
+  roo: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    description: '방어력 22% 증가',
+  },
+  irin: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    description: '물리공격력 21% 증가',
+  },
+  richel: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    descriptionLines: ['약점 공격 확률 17% 증가', '약점 공격 피해량 10% 증가'],
+  },
+  kri: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    descriptionLines: ['효과 적중 19% 증가', '모든 공격력 12% 증가'],
+  },
+  pike: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    descriptionLines: ['효과 저항 19% 증가', '방어력 13% 증가'],
+  },
+  dello: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    descriptionLines: ['치명타 확률 21% 증가', '치명타 피해 15% 증가'],
+  },
+  windy: {
+    name: '펫의 응원',
+    targets: ['모든 적군', '모든 아군'],
+    descriptionLines: ['보스가 받는 피해량 26% 증가', '모든 공격력 12% 증가'],
+  },
+  yu: {
+    name: '펫의 응원',
+    target: '모든 적군',
+    descriptionLines: ['방어력 10% 감소', '받는 회복량 32% 감소'],
+  },
+  yeonji: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    description: '마법 공격력 21% 증가',
+  },
+  karam: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    descriptionLines: ['받는 피해량 8% 감소', '막기 확률 15% 증가'],
+  },
+  melpe: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    descriptionLines: ['효과 적용 확률 10% 증가', '효과 적중 19% 증가'],
+  },
+  mick: {
+    name: '펫의 응원',
+    description: '모험에서 골드 20% 추가 획득',
+  },
+  durgi: {
+    name: '펫의 응원',
+    description: '모험에서 장비 및 장신구 획득 확률 30% 증가',
+  },
+  eri: {
+    name: '펫의 응원',
+    description: '모험에서 영웅 획득 확률 10% 증가',
+  },
+  mimic: {
+    name: '펫의 응원',
+    description: '모험에서 골드 10% 추가 획득',
+  },
+  doo: {
+    name: '펫의 응원',
+    description: '모험에서 장비 및 장신구 획득 확률 10% 증가',
+  },
+  nina: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    description: '치명타 확률 17% 증가',
+  },
+  poong: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    description: '치명타 피해 25% 증가',
+  },
+  mumu: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    description: '주는 피해량 10% 증가',
+  },
+  helepin: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    description: '막기확률 17% 증가',
+  },
+  kroa: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    description: '모든 공격력 12% 증가',
+  },
+  paragon: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    description: '방어력 17% 증가',
+  },
+  note: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    description: '마법 공격력 17% 증가',
+  },
+  nikki: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    description: '효과 적중 25% 증가',
+  },
+  seri: {
+    name: '펫의 응원',
+    target: '모든 아군',
+    description: '물리 공격력 17% 증가',
+  },
+}
+
 const gradeMeta = {
   전설: { key: 'legend', label: '전설' },
   희귀: { key: 'rare', label: '희귀' },
@@ -81,5 +204,6 @@ export const pets = Object.keys(petNameMap).map((id) => {
     image: `/images/pets/${id}.png`,
     grade: grade?.key ?? 'unknown',
     gradeLabel: grade?.label ?? '미분류',
+    skill: petSkillById[id],
   }
 })
