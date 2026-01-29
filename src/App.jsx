@@ -125,9 +125,20 @@ function App() {
         <NavLink to="/pets" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>
           펫
         </NavLink>
-        <NavLink to="/community" className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}>
-          커뮤니티
-        </NavLink>
+        <div
+          className={`nav-dropdown${openMenu === 'community' ? ' is-open' : ''}`}
+          onMouseEnter={() => setOpenMenu('community')}
+          onMouseLeave={() => setOpenMenu(null)}
+        >
+          <button className="nav-link nav-link--dropdown" type="button">
+            커뮤니티
+            <span className="nav-caret" aria-hidden="true">▾</span>
+          </button>
+          <div className="nav-dropdown-menu" role="menu">
+            <NavLink to="/community" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>커뮤니티</NavLink>
+            <NavLink to="/info" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>정보&amp;팁</NavLink>
+          </div>
+        </div>
         <div
           className={`nav-dropdown${openMenu === 'guides' ? ' is-open' : ''}`}
           onMouseEnter={() => setOpenMenu('guides')}
