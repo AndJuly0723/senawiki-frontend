@@ -26,6 +26,34 @@ const petNameMap = {
   yu: '유',
 }
 
+const petNicknameById = {
+  roo: '축복의 천사',
+  irin: '사냥터의 왕',
+  richel: '고귀한 귀족',
+  kri: '복수의 악마',
+  pike: '따뜻한 눈보라',
+  dello: '작은 사신',
+  windy: '대마법사의 조력',
+  yu: '총운의 정령',
+  yeonji: '잠을 인도하는',
+  karam: '푸른 화령',
+  melpe: '혼돈의 흑조',
+  mick: '황금 상자',
+  durgi: '영리한 탐험가',
+  eri: '행복을 전하는',
+  mimic: '반짝이는 상자',
+  doo: '행운의 탐험가',
+  nina: '감동의 정화',
+  poong: '호위 무사',
+  mumu: '천둥 신선',
+  helepin: '발키리의 그리폰',
+  kroa: '심연의 상징',
+  paragon: '하늘의 눈',
+  note: '대도서관',
+  nikki: '완전체 쥐',
+  seri: '세인의 친구',
+}
+
 const petGradeByName = {
   전설: [
     '델로',
@@ -202,6 +230,7 @@ export const pets = Object.keys(petNameMap).map((id) => {
     id,
     name,
     image: `/images/pets/${id}.png`,
+    nickname: petNicknameById[id],
     grade: grade?.key ?? 'unknown',
     gradeLabel: grade?.label ?? '미분류',
     skill: petSkillById[id],

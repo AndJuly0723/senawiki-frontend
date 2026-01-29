@@ -53,11 +53,11 @@ function PetDetail() {
           <div className="hero-profile-meta">
             <div className="hero-meta-row">
               <span>별명</span>
-              <strong>추가 예정</strong>
+              <strong>{pet.nickname ?? '추가 예정'}</strong>
             </div>
             <div className="hero-meta-row">
               <span>획득 경로</span>
-              <strong>추가 예정</strong>
+              <strong>펫 소환, 펫 합성</strong>
             </div>
           </div>
         </aside>
@@ -119,12 +119,6 @@ function PetDetail() {
           </section>
         </div>
       </div>
-      <section className="hero-content">
-        <div className="hero-section-header">펫 사용 콘텐츠</div>
-        <div className="hero-section-body">
-          추후 내용을 추가할 예정입니다.
-        </div>
-      </section>
       <section className="hero-comments">
         <div className="hero-section-header">댓글</div>
         <div className="hero-comments-body">
