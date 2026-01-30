@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchCommunityPosts } from '../api/endpoints/community'
 
@@ -142,7 +142,11 @@ function Community() {
               <path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
             </svg>
           </Link>
-          <button className="community-icon-button community-icon-button--search" type="button" aria-label="검색">
+          <button
+            className="community-icon-button community-icon-button--search"
+            type="button"
+            aria-label="검색"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M10 4a6 6 0 1 0 3.74 10.7l4.53 4.53 1.41-1.41-4.53-4.53A6 6 0 0 0 10 4zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8z" />
             </svg>

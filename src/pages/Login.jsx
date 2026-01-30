@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { loginUser } from '../api/endpoints/auth'
 import { setAuthTokens, setStoredUser } from '../utils/authStorage'
@@ -9,6 +9,10 @@ function Login() {
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
+
+  const handleClose = () => {
+    navigate('/', { replace: true })
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -23,7 +27,7 @@ function Login() {
         setStoredUser(data.user)
       }
       setStatus('success')
-      navigate('/')
+      navigate('/', { replace: true })
     } catch (error) {
       const message =
         error?.response?.data?.detail ||
@@ -36,18 +40,13 @@ function Login() {
   }
 
   return (
-    <section className="auth-page">
-      <div className="auth-card">
-        <button
-          className="auth-close"
-          type="button"
-          onClick={() => navigate(-1)}
-          aria-label="닫기"
-        >
-          ✕
+    <section className="auth-page" role="dialog" aria-modal="true" onClick={handleClose}>
+      <div className="auth-card" onClick={(event) => event.stopPropagation()}>
+        <button className="auth-close" type="button" onClick={handleClose} aria-label="닫기">
+          ×
         </button>
         <h1>로그인</h1>
-        <p>이메일과 비밀번호를 입력하세요.</p>
+        <p>이메일과 비밀번호를 입력해주세요.</p>
         <form onSubmit={handleSubmit}>
           <label>
             이메일

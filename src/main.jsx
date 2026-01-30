@@ -10,6 +10,9 @@ import CommunityWrite from './pages/CommunityWrite.jsx'
 import CommunityDetail from './pages/CommunityDetail.jsx'
 import CommunityEdit from './pages/CommunityEdit.jsx'
 import Info from './pages/Info.jsx'
+import InfoDetail from './pages/InfoDetail.jsx'
+import InfoWrite from './pages/InfoWrite.jsx'
+import InfoEdit from './pages/InfoEdit.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import HeroDetail from './pages/HeroDetail.jsx'
@@ -42,6 +45,9 @@ createRoot(document.getElementById('root')).render(
         <Route path="/community/:id" element={<CommunityDetail />} />
         <Route path="/community/:id/edit" element={<CommunityEdit />} />
         <Route path="/info" element={<Info />} />
+        <Route path="/info/write" element={<InfoWrite />} />
+        <Route path="/info/:id" element={<InfoDetail />} />
+        <Route path="/info/:id/edit" element={<InfoEdit />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/guides/adventure" element={<GuidesAdventure />} />

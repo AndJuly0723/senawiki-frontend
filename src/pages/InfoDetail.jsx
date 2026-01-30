@@ -1,10 +1,10 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
-  deleteCommunityPost,
-  fetchCommunityPost,
-  increaseCommunityView,
-} from '../api/endpoints/community'
+  deleteTipPost,
+  fetchTipPost,
+  increaseTipView,
+} from '../api/endpoints/tip'
 import { getStoredUser, isAdminUser } from '../utils/authStorage'
 
 const formatDateTime = (value) => {
@@ -20,7 +20,7 @@ const formatDateTime = (value) => {
   })
 }
 
-function CommunityDetail() {
+function InfoDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [post, setPost] = useState(null)
@@ -41,8 +41,8 @@ function CommunityDetail() {
       setStatus('loading')
       setErrorMessage('')
       try {
-        increaseCommunityView(id).catch(() => {})
-        const data = await fetchCommunityPost(id)
+        increaseTipView(id).catch(() => {})
+        const data = await fetchTipPost(id)
         if (isActive) {
           setPost(data)
           setStatus('success')
@@ -86,7 +86,7 @@ function CommunityDetail() {
   const handleDelete = async () => {
     setActionError('')
     try {
-      await deleteCommunityPost(
+      await deleteTipPost(
         id,
         isAdmin
           ? null
@@ -95,7 +95,7 @@ function CommunityDetail() {
               guestPassword,
             },
       )
-      navigate('/community')
+      navigate('/info')
     } catch (error) {
       const message =
         error?.response?.data?.message ||
@@ -110,7 +110,7 @@ function CommunityDetail() {
       await handleDelete()
       return
     }
-    navigate(`/community/${id}/edit`, {
+    navigate(`/info/${id}/edit`, {
       state: {
         guestName: guestName.trim(),
         guestPassword,
@@ -141,7 +141,7 @@ function CommunityDetail() {
                 if (isGuest && !isAdmin) {
                   openModal('edit')
                 } else {
-                  navigate(`/community/${id}/edit`)
+                  navigate(`/info/${id}/edit`)
                 }
               }}
             >
@@ -183,7 +183,7 @@ function CommunityDetail() {
           </div>
         </div>
         <div className="community-detail-header-actions">
-          <Link className="community-back community-back--compact" to="/community">
+          <Link className="community-back community-back--compact" to="/info">
             목록으로
           </Link>
           {status === 'success' ? renderActionMenu() : null}
@@ -246,7 +246,7 @@ function CommunityDetail() {
                 onClick={closeModal}
                 aria-label="닫기"
               >
-                닫기
+                ×
               </button>
             </div>
             <div className="community-modal-body">
@@ -289,4 +289,4 @@ function CommunityDetail() {
   )
 }
 
-export default CommunityDetail
+export default InfoDetail

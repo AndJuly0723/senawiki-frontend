@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { registerUser, sendEmailVerification, verifyEmailCode } from '../api/endpoints/auth'
 import { setAuthTokens, setStoredUser } from '../utils/authStorage'
@@ -15,6 +15,10 @@ function Register() {
   const [timerSeconds, setTimerSeconds] = useState(0)
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
+
+  const handleClose = () => {
+    navigate('/', { replace: true })
+  }
 
   const handleSendCode = async () => {
     if (!email.trim()) {
@@ -33,7 +37,7 @@ function Register() {
         error?.response?.data?.detail ||
         error?.response?.data?.message ||
         error?.message ||
-        '인증코드 발송에 실패했습니다.'
+        '인증코드 전송에 실패했습니다.'
       setErrorMessage(message)
       setVerifyStatus('error')
     }
@@ -96,7 +100,7 @@ function Register() {
         setStoredUser(data.user)
       }
       setStatus('success')
-      navigate('/community')
+      navigate('/community', { replace: true })
     } catch (error) {
       const message =
         error?.response?.data?.detail ||
@@ -109,18 +113,13 @@ function Register() {
   }
 
   return (
-    <section className="auth-page">
-      <div className="auth-card">
-        <button
-          className="auth-close"
-          type="button"
-          onClick={() => navigate(-1)}
-          aria-label="닫기"
-        >
-          ✕
+    <section className="auth-page" role="dialog" aria-modal="true" onClick={handleClose}>
+      <div className="auth-card" onClick={(event) => event.stopPropagation()}>
+        <button className="auth-close" type="button" onClick={handleClose} aria-label="닫기">
+          ×
         </button>
         <h1>회원가입</h1>
-        <p>기본 정보를 입력해 계정을 만드세요.</p>
+        <p>기본 정보를 입력해 계정을 만들어주세요.</p>
         <form onSubmit={handleSubmit}>
           <label>
             이름
@@ -162,7 +161,7 @@ function Register() {
                 onClick={handleSendCode}
                 disabled={verifyStatus === 'sending' || timerSeconds > 0}
               >
-                {timerSeconds > 0 ? `${formatTimer(timerSeconds)}` : '인증코드 발송'}
+                {timerSeconds > 0 ? `${formatTimer(timerSeconds)}` : '인증코드 전송'}
               </button>
             </div>
           </label>

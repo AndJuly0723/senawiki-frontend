@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import ScrollToTop from './components/ScrollToTop'
 import { heroes } from './data/heroes'
-import { clearAuth, getStoredUser } from './utils/authStorage'
+import { logoutUser } from './api/endpoints/auth'
+import { clearAuth, getRefreshToken, getStoredUser } from './utils/authStorage'
 
 function App() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -21,6 +22,20 @@ function App() {
     if (searchResults.length > 0) {
       navigate(`/heroes/${searchResults[0].id}`)
       setSearchTerm('')
+    }
+  }
+
+  const handleLogout = async () => {
+    const refreshToken = getRefreshToken()
+    try {
+      if (refreshToken) {
+        await logoutUser({ refreshToken })
+      }
+    } catch {
+      // Ignore logout errors and clear local auth state anyway.
+    } finally {
+      clearAuth()
+      navigate('/')
     }
   }
 
@@ -95,10 +110,7 @@ function App() {
               <button
                 className="auth-button auth-button--ghost"
                 type="button"
-                onClick={() => {
-                  clearAuth()
-                  navigate('/')
-                }}
+                onClick={handleLogout}
               >
                 로그아웃
               </button>
@@ -132,11 +144,11 @@ function App() {
         >
           <button className="nav-link nav-link--dropdown" type="button">
             커뮤니티
-            <span className="nav-caret" aria-hidden="true">▾</span>
+            <span className="nav-caret" aria-hidden="true">▼</span>
           </button>
           <div className="nav-dropdown-menu" role="menu">
             <NavLink to="/community" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>커뮤니티</NavLink>
-            <NavLink to="/info" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>정보&amp;팁</NavLink>
+            <NavLink to="/info" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>정보&팁</NavLink>
           </div>
         </div>
         <div
@@ -146,7 +158,7 @@ function App() {
         >
           <button className="nav-link nav-link--dropdown" type="button">
             공략
-            <span className="nav-caret" aria-hidden="true">▾</span>
+            <span className="nav-caret" aria-hidden="true">▼</span>
           </button>
           <div className="nav-dropdown-menu" role="menu">
             <NavLink to="/guides/adventure" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>모험</NavLink>
@@ -163,7 +175,7 @@ function App() {
         >
           <button className="nav-link nav-link--dropdown" type="button">
             길드
-            <span className="nav-caret" aria-hidden="true">▾</span>
+            <span className="nav-caret" aria-hidden="true">▼</span>
           </button>
           <div className="nav-dropdown-menu" role="menu">
             <NavLink to="/guild/siege" role="menuitem" className="nav-dropdown-item" onClick={() => setOpenMenu(null)}>공성전</NavLink>
