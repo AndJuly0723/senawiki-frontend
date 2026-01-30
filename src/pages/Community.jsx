@@ -27,6 +27,7 @@ const normalizePost = (post, index) => ({
     '익명',
   date: formatDate(post.createdAt ?? post.created_at ?? post.date),
   views: post.viewCount ?? post.views ?? 0,
+  commentCount: Number.isFinite(post.commentCount) ? post.commentCount : 0,
   hasFile: Boolean(
     post.fileOriginalName ?? post.fileContentType ?? post.fileSize ?? post.fileDownloadUrl,
   ),
@@ -188,6 +189,11 @@ function Community() {
                   <span className="post-title">{post.title}</span>
                 </Link>
                 {post.pinned ? <span className="post-badge">공지</span> : null}
+                {post.commentCount > 0 ? (
+                  <span className="post-comment-count" aria-label={`댓글 ${post.commentCount}개`}>
+                    💭 {post.commentCount}
+                  </span>
+                ) : null}
               </div>
               <span className="col-author">{post.author}</span>
               <span className="col-date">{post.date}</span>

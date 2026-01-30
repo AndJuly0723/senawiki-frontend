@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom'
+﻿import { Link, useParams } from 'react-router-dom'
 import { pets } from '../data/pets'
 
 function PetDetail() {
@@ -57,7 +57,7 @@ function PetDetail() {
             </div>
             <div className="hero-meta-row">
               <span>획득 경로</span>
-              <strong>펫 소환, 펫 합성</strong>
+              <strong>모험·소환, 합성</strong>
             </div>
           </div>
         </aside>
@@ -122,16 +122,8 @@ function PetDetail() {
       <section className="hero-comments">
         <div className="hero-section-header">댓글</div>
         <div className="hero-comments-body">
-          <div className="hero-comment">
-            <div className="hero-comment-head">
-              <strong>유저명</strong>
-              <span>2026-01-23 12:00</span>
-            </div>
-            <p>댓글 내용 예시입니다. 추후 댓글 시스템을 연결하세요.</p>
-          </div>
-          <div className="hero-comment-form">
-            <textarea placeholder="댓글을 입력하세요." rows="3" />
-            <button type="button">등록</button>
+          <div className="hero-comment hero-comment--empty">
+            댓글 기능은 현재 구현 보류 중입니다.
           </div>
         </div>
       </section>

@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom'
+﻿import { Link, useParams } from 'react-router-dom'
 import { heroes } from '../data/heroes'
 
 function HeroDetail() {
@@ -92,7 +92,7 @@ function HeroDetail() {
         <div className="hero-section-body">
           {hero.usage && hero.usage.length > 0
             ? hero.usage.join(', ')
-            : '추후 내용을 추가할 예정입니다.'}
+            : '추가로 내용을 업데이트할 예정입니다.'}
         </div>
       </section>
       <section className="hero-gear">
@@ -100,29 +100,14 @@ function HeroDetail() {
         <div className="hero-section-body">
           {hero.gear && hero.gear.length > 0
             ? hero.gear.join(', ')
-            : '추후 내용을 추가할 예정입니다.'}
+            : '추가로 내용을 업데이트할 예정입니다.'}
         </div>
       </section>
       <section className="hero-comments">
         <div className="hero-section-header">댓글</div>
         <div className="hero-comments-body">
-          <div className="hero-comment">
-            <div className="hero-comment-head">
-              <strong>유저명</strong>
-              <span>2026-01-23 12:00</span>
-            </div>
-            <p>댓글 내용 예시입니다. 추후 댓글 시스템을 연결하세요.</p>
-          </div>
-          <div className="hero-comment">
-            <div className="hero-comment-head">
-              <strong>유저명</strong>
-              <span>2026-01-23 12:05</span>
-            </div>
-            <p>댓글 내용 예시입니다.</p>
-          </div>
-          <div className="hero-comment-form">
-            <textarea placeholder="댓글을 입력하세요." rows="3" />
-            <button type="button">등록</button>
+          <div className="hero-comment hero-comment--empty">
+            댓글 기능은 현재 구현 보류 중입니다.
           </div>
         </div>
       </section>

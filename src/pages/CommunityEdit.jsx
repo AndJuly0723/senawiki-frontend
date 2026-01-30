@@ -31,6 +31,7 @@ function CommunityEdit() {
         setTitle(data?.title ?? '')
         setContent(data?.content ?? '')
         setAuthorType(data?.authorType ?? 'GUEST')
+        setGuestName((prev) => (prev ? prev : data?.authorName ?? ''))
         setFileOriginalName(data?.fileOriginalName ?? '')
         setNotice(Boolean(data?.notice))
         setStatus('success')
@@ -68,6 +69,11 @@ function CommunityEdit() {
       setStatus('success')
       navigate(`/community/${id}`)
     } catch (error) {
+      if (error?.response?.status === 401) {
+        setErrorMessage('잘못된 비밀번호 입니다.')
+        setStatus('error')
+        return
+      }
       const message =
         error?.response?.data?.message ||
         error?.message ||
@@ -97,17 +103,6 @@ function CommunityEdit() {
         <form className="community-form" onSubmit={handleSubmit}>
           {authorType === 'GUEST' ? (
             <div className="community-form-grid">
-              <label className="community-form-field">
-                <span className="community-form-label">이름</span>
-                <input
-                  className="community-form-input"
-                  type="text"
-                  placeholder="비회원 이름"
-                  value={guestName}
-                  onChange={(event) => setGuestName(event.target.value)}
-                  required
-                />
-              </label>
               <label className="community-form-field">
                 <span className="community-form-label">비밀번호</span>
                 <input

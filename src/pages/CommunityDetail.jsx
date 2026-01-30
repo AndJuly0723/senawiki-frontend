@@ -4,7 +4,14 @@ import {
   deleteCommunityPost,
   fetchCommunityPost,
   increaseCommunityView,
+  updateCommunityPost,
 } from '../api/endpoints/community'
+import {
+  createBoardComment,
+  deleteBoardComment,
+  fetchBoardComments,
+  updateBoardComment,
+} from '../api/endpoints/boardComments'
 import { getStoredUser, isAdminUser } from '../utils/authStorage'
 
 const formatDateTime = (value) => {
@@ -26,13 +33,39 @@ function CommunityDetail() {
   const [post, setPost] = useState(null)
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const [currentUser, setCurrentUser] = useState(getStoredUser())
   const [menuOpen, setMenuOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState('delete')
   const [guestName, setGuestName] = useState('')
   const [guestPassword, setGuestPassword] = useState('')
   const [actionError, setActionError] = useState('')
-  const isAdmin = isAdminUser(getStoredUser())
+  const [comments, setComments] = useState([])
+  const [commentStatus, setCommentStatus] = useState('idle')
+  const [commentError, setCommentError] = useState('')
+  const [commentContent, setCommentContent] = useState('')
+  const [commentGuestName, setCommentGuestName] = useState('')
+  const [commentGuestPassword, setCommentGuestPassword] = useState('')
+  const [commentSubmitting, setCommentSubmitting] = useState(false)
+  const [commentSubmitError, setCommentSubmitError] = useState('')
+  const [commentMenuOpenId, setCommentMenuOpenId] = useState(null)
+  const [commentModalOpen, setCommentModalOpen] = useState(false)
+  const [commentModalMode, setCommentModalMode] = useState('delete')
+  const [commentActionTarget, setCommentActionTarget] = useState(null)
+  const [commentActionName, setCommentActionName] = useState('')
+  const [commentActionPassword, setCommentActionPassword] = useState('')
+  const [commentActionContent, setCommentActionContent] = useState('')
+  const [commentActionError, setCommentActionError] = useState('')
+  const isAdmin = isAdminUser(currentUser)
+  const isCommentGuest = !currentUser
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setCurrentUser(getStoredUser())
+    }
+    window.addEventListener('authchange', handleAuthChange)
+    return () => window.removeEventListener('authchange', handleAuthChange)
+  }, [])
 
   useEffect(() => {
     let isActive = true
@@ -65,6 +98,51 @@ function CommunityDetail() {
     }
   }, [id])
 
+  const loadComments = async (isActiveRef) => {
+    setCommentStatus('loading')
+    setCommentError('')
+    try {
+      const data = await fetchBoardComments('COMMUNITY', id)
+      const list = Array.isArray(data)
+        ? data
+        : data?.content ?? data?.items ?? data?.data ?? []
+      const normalized = list.map((comment, index) => ({
+        id: comment.id ?? comment.commentId ?? comment._id ?? `comment-${index}`,
+        author:
+          comment.authorName ??
+          comment.authorNickname ??
+          comment.nickname ??
+          comment.writer ??
+          comment.name ??
+          comment.email ??
+          '익명',
+        content: comment.content ?? comment.comment ?? comment.body ?? '',
+        createdAt: comment.createdAt ?? comment.created_at ?? comment.date,
+      }))
+      if (!isActiveRef || isActiveRef.current) {
+        setComments(normalized)
+        setCommentStatus('success')
+      }
+    } catch (error) {
+      if (!isActiveRef || isActiveRef.current) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          '댓글을 불러오지 못했습니다.'
+        setCommentError(message)
+        setCommentStatus('error')
+      }
+    }
+  }
+
+  useEffect(() => {
+    const isActiveRef = { current: true }
+    loadComments(isActiveRef)
+    return () => {
+      isActiveRef.current = false
+    }
+  }, [id])
+
   const isGuest = post?.authorType === 'GUEST'
   const isNotice = Boolean(post?.notice)
   const createdAt = useMemo(() => formatDateTime(post?.createdAt), [post?.createdAt])
@@ -85,18 +163,26 @@ function CommunityDetail() {
 
   const handleDelete = async () => {
     setActionError('')
+    if (!isAdmin && !guestPassword) {
+      setActionError('비밀번호를 입력해주세요.')
+      return
+    }
     try {
       await deleteCommunityPost(
         id,
         isAdmin
           ? null
           : {
-              guestName: guestName.trim(),
+              guestName: post?.authorName ?? guestName.trim(),
               guestPassword,
             },
       )
       navigate('/community')
     } catch (error) {
+      if (error?.response?.status === 401) {
+        setActionError('잘못된 비밀번호 입니다.')
+        return
+      }
       const message =
         error?.response?.data?.message ||
         error?.message ||
@@ -110,9 +196,35 @@ function CommunityDetail() {
       await handleDelete()
       return
     }
+    if (isGuest && !isAdmin) {
+      if (!guestPassword) {
+        setActionError('비밀번호를 입력해주세요.')
+        return
+      }
+      setActionError('')
+      try {
+        await updateCommunityPost(id, {
+          guestName: post?.authorName ?? guestName.trim(),
+          guestPassword,
+          title: post?.title ?? '',
+          content: post?.content ?? '',
+        })
+      } catch (error) {
+        if (error?.response?.status === 401) {
+          setActionError('잘못된 비밀번호 입니다.')
+          return
+        }
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          '수정에 실패했습니다.'
+        setActionError(message)
+        return
+      }
+    }
     navigate(`/community/${id}/edit`, {
       state: {
-        guestName: guestName.trim(),
+        guestName: post?.authorName ?? guestName.trim(),
         guestPassword,
       },
     })
@@ -169,10 +281,103 @@ function CommunityDetail() {
     </div>
   )
 
+  const openCommentModal = (mode, comment) => {
+    setCommentModalMode(mode)
+    setCommentActionTarget(comment)
+    setCommentActionContent(comment?.content ?? '')
+    setCommentActionName('')
+    setCommentActionPassword('')
+    setCommentActionError('')
+    setCommentModalOpen(true)
+  }
+
+  const closeCommentModal = () => {
+    setCommentModalOpen(false)
+    setCommentActionTarget(null)
+    setCommentActionContent('')
+    setCommentActionName('')
+    setCommentActionPassword('')
+    setCommentActionError('')
+  }
+
+  const handleCommentSubmit = async (event) => {
+    event.preventDefault()
+    const trimmedContent = commentContent.trim()
+    if (!trimmedContent) return
+    if (isCommentGuest && (!commentGuestName.trim() || !commentGuestPassword)) {
+      setCommentSubmitError('이름과 비밀번호를 입력해주세요.')
+      return
+    }
+
+    setCommentSubmitting(true)
+    setCommentSubmitError('')
+    try {
+      await createBoardComment('COMMUNITY', id, {
+        content: trimmedContent,
+        guestName: isCommentGuest ? commentGuestName.trim() : undefined,
+        guestPassword: isCommentGuest ? commentGuestPassword : undefined,
+      })
+      setCommentContent('')
+      if (isCommentGuest) {
+        setCommentGuestPassword('')
+      }
+      await loadComments()
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        '댓글 등록에 실패했습니다.'
+      setCommentSubmitError(message)
+    } finally {
+      setCommentSubmitting(false)
+    }
+  }
+
+  const handleCommentAction = async () => {
+    if (!commentActionTarget) return
+    if (isCommentGuest && !commentActionPassword) {
+      setCommentActionError('비밀번호를 입력해주세요.')
+      return
+    }
+
+    try {
+      if (commentModalMode === 'edit') {
+        const trimmed = commentActionContent.trim()
+        if (!trimmed) {
+          setCommentActionError('댓글 내용을 입력해주세요.')
+          return
+        }
+        await updateBoardComment('COMMUNITY', id, commentActionTarget.id, {
+          content: trimmed,
+          guestName: isCommentGuest ? commentActionTarget?.author?.trim() : undefined,
+          guestPassword: isCommentGuest ? commentActionPassword : undefined,
+        })
+      } else {
+        await deleteBoardComment('COMMUNITY', id, commentActionTarget.id, {
+          guestName: isCommentGuest ? commentActionTarget?.author?.trim() : undefined,
+          guestPassword: isCommentGuest ? commentActionPassword : undefined,
+        })
+      }
+      closeCommentModal()
+      await loadComments()
+    } catch (error) {
+      if (error?.response?.status === 401) {
+        setCommentActionError('잘못된 비밀번호 입니다.')
+        return
+      }
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        (commentModalMode === 'edit' ? '댓글 수정에 실패했습니다.' : '댓글 삭제에 실패했습니다.')
+      setCommentActionError(message)
+    }
+  }
+
   return (
     <section className="community-detail">
       <div className="community-detail-header">
         <div>
+          <div className="community-detail-breadcrumb">커뮤니티 &gt; 커뮤니티</div>
           <div className="community-detail-title">
             {status === 'loading' ? '불러오는 중...' : post?.title || '제목 없음'}
           </div>
@@ -197,9 +402,7 @@ function CommunityDetail() {
       {status === 'success' ? (
         <div className="community-detail-body">
           <div className="community-detail-content">
-            {post?.content?.split('\n').map((line, index) => (
-              <p key={`${line}-${index}`}>{line}</p>
-            ))}
+            <p className="community-detail-text">{post?.content ?? ''}</p>
           </div>
           {fileUrl ? (
             <div className="community-detail-file">
@@ -216,18 +419,115 @@ function CommunityDetail() {
 
       <div className="community-comments">
         <div className="community-comments-header">
-          댓글 <span className="community-comments-count">0</span>
+          댓글 <span className="community-comments-count">{comments.length}</span>
         </div>
-        <div className="community-comments-empty">등록된 댓글이 없습니다.</div>
-        <form className="community-comment-form">
-          <textarea placeholder="댓글 내용을 입력해주세요" rows={4} disabled />
+        {commentStatus === 'loading' ? (
+          <div className="community-comments-empty">댓글을 불러오는 중...</div>
+        ) : null}
+        {commentStatus === 'error' ? (
+          <div className="community-comments-empty">{commentError}</div>
+        ) : null}
+        {commentStatus === 'success' && comments.length === 0 ? (
+          <div className="community-comments-empty">등록된 댓글이 없습니다.</div>
+        ) : null}
+        {comments.length > 0 ? (
+          <div className="community-comment-list">
+            {comments.map((comment) => (
+              <div key={comment.id} className="community-comment">
+                <div className="community-comment-head">
+                  <div className="community-comment-head-main">
+                    <strong className="community-comment-author">{comment.author}</strong>
+                    <span className="community-comment-date">
+                      {formatDateTime(comment.createdAt)}
+                    </span>
+                  </div>
+                  <div className="community-comment-actions-menu">
+                    <button
+                      className="community-comment-action-button"
+                      type="button"
+                      aria-label="댓글 작업"
+                      onClick={() =>
+                        setCommentMenuOpenId((prev) => (prev === comment.id ? null : comment.id))
+                      }
+                    >
+                      <span className="community-comment-action-dot" />
+                      <span className="community-comment-action-dot" />
+                      <span className="community-comment-action-dot" />
+                    </button>
+                    {commentMenuOpenId === comment.id ? (
+                      <div className="community-comment-action-menu" role="menu">
+                        <button
+                          className="community-comment-action-item"
+                          type="button"
+                          onClick={() => {
+                            setCommentMenuOpenId(null)
+                            openCommentModal('edit', comment)
+                          }}
+                        >
+                          수정
+                        </button>
+                        <button
+                          className="community-comment-action-item community-comment-action-item--danger"
+                          type="button"
+                          onClick={() => {
+                            setCommentMenuOpenId(null)
+                            openCommentModal('delete', comment)
+                          }}
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                <p className="community-comment-body">{comment.content}</p>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <form className="community-comment-form" onSubmit={handleCommentSubmit}>
+          <textarea
+            placeholder="댓글 내용을 입력해주세요"
+            rows={4}
+            value={commentContent}
+            onChange={(event) => setCommentContent(event.target.value)}
+            disabled={commentSubmitting}
+          />
           <div className="community-comment-actions">
-            <input type="text" placeholder="이름" disabled />
-            <input type="password" placeholder="비밀번호" disabled />
-            <button type="button" disabled>
-              댓글등록
+            {isCommentGuest ? (
+              <>
+                <input
+                  type="text"
+                  placeholder="이름"
+                  value={commentGuestName}
+                  onChange={(event) => setCommentGuestName(event.target.value)}
+                  disabled={commentSubmitting}
+                  required
+                />
+                <input
+                  type="password"
+                  placeholder="비밀번호"
+                  value={commentGuestPassword}
+                  onChange={(event) => setCommentGuestPassword(event.target.value)}
+                  disabled={commentSubmitting}
+                  required
+                />
+              </>
+            ) : null}
+            <button
+              type="submit"
+              disabled={
+                commentSubmitting ||
+                !commentContent.trim() ||
+                (isCommentGuest && (!commentGuestName.trim() || !commentGuestPassword))
+              }
+            >
+              {commentSubmitting ? '등록 중...' : '댓글등록'}
             </button>
           </div>
+          {commentSubmitError ? (
+            <div className="community-comments-empty">{commentSubmitError}</div>
+          ) : null}
         </form>
       </div>
 
@@ -240,25 +540,8 @@ function CommunityDetail() {
                 <h2>{modalMode === 'delete' ? '게시글 삭제' : '게시글 수정'}</h2>
                 <p>비회원 비밀번호를 입력해주세요.</p>
               </div>
-              <button
-                className="community-modal-close"
-                type="button"
-                onClick={closeModal}
-                aria-label="닫기"
-              >
-                닫기
-              </button>
             </div>
             <div className="community-modal-body">
-              <label>
-                이름
-                <input
-                  type="text"
-                  value={guestName}
-                  onChange={(event) => setGuestName(event.target.value)}
-                  placeholder="비회원명"
-                />
-              </label>
               <label>
                 비밀번호
                 <input
@@ -279,6 +562,62 @@ function CommunityDetail() {
                 확인
               </button>
               <button className="community-modal-cancel" type="button" onClick={closeModal}>
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {commentModalOpen ? (
+        <div className="community-modal" role="dialog" aria-modal="true">
+          <button className="community-modal-backdrop" type="button" onClick={closeCommentModal} />
+          <div className="community-modal-card">
+            <div className="community-modal-header">
+              <div>
+                <h2>{commentModalMode === 'edit' ? '댓글 수정' : '댓글 삭제'}</h2>
+                <p>
+                  {commentModalMode === 'edit'
+                    ? '댓글 내용을 수정해주세요.'
+                    : !isCommentGuest
+                      ? '댓글을 삭제하시겠습니까?'
+                      : '댓글을 삭제하려면 비밀번호를 입력해주세요.'}
+                </p>
+              </div>
+            </div>
+            <div className="community-modal-body">
+              {commentModalMode === 'edit' ? (
+                <label>
+                  댓글 내용
+                  <textarea
+                    value={commentActionContent}
+                    onChange={(event) => setCommentActionContent(event.target.value)}
+                    rows={4}
+                  />
+                </label>
+              ) : null}
+              {isCommentGuest ? (
+                <label>
+                  비밀번호
+                  <input
+                    type="password"
+                    value={commentActionPassword}
+                    onChange={(event) => setCommentActionPassword(event.target.value)}
+                    placeholder="비밀번호"
+                  />
+                </label>
+              ) : null}
+              {commentActionError ? (
+                <div className="community-modal-error" role="alert">
+                  {commentActionError}
+                </div>
+              ) : null}
+            </div>
+            <div className="community-modal-actions">
+              <button className="community-modal-submit" type="button" onClick={handleCommentAction}>
+                {commentModalMode === 'edit' ? '수정' : '삭제'}
+              </button>
+              <button className="community-modal-cancel" type="button" onClick={closeCommentModal}>
                 취소
               </button>
             </div>
