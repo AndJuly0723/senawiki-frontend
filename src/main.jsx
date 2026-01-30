@@ -25,6 +25,7 @@ import GuidesArena from './pages/GuidesArena.jsx'
 import GuidesTotalWar from './pages/GuidesTotalWar.jsx'
 import GuidesGrowthDungeon from './pages/GuidesGrowthDungeon.jsx'
 import GuidesGrowthStage from './pages/GuidesGrowthStage.jsx'
+import GuidesDeckWrite from './pages/GuidesDeckWrite.jsx'
 import GuildSiege from './pages/GuildSiege.jsx'
 import GuildSiegeDay from './pages/GuildSiegeDay.jsx'
 import GuildWar from './pages/GuildWar.jsx'
@@ -51,12 +52,17 @@ createRoot(document.getElementById('root')).render(
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/guides/adventure" element={<GuidesAdventure />} />
+        <Route path="/guides/adventure/write" element={<GuidesDeckWrite mode="adventure" />} />
         <Route path="/guides/raid" element={<GuidesRaid />} />
         <Route path="/guides/raid/:raidId" element={<GuidesRaidStage />} />
+        <Route path="/guides/raid/:raidId/write" element={<GuidesDeckWrite mode="raid" />} />
         <Route path="/guides/arena" element={<GuidesArena />} />
+        <Route path="/guides/arena/write" element={<GuidesDeckWrite mode="arena" />} />
         <Route path="/guides/total-war" element={<GuidesTotalWar />} />
+        <Route path="/guides/total-war/write" element={<GuidesDeckWrite mode="total-war" />} />
         <Route path="/guides/growth-dungeon" element={<GuidesGrowthDungeon />} />
         <Route path="/guides/growth-dungeon/:stageId" element={<GuidesGrowthStage />} />
+        <Route path="/guides/growth-dungeon/:stageId/write" element={<GuidesDeckWrite mode="growth" />} />
         <Route path="/guild/siege" element={<GuildSiege />} />
         <Route path="/guild/siege/:day" element={<GuildSiegeDay />} />
         <Route path="/guild/guild-war" element={<GuildWar />} />

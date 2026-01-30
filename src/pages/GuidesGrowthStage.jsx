@@ -61,6 +61,36 @@ function GuidesGrowthStage() {
           image: '/images/formation/protect.png',
         },
       },
+      {
+        id: 'fire-3',
+        title: '불의 원소 던전 공략 덱',
+        author: '관리자',
+        skillOrder: '비스킷1-헤브니아1-유이1-스파이크1-스파이크2-유이2',
+        createdAt: '2026-01-23',
+        likes: 6,
+        dislikes: 1,
+        heroes: ['유이', '헤브니아', '라이언', '스파이크', '비스킷'],
+        pet: '윈디',
+        formation: {
+          id: 'basic',
+          label: '기본진형',
+        },
+      },
+      {
+        id: 'fire-4',
+        title: '불의 원소 던전 공략 덱',
+        author: '관리자',
+        skillOrder: '비스킷1-헤브니아1-유이1-스파이크1-스파이크2-유이2',
+        createdAt: '2026-01-22',
+        likes: 5,
+        dislikes: 0,
+        heroes: ['유이', '헤브니아', '라이언', '스파이크', '비스킷'],
+        pet: '윈디',
+        formation: {
+          id: 'attack',
+          label: '공격진형',
+        },
+      },
     ],
   }
 
@@ -109,12 +139,16 @@ function GuidesGrowthStage() {
               <option value="createdAt">등록일순</option>
             </select>
           </div>
-          <button className="community-icon-button" type="button" aria-label="글쓰기">
+          <Link
+            className="community-icon-button"
+            to={`/guides/growth-dungeon/${stageId}/write`}
+            aria-label="글쓰기"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M3 17.25V21h3.75L18.37 9.38l-3.75-3.75L3 17.25z" />
               <path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
             </svg>
-          </button>
+          </Link>
         </div>
       </div>
       <div className="deck-list">
@@ -182,7 +216,7 @@ function GuidesGrowthStage() {
                 </button>
                 <button className="deck-reaction-button deck-reaction-button--down" type="button" aria-label="비추천">
                   <svg className="deck-reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M22 14h-4V4h4v10zM4 12c0 1.1.9 2 2 2h6.3l-1 4.6-.02.22c0 .3.12.58.32.78L12.3 21l6.1-6.1c.38-.38.6-.9.6-1.4V5c0-1.1-.9-2-2-2H10c-.82 0-1.54.5-1.84 1.26L6 9.31c-.06.17-.1.34-.1.52v2z" />
+                    <path d="M22 14h-4V4h4v10zM4 12c0 1.1.9 2 2 2h6.3l-1 4.6-.02.22c0 .3.12.58.32.78L12.3 21l6.1-6.1c.38-.38.6-.9.6-1.4V5c0-1.1-.9-2-2-2H10c-.82 0-1.54.5-1.84 1.26L6 9.31c-.06.17-.1-.34-.1-.52v2z" />
                   </svg>
                   <span>비추천</span>
                   <span className="deck-reaction-count">{deck.dislikes}</span>
@@ -192,7 +226,7 @@ function GuidesGrowthStage() {
           ))
         )}
       </div>
-      
+
       {equipmentHero ? (
         <div className="equipment-modal" role="dialog" aria-modal="true">
           <button
@@ -245,64 +279,7 @@ function GuidesGrowthStage() {
           </div>
         </div>
       ) : null}
-      {totalPages > 1 ? (
-        <div className="deck-pagination">
-          <button
-            className="deck-page-button deck-page-button--nav"
-            type="button"
-            onClick={() => setPage(1)}
-            disabled={currentPage === 1}
-            aria-label="First page"
-          >
-            {'<<'}
-          </button>
-          <button
-            className="deck-page-button deck-page-button--nav"
-            type="button"
-            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-            aria-label="Previous page"
-          >
-            {'<'}
-          </button>
-          <div className="deck-pagination-pages">
-            {Array.from({ length: totalPages }, (_, index) => {
-              const pageNumber = index + 1
-              return (
-                <button
-                  key={pageNumber}
-                  className={`deck-page-button${pageNumber === currentPage ? ' is-active' : ''}`}
-                  type="button"
-                  onClick={() => setPage(pageNumber)}
-                  aria-label={`Page ${pageNumber}`}
-                >
-                  {pageNumber}
-                </button>
-              )
-            })}
-          </div>
-          <button
-            className="deck-page-button deck-page-button--nav"
-            type="button"
-            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-            disabled={currentPage === totalPages}
-            aria-label="Next page"
-          >
-            {'>'}
-          </button>
-          <button
-            className="deck-page-button deck-page-button--nav"
-            type="button"
-            onClick={() => setPage(totalPages)}
-            disabled={currentPage === totalPages}
-            aria-label="Last page"
-          >
-            {'>>'}
-          </button>
-        </div>
-      ) : null}
     </section>
-
   )
 }
 

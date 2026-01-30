@@ -47,6 +47,36 @@ const raidDecks = [
       label: '보호진형',
     },
   },
+  {
+    id: 'raid-3',
+    title: '불의 원소 던전 공략 덱',
+    author: '관리자',
+    skillOrder: '비스킷1-헤브니아1-유이1-스파이크1-스파이크2-유이2',
+    createdAt: '2026-01-23',
+    likes: 6,
+    dislikes: 1,
+    heroes: ['유이', '헤브니아', '라이언', '스파이크', '비스킷'],
+    pet: '윈디',
+    formation: {
+      id: 'basic',
+      label: '기본진형',
+    },
+  },
+  {
+    id: 'raid-4',
+    title: '불의 원소 던전 공략 덱',
+    author: '관리자',
+    skillOrder: '비스킷1-헤브니아1-유이1-스파이크1-스파이크2-유이2',
+    createdAt: '2026-01-22',
+    likes: 5,
+    dislikes: 0,
+    heroes: ['유이', '헤브니아', '라이언', '스파이크', '비스킷'],
+    pet: '윈디',
+    formation: {
+      id: 'attack',
+      label: '공격진형',
+    },
+  },
 ]
 
 function GuidesRaidStage() {
@@ -99,12 +129,12 @@ function GuidesRaidStage() {
               <option value="createdAt">등록일순</option>
             </select>
           </div>
-          <button className="community-icon-button" type="button" aria-label="글쓰기">
+          <Link className="community-icon-button" to={`/guides/raid/${raidId}/write`} aria-label="글쓰기">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M3 17.25V21h3.75L18.37 9.38l-3.75-3.75L3 17.25z" />
               <path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
             </svg>
-          </button>
+          </Link>
         </div>
       </div>
       <div className="deck-list">
