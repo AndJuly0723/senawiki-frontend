@@ -1749,13 +1749,17 @@ body {
 
 .equipment-modal-card {
   position: relative;
-  width: min(460px, 92vw);
+  width: min(720px, 92vw);
+  max-height: 80vh;
   background: #1b1b1b;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 14px;
   padding: 18px;
   z-index: 1;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .equipment-modal-header {
@@ -1765,11 +1769,27 @@ body {
   gap: 12px;
   margin-bottom: 14px;
 }
+.equipment-modal-card .deck-equipment-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  overflow: auto;
+  padding-right: 4px;
+  max-height: 56vh;
+}
+
 
 .equipment-modal-header h2 {
   margin: 0 0 6px;
   font-size: 18px;
 }
+.equipment-modal-card .deck-equipment-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  overflow: auto;
+  padding-right: 4px;
+  max-height: 56vh;
+}
+
 
 .equipment-modal-header p {
   margin: 0;
@@ -1777,6 +1797,14 @@ body {
   font-weight: 600;
   color: #ffffff;
 }
+.equipment-modal-card .deck-equipment-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  overflow: auto;
+  padding-right: 4px;
+  max-height: 56vh;
+}
+
 
 .equipment-modal-close {
   background: #2a2a2a;
@@ -2883,6 +2911,126 @@ body {
 
 
 
+
+
+
+
+
+.skill-order-panel {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.skill-order-choices {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.skill-order-hero {
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skill-order-hero-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.skill-order-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.skill-order-button {
+  flex: 1;
+  background: #0b0b0b;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.skill-order-button:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.skill-order-selected {
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.skill-order-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-order-chip {
+  background: #202020;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.skill-order-empty {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+}
+
+
+@media (max-width: 1000px) {
+  .skill-order-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .skill-order-choices {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.skill-order-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skill-order-arrow {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+
+.skill-order-help {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+
+.deck-write-label-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 
 

@@ -129,25 +129,36 @@ function GuidesDeckWrite({ mode }) {
     backTo = `/guides/growth-dungeon/${stageId ?? ''}`.replace(/\/$/, '')
   }
 
-  const [formationId, setFormationId] = useState(formationOptions[0].id)
-  const [equipment, setEquipment] = useState(() =>
+  const createEmptyEquipment = () =>
     equipmentSlots.reduce((acc, slot) => {
       acc[slot.id] = { main: '', subs: [] }
       return acc
-    }, {}),
+    }, {})
+
+  const createEmptySlot = () => ({
+    equipment: createEmptyEquipment(),
+    ring: '',
+  })
+  const [formationId, setFormationId] = useState(formationOptions[0].id)
+  const [equipmentBySlot, setEquipmentBySlot] = useState(() =>
+    Array.from({ length: heroSlotCount }, () => createEmptySlot()),
   )
-  const [ring, setRing] = useState('')
+  const [equipmentModalSlot, setEquipmentModalSlot] = useState(null)
   const [selectedHeroes, setSelectedHeroes] = useState(Array(heroSlotCount).fill(null))
   const [selectedPet, setSelectedPet] = useState(null)
   const [heroQuery, setHeroQuery] = useState('')
   const [petQuery, setPetQuery] = useState('')
   const [activeHeroSlot, setActiveHeroSlot] = useState(null)
   const [isPetSlotActive, setIsPetSlotActive] = useState(false)
+  const [skillOrder, setSkillOrder] = useState([])
   const backPositions = formationBackPositions[formationId] ?? []
 
   const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [])
   const petById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet])), [])
-
+  
+  const activeEquipmentSlot = equipmentModalSlot !== null ? equipmentBySlot[equipmentModalSlot] : null
+  
+  const activeHero = equipmentModalSlot !== null ? heroById.get(selectedHeroes[equipmentModalSlot]) : null
   const filteredHeroes = useMemo(() => {
     const query = heroQuery.trim().toLowerCase()
     if (!query) return heroes
@@ -174,66 +185,112 @@ function GuidesDeckWrite({ mode }) {
       return next
     })
     setActiveHeroSlot(null)
+    setHeroQuery('')
   }
-
   const handleSelectPet = (petId) => {
     if (!petId) return
     if (!isPetSlotActive) return
     setSelectedPet(petId)
     setIsPetSlotActive(false)
+    setPetQuery('')
   }
-
   const handleHeroSlotClick = (index) => {
     const heroId = selectedHeroes[index]
     if (heroId) {
-      setSelectedHeroes((prev) => {
-        const next = [...prev]
-        next[index] = null
-        return next
-      })
+      setEquipmentModalSlot(index)
       setActiveHeroSlot(null)
+      setHeroQuery('')
+      setIsPetSlotActive(false)
+      setPetQuery('')
       return
     }
     setActiveHeroSlot(index)
     setIsPetSlotActive(false)
+    setPetQuery('')
   }
-
   const handlePetSlotClick = () => {
     if (selectedPet) {
       setSelectedPet(null)
       setIsPetSlotActive(false)
+      setPetQuery('')
       return
     }
     setIsPetSlotActive(true)
     setActiveHeroSlot(null)
+    setHeroQuery('')
   }
-
   useEffect(() => {
     const handleDocClick = (event) => {
       const target = event.target
       if (!(target instanceof Element)) return
       if (target.closest('.deck-units--write') || target.closest('.deck-write-picker')) return
       setActiveHeroSlot(null)
+      setHeroQuery('')
       setIsPetSlotActive(false)
+      setPetQuery('')
     }
 
     document.addEventListener('mousedown', handleDocClick)
     return () => document.removeEventListener('mousedown', handleDocClick)
   }, [])
-  const handleMainChange = (slotId, value) => {
-    setEquipment((prev) => ({
-      ...prev,
-      [slotId]: { ...prev[slotId], main: value },
-    }))
+
+  const handleCloseEquipmentModal = () => {
+    setEquipmentModalSlot(null)
   }
 
-  const handleSubChange = (slotId, selectedValues) => {
-    const trimmed = selectedValues.slice(0, 4)
-    setEquipment((prev) => ({
-      ...prev,
-      [slotId]: { ...prev[slotId], subs: trimmed },
-    }))
+  const handleRemoveHero = (index) => {
+    setSelectedHeroes((prev) => {
+      const next = [...prev]
+      next[index] = null
+      return next
+    });
+    setEquipmentBySlot((prev) => {
+      const next = [...prev]
+      next[index] = createEmptySlot()
+      return next
+    });
+    setEquipmentModalSlot(null)
   }
+
+  const handleEquipmentMainChange = (index, slotId, value) => {
+    setEquipmentBySlot((prev) =>
+      prev.map((slot, idx) =>
+        idx === index
+          ? {
+              ...slot,
+              equipment: {
+                ...slot.equipment,
+                [slotId]: { ...slot.equipment[slotId], main: value },
+              },
+            }
+          : slot,
+      ),
+    )
+  }
+
+  const handleEquipmentSubChange = (index, slotId, selectedValues) => {
+    const trimmed = selectedValues.slice(0, 4);
+    setEquipmentBySlot((prev) =>
+      prev.map((slot, idx) =>
+        idx === index
+          ? {
+              ...slot,
+              equipment: {
+                ...slot.equipment,
+                [slotId]: { ...slot.equipment[slotId], subs: trimmed },
+              },
+            }
+          : slot,
+      ),
+    )
+  }
+
+  const handleEquipmentRingChange = (index, value) => {
+    setEquipmentBySlot((prev) =>
+      prev.map((slot, idx) => (idx === index ? { ...slot, ring: value } : slot)),
+    )
+  }
+
 
   return (
     <section className="deck-write">
@@ -256,8 +313,7 @@ function GuidesDeckWrite({ mode }) {
             {formationOptions.map((formation) => (
               <option key={formation.id} value={formation.id}>{formation.label}</option>
             ))}
-          </select>
-                    <div className="deck-formation-note">슬롯을 먼저 클릭하고 영웅/펫을 선택해 배치하세요.</div>
+          </select>          <div className="deck-formation-note">슬롯을 먼저 클릭하고 영웅/펫을 선택해 배치하세요.</div>
           <div className="deck-units deck-units--lineup deck-units--write">
             {Array.from({ length: heroSlotCount }).map((_, index) => {
               const isBack = backPositions.includes(index + 1)
@@ -276,8 +332,7 @@ function GuidesDeckWrite({ mode }) {
                     <div className="deck-unit-button">
                       <img src={hero.image} alt={hero.name} />
                       <span>{hero.name}</span>
-                    </div>
-                  ) : (
+                    </div>) : (
                     <div className="deck-slot">슬롯 {index + 1}</div>
                   )}
                 </DeckSlot>
@@ -306,17 +361,27 @@ function GuidesDeckWrite({ mode }) {
               )}
             </DeckSlot>
           </div>
-                              <div className="deck-write-picker">
+          
+
+          <div className="deck-write-picker">
             <div className="deck-picker-column">
               <div className="deck-write-label">영웅 선택</div>
               <div className="hero-search deck-search">
                 <div className="hero-search-inner">
                   <input
-                    className="hero-search-input"
-                    placeholder="영웅 검색"
-                    value={heroQuery}
-                    onChange={(event) => setHeroQuery(event.target.value)}
-                  />
+                  className="hero-search-input"
+                  placeholder="영웅 검색"
+                  value={heroQuery}
+                  onChange={(event) => setHeroQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      if (filteredHeroes.length && activeHeroSlot !== null) {
+                        handleSelectHero(filteredHeroes[0].id)
+                      }
+                    }
+                  }}
+                />
                   <button className="hero-search-button" type="button">검색</button>
                 </div>
                 <div className={`hero-search-results${heroQuery.trim().length ? '' : ' is-empty'}`}>
@@ -345,11 +410,19 @@ function GuidesDeckWrite({ mode }) {
               <div className="hero-search deck-search">
                 <div className="hero-search-inner">
                   <input
-                    className="hero-search-input"
-                    placeholder="펫 검색"
-                    value={petQuery}
-                    onChange={(event) => setPetQuery(event.target.value)}
-                  />
+                  className="hero-search-input"
+                  placeholder="펫 검색"
+                  value={petQuery}
+                  onChange={(event) => setPetQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      if (filteredPets.length && isPetSlotActive) {
+                        handleSelectPet(filteredPets[0].id)
+                      }
+                    }
+                  }}
+                />
                   <button className="hero-search-button" type="button">검색</button>
                 </div>
                 <div className={`hero-search-results${petQuery.trim().length ? '' : ' is-empty'}`}>
@@ -373,80 +446,71 @@ function GuidesDeckWrite({ mode }) {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-<div className="deck-write-section">
-          <div className="deck-write-label">스킬순서</div>
-          <textarea
-            className="deck-write-textarea"
-            rows={3}
-            placeholder="예) 비스킷1-헤브니아1-유이1-스파이크1-스파이크2-유이2"
-          />
-        </div>
-
-        <div className="deck-write-section">
-          <div className="deck-write-label">장비 정보</div>
-          <div className="deck-equipment-grid">
-            {equipmentSlots.map((slot) => (
-              <div key={slot.id} className="deck-equipment-card">
-                <div className="deck-equipment-title">{slot.label}</div>
-                <label className="deck-equipment-field">
-                  <span>주옵</span>
-                  <select
-                    className="deck-write-select"
-                    value={equipment[slot.id]?.main ?? ''}
-                    onChange={(event) => handleMainChange(slot.id, event.target.value)}
-                  >
-                    <option value="">선택</option>
-                    {mainOptions.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-                </label>
-                <div className="deck-equipment-field">
-                  <span>부옵 (최대 4개)</span>
-                  <div className="deck-suboptions">
-                    {subOptions.map((option) => {
-                      const selected = equipment[slot.id]?.subs?.includes(option)
-                      const disableUnchecked =
-                        !selected && (equipment[slot.id]?.subs?.length ?? 0) >= 4
-                      return (
-                        <label key={option} className="deck-suboption">
-                          <input
-                            type="checkbox"
-                            checked={selected}
-                            disabled={disableUnchecked}
-                            onChange={(event) => {
-                              const current = equipment[slot.id]?.subs ?? []
-                              const next = event.target.checked
-                                ? [...current, option]
-                                : current.filter((value) => value !== option)
-                              handleSubChange(slot.id, next)
-                            }}
-                          />
-                          <span>{option}</span>
-                        </label>
-                      )
-                    })}
-                  </div>
+          </div>        </div>        <div className="deck-write-section">
+          <div className="deck-write-label">스킬순서</div>          <p className="skill-order-help">각 영웅의 스킬을 클릭해 스킬순서를 배치하세요.</p>
+          <div className="skill-order-panel">
+            <div className="skill-order-choices">
+              {selectedHeroes
+                .map((heroId, index) => ({ heroId, index }))
+                .filter(({ heroId }) => Boolean(heroId))
+                .map(({ heroId, index }) => {
+                  const hero = heroById.get(heroId)
+                  if (!hero) return null
+                  return (
+                    <div key={`${heroId}-${index}`} className="skill-order-hero">
+                      <div className="skill-order-hero-name">{hero.name}</div>
+                      <div className="skill-order-buttons">
+                        <button
+                          type="button"
+                          className="skill-order-button"
+                          onClick={() =>
+                            setSkillOrder((prev) => [...prev, { heroId, skill: 1 }])
+                          }
+                        >
+                          스킬1
+                        </button>
+                        <button
+                          type="button"
+                          className="skill-order-button"
+                          onClick={() =>
+                            setSkillOrder((prev) => [...prev, { heroId, skill: 2 }])
+                          }
+                        >
+                          스킬2
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+            <div className="skill-order-selected">
+              {skillOrder.length ? (
+                <div className="skill-order-list">
+                  {skillOrder.map((item, idx) => {
+                    const hero = heroById.get(item.heroId)
+                    const label = hero ? `${hero.name}${item.skill}` : `스킬${item.skill}`
+                    return (
+                      <div key={`${item.heroId}-${item.skill}-${idx}`} className="skill-order-item">
+                        <button
+                          type="button"
+                          className="skill-order-chip"
+                          onClick={() =>
+                            setSkillOrder((prev) => prev.filter((_, i) => i !== idx))
+                          }
+                          title="클릭해서 제거"
+                        >
+                          {label}
+                        </button>
+                        {idx < skillOrder.length - 1 ? (
+                          <span className="skill-order-arrow">→</span>
+                        ) : null}
+                      </div>
+                    )
+                  })}
                 </div>
-              </div>
-            ))}
-            <div className="deck-equipment-card">
-              <div className="deck-equipment-title">반지</div>
-              <label className="deck-equipment-field">
-                <span>반지 선택</span>
-                <select
-                  className="deck-write-select"
-                  value={ring}
-                  onChange={(event) => setRing(event.target.value)}
-                >
-                  <option value="">선택</option>
-                  {ringOptions.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-              </label>
+              ) : (
+                <div className="skill-order-empty">선택한 스킬이 없습니다.</div>
+              )}
             </div>
           </div>
         </div>
@@ -456,11 +520,119 @@ function GuidesDeckWrite({ mode }) {
           <Link className="community-cancel" to={backTo}>취소</Link>
         </div>
       </div>
-    </section>
+      {equipmentModalSlot !== null && activeHero ? (
+        <div className="equipment-modal" role="dialog" aria-modal="true">
+          <button
+            type="button"
+            className="equipment-modal-backdrop"
+            onClick={handleCloseEquipmentModal}
+            aria-label="닫기"
+          />
+          <div className="equipment-modal-card" role="document">
+            <div className="equipment-modal-header">
+              <div>
+                <h2>{activeHero.name}</h2>
+                <p>장비 정보</p>
+              </div>
+            </div>
+            <div className="deck-equipment-grid">
+              {equipmentSlots.map((slot) => {
+                const slotState = activeEquipmentSlot?.equipment?.[slot.id] ?? { main: '', subs: [] }
+                return (
+                  <div key={slot.id} className="deck-equipment-card">
+                    <div className="deck-equipment-title">{slot.label}</div>
+                    <label className="deck-equipment-field">
+                      <span>주옵</span>
+                      <select
+                        className="deck-write-select"
+                        value={slotState.main}
+                        onChange={(event) =>
+                          handleEquipmentMainChange(equipmentModalSlot, slot.id, event.target.value)
+                        }
+                      >
+                        <option value="">선택</option>
+                        {mainOptions.map((option) => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="deck-equipment-field">
+                      <span>부옵 (최대 4개)</span>
+                      <div className="deck-suboptions">
+                        {subOptions.map((option) => {
+                          const selected = slotState.subs.includes(option)
+                          const disableUnchecked = !selected && slotState.subs.length >= 4
+                          return (
+                            <label key={option} className="deck-suboption">
+                              <input
+                                type="checkbox"
+                                checked={selected}
+                                disabled={disableUnchecked}
+                                onChange={(event) => {
+                                  const current = slotState.subs
+                                  const next = event.target.checked
+                                    ? [...current, option]
+                                    : current.filter((value) => value !== option)
+                                  handleEquipmentSubChange(equipmentModalSlot, slot.id, next)
+                                }}
+                              />
+                              <span>{option}</span>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+              <div className="deck-equipment-card">
+                <div className="deck-equipment-title">반지</div>
+                <label className="deck-equipment-field">
+                  <span>반지 선택</span>
+                  <select
+                    className="deck-write-select"
+                    value={activeEquipmentSlot?.ring ?? ''}
+                    onChange={(event) => handleEquipmentRingChange(equipmentModalSlot, event.target.value)}
+                  >
+                    <option value="">선택</option>
+                    {ringOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </div>
+            <div className="community-modal-actions">
+              <button className="community-modal-submit" type="button" onClick={handleCloseEquipmentModal}>
+                저장
+              </button>
+              <button
+                className="community-modal-cancel"
+                type="button"
+                onClick={() => handleRemoveHero(equipmentModalSlot)}
+              >
+                슬롯 비우기
+              </button>
+              <button className="community-modal-cancel" type="button" onClick={handleCloseEquipmentModal}>
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}    </section>
   )
 }
 
 export default GuidesDeckWrite
+
+
+
+
+
+
+
+
+
 
 
 
