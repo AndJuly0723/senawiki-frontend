@@ -84,6 +84,18 @@ const ringOptions = [
   '효저반지',
 ]
 
+const equipmentSetOptions = [
+  '선봉장세트',
+  '추적자세트',
+  '성기사세트',
+  '수문장세트',
+  '수호자세트',
+  '암살자세트',
+  '복수자세트',
+  '주술사세트',
+  '조율자세트',
+]
+
 const equipmentSlots = [
   { id: 'weapon1', label: '무기 1' },
   { id: 'armor1', label: '방어구 1' },
@@ -138,6 +150,7 @@ function GuidesDeckWrite({ mode }) {
   const createEmptySlot = () => ({
     equipment: createEmptyEquipment(),
     ring: '',
+    set: '',
   })
   const [formationId, setFormationId] = useState(formationOptions[0].id)
   const [equipmentBySlot, setEquipmentBySlot] = useState(() =>
@@ -288,6 +301,12 @@ function GuidesDeckWrite({ mode }) {
   const handleEquipmentRingChange = (index, value) => {
     setEquipmentBySlot((prev) =>
       prev.map((slot, idx) => (idx === index ? { ...slot, ring: value } : slot)),
+    )
+  }
+
+  const handleEquipmentSetChange = (index, value) => {
+    setEquipmentBySlot((prev) =>
+      prev.map((slot, idx) => (idx === index ? { ...slot, set: value } : slot)),
     )
   }
 
@@ -534,6 +553,19 @@ function GuidesDeckWrite({ mode }) {
                 <h2>{activeHero.name}</h2>
                 <p>장비 정보</p>
               </div>
+              <label className="deck-equipment-field">
+                <span>장비 세트</span>
+                <select
+                  className="deck-write-select"
+                  value={activeEquipmentSlot?.set ?? ''}
+                  onChange={(event) => handleEquipmentSetChange(equipmentModalSlot, event.target.value)}
+                >
+                  <option value="">선택</option>
+                  {equipmentSetOptions.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </label>
             </div>
             <div className="deck-equipment-grid">
               {equipmentSlots.map((slot) => {
