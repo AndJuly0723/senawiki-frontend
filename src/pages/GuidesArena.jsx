@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom'
 import { heroes } from '../data/heroes'
 import { pets } from '../data/pets'
-import { fetchGuideDeckEquipment, fetchGuideDecks } from '../api/endpoints/guideDecks'
+import { deleteGuideDeck, fetchGuideDeckEquipment, fetchGuideDecks } from '../api/endpoints/guideDecks'
 import {
   equipmentSlots,
   formatGuideDeckDate,
@@ -11,6 +11,8 @@ import {
   normalizeEquipmentResponse,
   normalizeGuideDeckList,
 } from '../utils/guideDecks'
+import { getStoredUser, isAdminUser } from '../utils/authStorage'
+import { getAccessToken } from '../utils/authStorage'
 
 
 function GuidesArena() {
@@ -20,6 +22,9 @@ function GuidesArena() {
     isLoading: false,
     error: '',
   })
+  const [currentUser, setCurrentUser] = useState(getStoredUser())
+  const [actionMenuOpenId, setActionMenuOpenId] = useState(null)
+  const [writeNoticeOpen, setWriteNoticeOpen] = useState(false)
   const [decks, setDecks] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
@@ -29,6 +34,52 @@ function GuidesArena() {
   const heroByName = useMemo(() => new Map(heroes.map((hero) => [hero.name, hero])), [])
   const petById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet])), [])
   const petByName = useMemo(() => new Map(pets.map((pet) => [pet.name, pet])), [])
+
+  useEffect(() => {
+    const handleAuthChange = () => setCurrentUser(getStoredUser())
+    window.addEventListener('authchange', handleAuthChange)
+    return () => window.removeEventListener('authchange', handleAuthChange)
+  }, [])
+
+  useEffect(() => {
+    const handleDocClick = (event) => {
+      if (!(event.target instanceof Element)) return
+      if (event.target.closest('.deck-card-actions')) return
+      setActionMenuOpenId(null)
+    }
+    document.addEventListener('mousedown', handleDocClick)
+    return () => document.removeEventListener('mousedown', handleDocClick)
+  }, [])
+
+  const getUserDisplayName = (user) =>
+    user?.nickname ||
+    user?.name ||
+    user?.userName ||
+    user?.username ||
+    user?.login ||
+    ''
+
+  const canManageDeck = (deck) => {
+    if (!currentUser) return false
+    if (isAdminUser(currentUser)) return true
+    const userName = getUserDisplayName(currentUser).trim()
+    return Boolean(userName && deck?.author && userName === String(deck.author).trim())
+  }
+
+  const handleDeleteDeck = async (deck) => {
+    if (!deck?.id) return
+    if (!window.confirm('정말 삭제할까요?')) return
+    try {
+      await deleteGuideDeck(deck.id)
+      setDecks((prev) => prev.filter((item) => item.id !== deck.id))
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        '덱 삭제에 실패했습니다.'
+      window.alert(message)
+    }
+  }
 
   useEffect(() => {
     let active = true
@@ -132,12 +183,23 @@ function GuidesArena() {
               <option value="createdAt">등록일순</option>
             </select>
           </div>
-          <Link className="community-icon-button" to="/guides/arena/write" aria-label="글쓰기">
+          <button
+            className="community-icon-button"
+            type="button"
+            aria-label="글쓰기"
+            onClick={() => {
+              if (!getAccessToken()) {
+                setWriteNoticeOpen(true)
+                return
+              }
+              window.location.href = '/guides/arena/write'
+            }}
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M3 17.25V21h3.75L18.37 9.38l-3.75-3.75L3 17.25z" />
               <path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
             </svg>
-          </Link>
+          </button>
         </div>
       </div>
       
@@ -151,6 +213,37 @@ function GuidesArena() {
         ) : (
           pagedDecks.map((deck) => (
             <div key={deck.id} className="deck-card">
+              {canManageDeck(deck) ? (
+                <div className="deck-card-actions">
+                  <button
+                    className="community-action-button"
+                    type="button"
+                    aria-label="덱 관리"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setActionMenuOpenId((prev) => (prev === deck.id ? null : deck.id))
+                    }}
+                  >
+                    <span className="community-action-dot" />
+                    <span className="community-action-dot" />
+                    <span className="community-action-dot" />
+                  </button>
+                  {actionMenuOpenId === deck.id ? (
+                    <div className="community-action-menu" role="menu">
+                      <button
+                        className="community-action-item community-action-item--danger"
+                        type="button"
+                        onClick={() => {
+                          setActionMenuOpenId(null)
+                          handleDeleteDeck(deck)
+                        }}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             <div className="deck-head" aria-hidden="true" />
             <div className="deck-layout">
               <div className="deck-center">
@@ -286,6 +379,33 @@ function GuidesArena() {
                 })}
               </div>
             )}
+          </div>
+        </div>
+      ) : null}
+      {writeNoticeOpen ? (
+        <div className="community-modal" role="dialog" aria-modal="true">
+          <button
+            className="community-modal-backdrop"
+            type="button"
+            onClick={() => setWriteNoticeOpen(false)}
+            aria-label="닫기"
+          />
+          <div className="community-modal-card">
+            <div className="community-modal-header">
+              <h2>알림</h2>
+            </div>
+            <div className="community-modal-body">
+              공략덱 작성은 회원만 가능합니다.
+            </div>
+            <div className="community-modal-actions">
+              <button
+                className="community-modal-cancel"
+                type="button"
+                onClick={() => setWriteNoticeOpen(false)}
+              >
+                확인
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

@@ -402,6 +402,11 @@ function GuidesDeckWrite({ mode }) {
       setErrorMessage('모든 슬롯에 영웅을 등록해주세요.')
       return
     }
+    if (skillOrder.length === 0) {
+      setStatus('error')
+      setErrorMessage('스킬순서를 지정해주세요.')
+      return
+    }
     if (!hasAllHeroEquipmentSaved()) {
       setStatus('error')
       setErrorMessage('슬롯에 등록된 영웅을 클릭해 장비를 저장해주세요.')
