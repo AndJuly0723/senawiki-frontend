@@ -123,7 +123,7 @@ function GuidesTotalWar() {
       <div className="community-toolbar">
         <div className="community-title">
           <h1>총력전</h1>
-          <p>총력전 공략덱 추가는 회원만 가능합니다.</p>
+          <p className="community-title-note">총력전 공략덱 추가는 회원만 가능합니다. 덱 장비는 각 영웅을 클릭하여 확인하세요.</p>
         </div>
         <div className="community-actions">
           <div className="deck-sort">
@@ -234,31 +234,41 @@ function GuidesTotalWar() {
             aria-label="닫기"
             onClick={handleCloseEquipmentModal}
           />
-          <div className="equipment-modal-card" role="document">
+          <div className="equipment-modal-card equipment-modal-card--view" role="document">
             <div className="equipment-modal-header">
               <div>
                 <h2>{equipmentState.hero.name}</h2>
-                <p>
-                  {equipmentState.isLoading
-                    ? '장비 정보를 불러오는 중...'
-                    : equipmentState.data?.setName
-                      ? `장비 세트: ${equipmentState.data.setName}`
-                      : '장비 정보가 없습니다.'}
-                </p>
+                <p>{equipmentState.isLoading ? '장비 정보를 불러오는 중...' : '장비 정보'}</p>
               </div>
-              <button
-                type="button"
-                className="equipment-modal-close"
-                onClick={handleCloseEquipmentModal}
-                aria-label="닫기"
-              >
-                ✕
-              </button>
+              <div className="equipment-modal-header-right">
+                <div className="equipment-modal-controls equipment-modal-summary">
+                  <div className="equipment-summary-field">
+                    <span>장비 세트</span>
+                    <strong>
+                      {equipmentState.isLoading ? '-' : equipmentState.data?.setName || '-'}
+                    </strong>
+                  </div>
+                  <div className="equipment-summary-field">
+                    <span>반지</span>
+                    <strong>
+                      {equipmentState.isLoading ? '-' : equipmentState.data?.ring || '-'}
+                    </strong>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="equipment-modal-close"
+                  onClick={handleCloseEquipmentModal}
+                  aria-label="닫기"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
             {equipmentState.error ? (
               <div className="deck-empty">{equipmentState.error}</div>
             ) : (
-              <div className="equipment-grid">
+              <div className="equipment-grid equipment-grid--tile">
                 {equipmentSlots.map((slot) => {
                   const slotData = equipmentState.data?.slots?.[slot.id]
                   const subText = slotData?.subs?.length ? slotData.subs.join(' · ') : ''
@@ -274,12 +284,6 @@ function GuidesTotalWar() {
                     </div>
                   )
                 })}
-                <div className="equipment-slot equipment-slot--ring">
-                  <span className="equipment-slot-label">반지</span>
-                  <span className="equipment-slot-value">
-                    {equipmentState.data?.ring || '-'}
-                  </span>
-                </div>
               </div>
             )}
           </div>

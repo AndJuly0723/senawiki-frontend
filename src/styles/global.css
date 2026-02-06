@@ -1805,10 +1805,46 @@ body {
   margin-bottom: 10px;
 }
 
+.equipment-modal-header-right {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
 .equipment-modal-controls {
   display: flex;
   gap: 12px;
   align-items: flex-end;
+}
+
+.equipment-modal-card.equipment-modal-card--view {
+  width: min(460px, 92vw);
+}
+
+.equipment-modal-summary {
+  align-items: flex-start;
+}
+
+.equipment-summary-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  min-width: 130px;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.equipment-summary-field span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.equipment-summary-field strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
 }
 
 .equipment-modal-controls .deck-equipment-field {
@@ -1895,6 +1931,30 @@ body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.equipment-grid--tile {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-content: center;
+  gap: 8px;
+}
+
+.equipment-grid--tile .equipment-slot {
+  min-height: 96px;
+  padding: 10px;
+  justify-content: flex-start;
+}
+
+.equipment-grid--tile .equipment-slot-label {
+  font-size: 11px;
+}
+
+.equipment-grid--tile .equipment-slot-value {
+  font-size: 12px;
+}
+
+.equipment-grid--tile .equipment-slot-sub {
+  font-size: 11px;
 }
 
 .equipment-slot {
