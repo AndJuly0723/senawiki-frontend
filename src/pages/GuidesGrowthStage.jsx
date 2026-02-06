@@ -2,6 +2,15 @@
 import { useParams, Link } from 'react-router-dom'
 import { heroes } from '../data/heroes'
 import { pets } from '../data/pets'
+import { fetchGuideDeckEquipment, fetchGuideDecks } from '../api/endpoints/guideDecks'
+import {
+  equipmentSlots,
+  formatGuideDeckDate,
+  formationBackPositions,
+  formationLabelById,
+  normalizeEquipmentResponse,
+  normalizeGuideDeckList,
+} from '../utils/guideDecks'
 
 const stageMeta = {
   fire: '불의 원소 던전',
@@ -12,89 +21,51 @@ const stageMeta = {
   gold: '골드 던전',
 }
 
-const formationBackPositions = {
-  basic: [1, 3, 5],
-  balance: [2, 4],
-  attack: [1, 2, 4, 5],
-  protect: [3],
-}
-
 function GuidesGrowthStage() {
   const { stageId } = useParams()
-  const [equipmentHero, setEquipmentHero] = useState(null)
+  const [equipmentState, setEquipmentState] = useState({
+    hero: null,
+    data: null,
+    isLoading: false,
+    error: '',
+  })
+  const [decks, setDecks] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadError, setLoadError] = useState('')
   const [sortBy, setSortBy] = useState('likes')
+  const [page, setPage] = useState(1)
   const label = stageMeta[stageId] ?? '성장던전'
-  const heroByName = new Map(heroes.map((hero) => [hero.name, hero]))
-  const petByName = new Map(pets.map((pet) => [pet.name, pet]))
+  const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [])
+  const heroByName = useMemo(() => new Map(heroes.map((hero) => [hero.name, hero])), [])
+  const petById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet])), [])
+  const petByName = useMemo(() => new Map(pets.map((pet) => [pet.name, pet])), [])
 
-  const decksByStage = {
-    fire: [
-      {
-        id: 'fire-1',
-        title: '불의 원소 던전 공략 덱',
-        author: '관리자',
-        skillOrder: '비스킷1-헤브니아1-유이1-스파이크1-스파이크2-유이2',
-        createdAt: '2026-01-25',
-        likes: 12,
-        dislikes: 1,
-        heroes: ['유이', '헤브니아', '라이언', '스파이크', '비스킷'],
-        pet: '윈디',
-        formation: {
-          id: 'balance',
-          label: '밸런스진형',
-          image: '/images/formation/balance.png',
-        },
-      },
-      {
-        id: 'fire-2',
-        title: '불의 원소 던전 공략 덱',
-        author: '관리자',
-        skillOrder: '비스킷1-스파이크1-스파이크2-유이1-라니아1-헤브니아1-라니아2',
-        createdAt: '2026-01-24',
-        likes: 8,
-        dislikes: 2,
-        heroes: ['유이', '라니아', '스파이크', '헤브니아', '비스킷'],
-        pet: '윈디',
-        formation: {
-          id: 'protect',
-          label: '보호진형',
-          image: '/images/formation/protect.png',
-        },
-      },
-      {
-        id: 'fire-3',
-        title: '불의 원소 던전 공략 덱',
-        author: '관리자',
-        skillOrder: '비스킷1-헤브니아1-유이1-스파이크1-스파이크2-유이2',
-        createdAt: '2026-01-23',
-        likes: 6,
-        dislikes: 1,
-        heroes: ['유이', '헤브니아', '라이언', '스파이크', '비스킷'],
-        pet: '윈디',
-        formation: {
-          id: 'basic',
-          label: '기본진형',
-        },
-      },
-      {
-        id: 'fire-4',
-        title: '불의 원소 던전 공략 덱',
-        author: '관리자',
-        skillOrder: '비스킷1-헤브니아1-유이1-스파이크1-스파이크2-유이2',
-        createdAt: '2026-01-22',
-        likes: 5,
-        dislikes: 0,
-        heroes: ['유이', '헤브니아', '라이언', '스파이크', '비스킷'],
-        pet: '윈디',
-        formation: {
-          id: 'attack',
-          label: '공격진형',
-        },
-      },
-    ],
-  }
-
-  const decks = decksByStage[stageId] ?? []
+  useEffect(() => {
+    let active = true
+    setIsLoading(true)
+    setLoadError('')
+    setPage(1)
+    fetchGuideDecks({ category: 'GROWTH', type: 'GROWTH', stageId })
+      .then((data) => {
+        if (!active) return
+        setDecks(normalizeGuideDeckList(data, heroById, heroByName))
+      })
+      .catch((error) => {
+        if (!active) return
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          '덱 목록을 불러오지 못했습니다.'
+        setLoadError(message)
+      })
+      .finally(() => {
+        if (!active) return
+        setIsLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [stageId, heroById, heroByName])
 
   const pageSize = 6
   const sortedDecks = useMemo(() => {
@@ -107,11 +78,15 @@ function GuidesGrowthStage() {
     return list
   }, [decks, sortBy])
   const totalPages = Math.ceil(sortedDecks.length / pageSize)
-  const [page, setPage] = useState(1)
 
   useEffect(() => {
     setPage(1)
-    setEquipmentHero(null)
+    setEquipmentState({
+      hero: null,
+      data: null,
+      isLoading: false,
+      error: '',
+    })
   }, [stageId])
 
   useEffect(() => {
@@ -123,6 +98,46 @@ function GuidesGrowthStage() {
     const start = (currentPage - 1) * pageSize
     return sortedDecks.slice(start, start + pageSize)
   }, [sortedDecks, currentPage])
+
+  const handleCloseEquipmentModal = () => {
+    setEquipmentState({
+      hero: null,
+      data: null,
+      isLoading: false,
+      error: '',
+    })
+  }
+
+  const handleOpenEquipmentModal = async (deckId, heroKey) => {
+    const hero = heroById.get(heroKey) || heroByName.get(heroKey)
+    if (!hero) return
+    setEquipmentState({
+      hero,
+      data: null,
+      isLoading: true,
+      error: '',
+    })
+    try {
+      const data = await fetchGuideDeckEquipment(deckId, hero.id)
+      setEquipmentState({
+        hero,
+        data: normalizeEquipmentResponse(data),
+        isLoading: false,
+        error: '',
+      })
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        '장비 정보를 불러오지 못했습니다.'
+      setEquipmentState({
+        hero,
+        data: null,
+        isLoading: false,
+        error: message,
+      })
+    }
+  }
 
   return (
     <section className="growth-stage">
@@ -152,7 +167,11 @@ function GuidesGrowthStage() {
         </div>
       </div>
       <div className="deck-list">
-        {decks.length === 0 ? (
+        {isLoading ? (
+          <div className="deck-empty">덱 목록을 불러오는 중입니다.</div>
+        ) : loadError ? (
+          <div className="deck-empty">{loadError}</div>
+        ) : pagedDecks.length === 0 ? (
           <div className="deck-empty">등록된 덱이 없습니다.</div>
         ) : (
           pagedDecks.map((deck) => (
@@ -162,16 +181,16 @@ function GuidesGrowthStage() {
                 <div className="deck-center">
                   <div className="deck-row">
                     <div className="deck-units deck-units--lineup">
-                      {deck.heroes.map((name, index) => {
-                        const hero = heroByName.get(name)
-                        const backPositions = formationBackPositions[deck.formation.id] ?? []
+                      {deck.heroes.map((heroKey, index) => {
+                        const hero = heroById.get(heroKey) || heroByName.get(heroKey)
+                        const backPositions = formationBackPositions[deck.formationId] ?? []
                         const isBack = backPositions.includes(index + 1)
                         return hero ? (
                           <button
-                            key={name}
+                            key={`${deck.id}-${hero.id}-${index}`}
                             type="button"
                             className={`deck-unit deck-unit-button${isBack ? ' is-back' : ''}`}
-                            onClick={() => setEquipmentHero(hero)}
+                            onClick={() => handleOpenEquipmentModal(deck.id, hero.id)}
                             aria-label={`${hero.name} 장비 보기`}
                           >
                             <img src={hero.image} alt={hero.name} />
@@ -180,7 +199,7 @@ function GuidesGrowthStage() {
                         ) : null
                       })}
                       {(() => {
-                        const pet = petByName.get(deck.pet)
+                        const pet = petById.get(deck.pet) || petByName.get(deck.pet)
                         return pet ? (
                           <div className="deck-unit deck-unit--pet">
                             <img src={pet.image} alt={pet.name} />
@@ -198,8 +217,14 @@ function GuidesGrowthStage() {
                   <span className="deck-meta-value">{deck.author}</span>
                 </div>
                 <div className="deck-meta-row">
+                  <span className="deck-meta-label">작성일</span>
+                  <span className="deck-meta-value">{formatGuideDeckDate(deck.createdAt)}</span>
+                </div>
+                <div className="deck-meta-row">
                   <span className="deck-meta-label">진형</span>
-                  <span className="deck-meta-value">{deck.formation.label}</span>
+                  <span className="deck-meta-value">
+                    {deck.formationLabel || formationLabelById[deck.formationId] || ''}
+                  </span>
                 </div>
                 <div className="deck-meta-row deck-meta-row--skill">
                   <span className="deck-meta-label">스킬순서</span>
@@ -227,55 +252,62 @@ function GuidesGrowthStage() {
         )}
       </div>
 
-      {equipmentHero ? (
+      {equipmentState.hero ? (
         <div className="equipment-modal" role="dialog" aria-modal="true">
           <button
             type="button"
             className="equipment-modal-backdrop"
             aria-label="닫기"
-            onClick={() => setEquipmentHero(null)}
+            onClick={handleCloseEquipmentModal}
           />
           <div className="equipment-modal-card" role="document">
             <div className="equipment-modal-header">
               <div>
-                <h2>{equipmentHero.name}</h2>
-                <p>장비 세트: 성기사 세트</p>
+                <h2>{equipmentState.hero.name}</h2>
+                <p>
+                  {equipmentState.isLoading
+                    ? '장비 정보를 불러오는 중...'
+                    : equipmentState.data?.setName
+                      ? `장비 세트: ${equipmentState.data.setName}`
+                      : '장비 정보가 없습니다.'}
+                </p>
               </div>
               <button
                 type="button"
                 className="equipment-modal-close"
-                onClick={() => setEquipmentHero(null)}
+                onClick={handleCloseEquipmentModal}
                 aria-label="닫기"
               >
                 ✕
               </button>
             </div>
-            <div className="equipment-grid">
-              <div className="equipment-slot">
-                <span className="equipment-slot-label">무기 1</span>
-                <span className="equipment-slot-value">주옵 : 생명력(%)</span>
-                <span className="equipment-slot-sub">부옵 : 치피 · 치확</span>
+            {equipmentState.error ? (
+              <div className="deck-empty">{equipmentState.error}</div>
+            ) : (
+              <div className="equipment-grid">
+                {equipmentSlots.map((slot) => {
+                  const slotData = equipmentState.data?.slots?.[slot.id]
+                  const subText = slotData?.subs?.length ? slotData.subs.join(' · ') : ''
+                  return (
+                    <div key={slot.id} className="equipment-slot">
+                      <span className="equipment-slot-label">{slot.label}</span>
+                      <span className="equipment-slot-value">
+                        {slotData?.main ? `주옵 : ${slotData.main}` : '주옵 : -'}
+                      </span>
+                      <span className="equipment-slot-sub">
+                        {subText ? `부옵 : ${subText}` : '부옵 : -'}
+                      </span>
+                    </div>
+                  )
+                })}
+                <div className="equipment-slot equipment-slot--ring">
+                  <span className="equipment-slot-label">반지</span>
+                  <span className="equipment-slot-value">
+                    {equipmentState.data?.ring || '-'}
+                  </span>
+                </div>
               </div>
-              <div className="equipment-slot">
-                <span className="equipment-slot-label">방어구 1</span>
-                <span className="equipment-slot-value">주옵 : 생명력(%)</span>
-                <span className="equipment-slot-sub">부옵 : 치피 · 치확</span>
-              </div>
-              <div className="equipment-slot">
-                <span className="equipment-slot-label">무기 2</span>
-                <span className="equipment-slot-value">주옵 : 생명력(%)</span>
-                <span className="equipment-slot-sub">부옵 : 치피 · 치확</span>
-              </div>
-              <div className="equipment-slot">
-                <span className="equipment-slot-label">방어구 2</span>
-                <span className="equipment-slot-value">주옵 : 생명력(%)</span>
-                <span className="equipment-slot-sub">부옵 : 치피 · 치확</span>
-              </div>
-              <div className="equipment-slot equipment-slot--ring">
-                <span className="equipment-slot-label">반지</span>
-                <span className="equipment-slot-value">빙결반지</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       ) : null}

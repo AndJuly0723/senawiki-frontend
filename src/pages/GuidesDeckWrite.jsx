@@ -1,7 +1,9 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { heroes } from '../data/heroes'
 import { pets } from '../data/pets'
+import { createGuideDeck } from '../api/endpoints/guideDecks'
+import { equipmentSlots, formationBackPositions, formationOptions } from '../utils/guideDecks'
 
 const raidMeta = {
   'ruin-eye': '파멸의 눈동자',
@@ -18,21 +20,7 @@ const stageMeta = {
   gold: '골드 던전',
 }
 
-const formationOptions = [
-  { id: 'basic', label: '기본진형' },
-  { id: 'balance', label: '밸런스진형' },
-  { id: 'attack', label: '공격진형' },
-  { id: 'protect', label: '보호진형' },
-]
-
-const formationBackPositions = {
-  basic: [1, 3, 5],
-  balance: [2, 4],
-  attack: [1, 2, 4, 5],
-  protect: [3],
-}
-
-const mainOptions = [
+const weaponMainOptions = [
   '약공 확률',
   '치명타 확률',
   '치명타 피해',
@@ -40,6 +28,15 @@ const mainOptions = [
   '방어력(%)',
   '생명력(%)',
   '효과 적중',
+]
+
+const armorMainOptions = [
+  '받는 피해 감소',
+  '막기 확률',
+  '모든 공격력(%)',
+  '방어력(%)',
+  '생명력(%)',
+  '효과 저항',
 ]
 
 const subOptions = [
@@ -96,21 +93,14 @@ const equipmentSetOptions = [
   '조율자세트',
 ]
 
-const equipmentSlots = [
-  { id: 'weapon1', label: '무기 1' },
-  { id: 'armor1', label: '방어구 1' },
-  { id: 'weapon2', label: '무기 2' },
-  { id: 'armor2', label: '방어구 2' },
-]
-
 const heroSlotCount = 5
 
-function DeckSlot({ children, isBack, filled, isActive, onClick }) {
+function DeckSlot({ children, isBack, filled, isActive, isInvalid, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`deck-unit${filled ? '' : ' deck-unit--placeholder'}${isBack ? ' is-back' : ''}${isActive ? ' is-active' : ''}`}
+      className={`deck-unit${filled ? '' : ' deck-unit--placeholder'}${isBack ? ' is-back' : ''}${isActive ? ' is-active' : ''}${isInvalid ? ' is-invalid' : ''}`}
     >
       {children}
     </button>
@@ -119,6 +109,7 @@ function DeckSlot({ children, isBack, filled, isActive, onClick }) {
 
 function GuidesDeckWrite({ mode }) {
   const { raidId, stageId } = useParams()
+  const navigate = useNavigate()
 
   let label = '공략'
   let backTo = '/'
@@ -164,6 +155,10 @@ function GuidesDeckWrite({ mode }) {
   const [activeHeroSlot, setActiveHeroSlot] = useState(null)
   const [isPetSlotActive, setIsPetSlotActive] = useState(false)
   const [skillOrder, setSkillOrder] = useState([])
+  const [status, setStatus] = useState('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [invalidSubSlots, setInvalidSubSlots] = useState([])
+  const [invalidEquipSlots, setInvalidEquipSlots] = useState([])
   const backPositions = formationBackPositions[formationId] ?? []
 
   const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [])
@@ -279,6 +274,8 @@ function GuidesDeckWrite({ mode }) {
           : slot,
       ),
     )
+    setInvalidSubSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
+    setInvalidEquipSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
   }
 
   const handleEquipmentSubChange = (index, slotId, selectedValues) => {
@@ -296,18 +293,154 @@ function GuidesDeckWrite({ mode }) {
           : slot,
       ),
     )
+    setInvalidSubSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
+    setInvalidEquipSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
   }
 
   const handleEquipmentRingChange = (index, value) => {
     setEquipmentBySlot((prev) =>
       prev.map((slot, idx) => (idx === index ? { ...slot, ring: value } : slot)),
     )
+    setInvalidSubSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
+    setInvalidEquipSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
   }
 
   const handleEquipmentSetChange = (index, value) => {
     setEquipmentBySlot((prev) =>
       prev.map((slot, idx) => (idx === index ? { ...slot, set: value } : slot)),
     )
+    setInvalidSubSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
+    setInvalidEquipSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
+  }
+
+  const hasSavedEquipment = (slotState) => {
+    if (!slotState) return false
+    const hasSet = Boolean(slotState.set)
+    const hasRing = Boolean(slotState.ring)
+    const hasAnyMain = equipmentSlots.some((slot) => Boolean(slotState.equipment[slot.id]?.main))
+    const hasAnySubs = equipmentSlots.some((slot) => (slotState.equipment[slot.id]?.subs ?? []).length > 0)
+    return hasSet || hasRing || hasAnyMain || hasAnySubs
+  }
+
+  const hasAllHeroEquipmentSaved = () =>
+    selectedHeroes.every((heroId, index) => {
+      if (!heroId) return true
+      return hasSavedEquipment(equipmentBySlot[index])
+    })
+
+  const hasAllHeroSlotsFilled = () => selectedHeroes.every((heroId) => Boolean(heroId))
+
+  const getInvalidSubSlots = () =>
+    selectedHeroes
+      .map((heroId, index) => {
+        if (!heroId) return null
+        const slotState = equipmentBySlot[index]
+        const invalid = equipmentSlots.some((slot) => {
+          const subs = slotState.equipment[slot.id]?.subs ?? []
+          return subs.length < 1 || subs.length > 4
+        })
+        return invalid ? index : null
+      })
+      .filter((value) => value !== null)
+
+  const getInvalidEquipmentSlots = () =>
+    selectedHeroes
+      .map((heroId, index) => {
+        if (!heroId) return null
+        return hasSavedEquipment(equipmentBySlot[index]) ? null : index
+      })
+      .filter((value) => value !== null)
+
+  const guideType =
+    mode === 'adventure'
+      ? 'ADVENTURE'
+      : mode === 'arena'
+        ? 'ARENA'
+        : mode === 'total-war'
+          ? 'TOTAL_WAR'
+          : mode === 'raid'
+            ? 'RAID'
+            : mode === 'growth'
+              ? 'GROWTH'
+              : 'UNKNOWN'
+
+  const buildTeamSlots = () =>
+    selectedHeroes
+      .map((heroId, index) => (heroId ? { position: index + 1, heroId } : null))
+      .filter(Boolean)
+
+  const buildSkillOrders = () =>
+    skillOrder.map((item, index) => ({
+      order: index + 1,
+      heroId: item.heroId,
+      skill: item.skill,
+    }))
+
+  const buildHeroEquipments = () =>
+    selectedHeroes
+      .map((heroId, index) => {
+        if (!heroId) return null
+        const slotState = equipmentBySlot[index]
+        const slotDetails = equipmentSlots.map((slot) => ({
+          slotId: slot.id,
+          main: slotState.equipment[slot.id]?.main ?? '',
+          subs: slotState.equipment[slot.id]?.subs ?? [],
+        }))
+        return {
+          heroId,
+          equipmentSet: slotState.set,
+          ring: slotState.ring,
+          slots: slotDetails,
+        }
+      })
+      .filter(Boolean)
+
+  const handleSubmit = async () => {
+    if (status === 'loading') return
+    if (!hasAllHeroSlotsFilled()) {
+      setStatus('error')
+      setErrorMessage('모든 슬롯에 영웅을 등록해주세요.')
+      return
+    }
+    if (!hasAllHeroEquipmentSaved()) {
+      setStatus('error')
+      setErrorMessage('슬롯에 등록된 영웅을 클릭해 장비를 저장해주세요.')
+      setInvalidEquipSlots(getInvalidEquipmentSlots())
+      return
+    }
+    const invalidSlots = getInvalidSubSlots()
+    if (invalidSlots.length) {
+      setStatus('error')
+      setErrorMessage('부옵은 최소1개 ~ 최대4개까지 설정가능합니다.')
+      setInvalidSubSlots(invalidSlots)
+      return
+    }
+    setStatus('loading')
+    setErrorMessage('')
+    try {
+      const payload = {
+        guideType,
+        raidId: mode === 'raid' ? raidId : undefined,
+        stageId: mode === 'growth' ? stageId : undefined,
+        team: {
+          formationId,
+          petId: selectedPet,
+          slots: buildTeamSlots(),
+        },
+        skillOrders: buildSkillOrders(),
+        heroEquipments: buildHeroEquipments(),
+      }
+      await createGuideDeck(payload)
+      setStatus('success')
+      navigate(backTo)
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        '덱 등록에 실패했습니다.'
+      setErrorMessage(message)
+      setStatus('error')
+    }
   }
 
 
@@ -332,7 +465,7 @@ function GuidesDeckWrite({ mode }) {
             {formationOptions.map((formation) => (
               <option key={formation.id} value={formation.id}>{formation.label}</option>
             ))}
-          </select>          <div className="deck-formation-note">슬롯을 먼저 클릭하고 영웅/펫을 선택해 배치하세요.</div>
+          </select>          <div className="deck-formation-note">슬롯을 먼저 클릭하고 영웅/펫을 선택해 배치하세요. 이후 슬롯에 배치된 영웅을 클릭해 장비를 저장하세요.</div>
           <div className="deck-units deck-units--lineup deck-units--write">
             {Array.from({ length: heroSlotCount }).map((_, index) => {
               const isBack = backPositions.includes(index + 1)
@@ -345,6 +478,7 @@ function GuidesDeckWrite({ mode }) {
                   isBack={isBack}
                   filled={Boolean(hero)}
                   isActive={isActive}
+                  isInvalid={invalidSubSlots.includes(index) || invalidEquipSlots.includes(index)}
                   onClick={() => handleHeroSlotClick(index)}
                 >
                   {hero ? (
@@ -534,8 +668,20 @@ function GuidesDeckWrite({ mode }) {
           </div>
         </div>
 
+        {status === 'error' ? (
+          <div className="community-form-error" role="alert">
+            {errorMessage}
+          </div>
+        ) : null}
         <div className="deck-write-actions">
-          <button className="community-submit" type="button">등록</button>
+          <button
+            className="community-submit"
+            type="button"
+            onClick={handleSubmit}
+            disabled={status === 'loading'}
+          >
+            {status === 'loading' ? '등록 중...' : '등록'}
+          </button>
           <Link className="community-cancel" to={backTo}>취소</Link>
         </div>
       </div>
@@ -553,23 +699,42 @@ function GuidesDeckWrite({ mode }) {
                 <h2>{activeHero.name}</h2>
                 <p>장비 정보</p>
               </div>
-              <label className="deck-equipment-field">
-                <span>장비 세트</span>
-                <select
-                  className="deck-write-select"
-                  value={activeEquipmentSlot?.set ?? ''}
-                  onChange={(event) => handleEquipmentSetChange(equipmentModalSlot, event.target.value)}
-                >
-                  <option value="">선택</option>
-                  {equipmentSetOptions.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-              </label>
+              <div className="equipment-modal-controls">
+                <label className="deck-equipment-field">
+                  <span>장비 세트</span>
+                  <select
+                    className="deck-write-select"
+                    value={activeEquipmentSlot?.set ?? ''}
+                    onChange={(event) => handleEquipmentSetChange(equipmentModalSlot, event.target.value)}
+                  >
+                    <option value="">선택</option>
+                    {equipmentSetOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="deck-equipment-field">
+                  <span>반지</span>
+                  <select
+                    className="deck-write-select"
+                    value={activeEquipmentSlot?.ring ?? ''}
+                    onChange={(event) => handleEquipmentRingChange(equipmentModalSlot, event.target.value)}
+                  >
+                    <option value="">선택</option>
+                    {ringOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
             </div>
             <div className="deck-equipment-grid">
               {equipmentSlots.map((slot) => {
                 const slotState = activeEquipmentSlot?.equipment?.[slot.id] ?? { main: '', subs: [] }
+                const options =
+                  slot.id === 'armor1' || slot.id === 'armor2'
+                    ? armorMainOptions
+                    : weaponMainOptions
                 return (
                   <div key={slot.id} className="deck-equipment-card">
                     <div className="deck-equipment-title">{slot.label}</div>
@@ -583,7 +748,7 @@ function GuidesDeckWrite({ mode }) {
                         }
                       >
                         <option value="">선택</option>
-                        {mainOptions.map((option) => (
+                        {options.map((option) => (
                           <option key={option} value={option}>{option}</option>
                         ))}
                       </select>
@@ -617,22 +782,6 @@ function GuidesDeckWrite({ mode }) {
                   </div>
                 )
               })}
-              <div className="deck-equipment-card">
-                <div className="deck-equipment-title">반지</div>
-                <label className="deck-equipment-field">
-                  <span>반지 선택</span>
-                  <select
-                    className="deck-write-select"
-                    value={activeEquipmentSlot?.ring ?? ''}
-                    onChange={(event) => handleEquipmentRingChange(equipmentModalSlot, event.target.value)}
-                  >
-                    <option value="">선택</option>
-                    {ringOptions.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
             </div>
             <div className="community-modal-actions">
               <button className="community-modal-submit" type="button" onClick={handleCloseEquipmentModal}>

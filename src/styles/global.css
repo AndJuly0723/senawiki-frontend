@@ -463,6 +463,24 @@ body {
 .deck-units--write {
   gap: 12px;
   padding: 12px 0;
+  align-items: flex-start;
+}
+
+.deck-units--write .deck-unit {
+  width: 56px;
+  flex: 0 0 56px;
+  height: 86px;
+  justify-content: flex-start;
+}
+
+.deck-units--write .deck-unit span,
+.deck-units--write .deck-slot {
+  width: 100%;
+  text-align: center;
+}
+
+.deck-units--write .deck-unit-button {
+  width: 100%;
 }
 
 .deck-unit.is-over .deck-slot {
@@ -473,6 +491,23 @@ body {
 .deck-unit.is-active img {
   border-color: rgba(216, 74, 74, 0.85);
   box-shadow: 0 0 0 2px rgba(216, 74, 74, 0.3);
+}
+
+.deck-unit.is-invalid .deck-slot,
+.deck-unit.is-invalid img {
+  border-color: rgba(255, 184, 77, 0.95);
+  box-shadow: 0 0 0 2px rgba(255, 184, 77, 0.35);
+  animation: deckSlotGlow 1.2s ease-in-out infinite;
+}
+
+@keyframes deckSlotGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px rgba(255, 184, 77, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(255, 184, 77, 0.55);
+  }
 }
 .deck-unit--placeholder img {
   display: none;
@@ -1767,7 +1802,17 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
+}
+
+.equipment-modal-controls {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.equipment-modal-controls .deck-equipment-field {
+  min-width: 150px;
 }
 .equipment-modal-card .deck-equipment-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1775,6 +1820,36 @@ body {
   overflow: auto;
   padding-right: 4px;
   max-height: 56vh;
+}
+
+.equipment-modal-card {
+  width: min(900px, 94vw);
+  max-height: 96vh;
+  padding: 12px 16px;
+}
+
+.equipment-modal-card .deck-equipment-grid {
+  max-height: none;
+  overflow: visible;
+}
+
+.equipment-modal-card {
+  width: min(980px, 96vw);
+}
+
+.equipment-modal-card .deck-equipment-card {
+  padding: 10px;
+  gap: 8px;
+}
+
+.equipment-modal-card .deck-equipment-field {
+  gap: 4px;
+  font-size: 12px;
+}
+
+.equipment-modal-card .deck-suboptions {
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 6px 8px;
 }
 
 
@@ -2882,6 +2957,7 @@ body {
 
 
 .deck-unit-button span { font-size: 12px; }
+.deck-unit--pet span { font-size: 12px; }
 
 
 
