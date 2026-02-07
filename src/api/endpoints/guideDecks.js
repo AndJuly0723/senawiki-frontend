@@ -17,3 +17,8 @@ export const createGuideDeck = (payload) =>
 
 export const deleteGuideDeck = (deckId) =>
   apiClient.delete(`${GUIDE_DECKS_ENDPOINT}/${deckId}`).then((response) => response.data)
+
+export const voteGuideDeck = (deckId, voteType) =>
+  apiClient
+    .post(`${GUIDE_DECKS_ENDPOINT}/${deckId}/votes`, { voteType })
+    .then((response) => response.data)

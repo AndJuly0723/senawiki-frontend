@@ -130,11 +130,17 @@ export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
       : authorCandidate?.nickname ?? authorCandidate?.name ?? ''
 
   return {
-    id: raw.id ?? raw.deckId ?? raw.guideDeckId ?? raw.deck?.id,
+    id:
+      raw.id ??
+      raw.deckId ??
+      raw.deck_id ??
+      raw.guideDeckId ??
+      raw.guide_deck_id ??
+      raw.deck?.id,
     author,
     createdAt: raw.createdAt ?? raw.createdDate ?? raw.createdTime,
-    likes: raw.likes ?? raw.likeCount ?? raw.recommendCount ?? raw.upCount ?? 0,
-    dislikes: raw.dislikes ?? raw.dislikeCount ?? raw.unrecommendCount ?? raw.downCount ?? 0,
+    likes: raw.likes ?? raw.likeCount ?? raw.recommendCount ?? raw.upVotes ?? raw.upCount ?? 0,
+    dislikes: raw.dislikes ?? raw.dislikeCount ?? raw.unrecommendCount ?? raw.downVotes ?? raw.downCount ?? 0,
     heroes: heroKeys,
     pet: petKey,
     formationId,

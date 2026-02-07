@@ -2,7 +2,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { heroes } from '../data/heroes'
 import { pets } from '../data/pets'
-import { deleteGuideDeck, fetchGuideDeckEquipment, fetchGuideDecks } from '../api/endpoints/guideDecks'
+import { deleteGuideDeck, fetchGuideDeckEquipment, fetchGuideDecks, voteGuideDeck } from '../api/endpoints/guideDecks'
 import {
   equipmentSlots,
   formatGuideDeckDate,
@@ -34,9 +34,12 @@ function GuidesGrowthStage() {
   const [currentUser, setCurrentUser] = useState(getStoredUser())
   const [actionMenuOpenId, setActionMenuOpenId] = useState(null)
   const [writeNoticeOpen, setWriteNoticeOpen] = useState(false)
+  const [voteNoticeOpen, setVoteNoticeOpen] = useState(false)
+  const [voteNoticeMessage, setVoteNoticeMessage] = useState('')
   const [decks, setDecks] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
+  const [votePendingDeckId, setVotePendingDeckId] = useState(null)
   const [sortBy, setSortBy] = useState('likes')
   const [page, setPage] = useState(1)
   const label = stageMeta[stageId] ?? '성장던전'
@@ -44,6 +47,11 @@ function GuidesGrowthStage() {
   const heroByName = useMemo(() => new Map(heroes.map((hero) => [hero.name, hero])), [])
   const petById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet])), [])
   const petByName = useMemo(() => new Map(pets.map((pet) => [pet.name, pet])), [])
+
+  const openVoteNotice = (message) => {
+    setVoteNoticeMessage(message)
+    setVoteNoticeOpen(true)
+  }
 
   useEffect(() => {
     const handleAuthChange = () => setCurrentUser(getStoredUser())
@@ -88,6 +96,51 @@ function GuidesGrowthStage() {
         error?.message ||
         '덱 삭제에 실패했습니다.'
       window.alert(message)
+    }
+  }
+
+  const handleVoteDeck = async (deckId, voteType) => {
+    if (deckId == null || deckId === '') {
+      openVoteNotice('덱 정보를 다시 불러온 뒤 시도해 주세요.')
+      return
+    }
+    if (votePendingDeckId === deckId) return
+    const accessToken = getAccessToken()
+    if (!accessToken || accessToken === 'null' || accessToken === 'undefined') {
+      openVoteNotice('추천/비추천은 회원만 가능합니다.')
+      return
+    }
+    setVotePendingDeckId(deckId)
+    try {
+      const data = await voteGuideDeck(deckId, voteType)
+      setDecks((prev) =>
+        prev.map((deck) =>
+          deck.id === deckId
+            ? {
+                ...deck,
+                likes: data?.upVotes ?? deck.likes ?? 0,
+                dislikes: data?.downVotes ?? deck.dislikes ?? 0,
+              }
+            : deck,
+        ),
+      )
+    } catch (error) {
+      const status = error?.response?.status
+      if (status === 409) {
+        openVoteNotice('이미 투표한 덱입니다.')
+        return
+      }
+      if (status === 401) {
+        openVoteNotice('로그인 후 이용 가능합니다.')
+        return
+      }
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        '투표 처리에 실패했습니다.'
+      openVoteNotice(message)
+    } finally {
+      setVotePendingDeckId(null)
     }
   }
 
@@ -321,14 +374,32 @@ function GuidesGrowthStage() {
                 </div>
               </div>
               <div className="deck-reactions">
-                <button className="deck-reaction-button" type="button" aria-label="추천">
+                <button
+                  className="deck-reaction-button"
+                  type="button"
+                  aria-label="추천"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    handleVoteDeck(deck.id, 'UP')
+                  }}
+                  disabled={votePendingDeckId !== null && votePendingDeckId === deck.id}
+                >
                   <svg className="deck-reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M2 10h4v10H2V10zm20 2c0-1.1-.9-2-2-2h-6.3l1-4.6.02-.22c0-.3-.12-.58-.32-.78L13.7 3 7.6 9.1c-.38.38-.6.9-.6 1.4V19c0 1.1.9 2 2 2h7c.82 0 1.54-.5 1.84-1.26l2.16-5.05c.06-.17.1-.34.1-.52v-2z" />
                   </svg>
                   <span>추천</span>
                   <span className="deck-reaction-count">{deck.likes}</span>
                 </button>
-                <button className="deck-reaction-button deck-reaction-button--down" type="button" aria-label="비추천">
+                <button
+                  className="deck-reaction-button deck-reaction-button--down"
+                  type="button"
+                  aria-label="비추천"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    handleVoteDeck(deck.id, 'DOWN')
+                  }}
+                  disabled={votePendingDeckId !== null && votePendingDeckId === deck.id}
+                >
                   <svg className="deck-reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M22 14h-4V4h4v10zM4 12c0 1.1.9 2 2 2h6.3l-1 4.6-.02.22c0 .3.12.58.32.78L12.3 21l6.1-6.1c.38-.38.6-.9.6-1.4V5c0-1.1-.9-2-2-2H10c-.82 0-1.54.5-1.84 1.26L6 9.31c-.06.17-.1-.34-.1-.52v2z" />
                   </svg>
@@ -424,6 +495,33 @@ function GuidesGrowthStage() {
                 className="community-modal-cancel"
                 type="button"
                 onClick={() => setWriteNoticeOpen(false)}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {voteNoticeOpen ? (
+        <div className="community-modal" role="dialog" aria-modal="true">
+          <button
+            className="community-modal-backdrop"
+            type="button"
+            onClick={() => setVoteNoticeOpen(false)}
+            aria-label="닫기"
+          />
+          <div className="community-modal-card">
+            <div className="community-modal-header">
+              <h2>알림</h2>
+            </div>
+            <div className="community-modal-body">
+              {voteNoticeMessage}
+            </div>
+            <div className="community-modal-actions">
+              <button
+                className="community-modal-cancel"
+                type="button"
+                onClick={() => setVoteNoticeOpen(false)}
               >
                 확인
               </button>
