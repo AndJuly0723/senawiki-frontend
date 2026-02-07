@@ -4,6 +4,7 @@ import { heroes } from '../data/heroes'
 import { pets } from '../data/pets'
 import { createGuideDeck } from '../api/endpoints/guideDecks'
 import { equipmentSlots, formationBackPositions, formationOptions } from '../utils/guideDecks'
+import { getAccessToken } from '../utils/authStorage'
 
 const raidMeta = {
   'ruin-eye': '파멸의 눈동자',
@@ -110,6 +111,7 @@ function DeckSlot({ children, isBack, filled, isActive, isInvalid, onClick }) {
 function GuidesDeckWrite({ mode }) {
   const { raidId, stageId } = useParams()
   const navigate = useNavigate()
+  const isAdventureMode = mode === 'adventure'
 
   let label = '공략'
   let backTo = '/'
@@ -143,126 +145,177 @@ function GuidesDeckWrite({ mode }) {
     ring: '',
     set: '',
   })
-  const [formationId, setFormationId] = useState(formationOptions[0].id)
-  const [equipmentBySlot, setEquipmentBySlot] = useState(() =>
-    Array.from({ length: heroSlotCount }, () => createEmptySlot()),
+  const createEmptyTeamState = () => ({
+    formationId: formationOptions[0].id,
+    equipmentBySlot: Array.from({ length: heroSlotCount }, () => createEmptySlot()),
+    selectedHeroes: Array(heroSlotCount).fill(null),
+    selectedPet: null,
+    heroQuery: '',
+    petQuery: '',
+    activeHeroSlot: null,
+    isPetSlotActive: false,
+    skillOrder: [],
+    invalidSubSlots: [],
+    invalidEquipSlots: [],
+  })
+
+  const [activeTeamIndex, setActiveTeamIndex] = useState(0)
+  const [teamStates, setTeamStates] = useState(() =>
+    Array.from({ length: isAdventureMode ? 2 : 1 }, () => createEmptyTeamState()),
   )
-  const [equipmentModalSlot, setEquipmentModalSlot] = useState(null)
-  const [selectedHeroes, setSelectedHeroes] = useState(Array(heroSlotCount).fill(null))
-  const [selectedPet, setSelectedPet] = useState(null)
-  const [heroQuery, setHeroQuery] = useState('')
-  const [petQuery, setPetQuery] = useState('')
-  const [activeHeroSlot, setActiveHeroSlot] = useState(null)
-  const [isPetSlotActive, setIsPetSlotActive] = useState(false)
-  const [skillOrder, setSkillOrder] = useState([])
+  const [equipmentModalState, setEquipmentModalState] = useState(null)
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
-  const [invalidSubSlots, setInvalidSubSlots] = useState([])
-  const [invalidEquipSlots, setInvalidEquipSlots] = useState([])
-  const backPositions = formationBackPositions[formationId] ?? []
+  const currentTeam = teamStates[activeTeamIndex]
+  const backPositions = formationBackPositions[currentTeam?.formationId] ?? []
 
   const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [])
   const petById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet])), [])
   
-  const activeEquipmentSlot = equipmentModalSlot !== null ? equipmentBySlot[equipmentModalSlot] : null
-  
-  const activeHero = equipmentModalSlot !== null ? heroById.get(selectedHeroes[equipmentModalSlot]) : null
+  const activeEquipmentSlot =
+    equipmentModalState !== null
+      ? teamStates[equipmentModalState.teamIndex]?.equipmentBySlot[equipmentModalState.slotIndex]
+      : null
+
+  const activeHero =
+    equipmentModalState !== null
+      ? heroById.get(teamStates[equipmentModalState.teamIndex]?.selectedHeroes[equipmentModalState.slotIndex])
+      : null
   const filteredHeroes = useMemo(() => {
-    const query = heroQuery.trim().toLowerCase()
+    const query = (currentTeam?.heroQuery ?? '').trim().toLowerCase()
     if (!query) return heroes
     return heroes.filter((hero) => hero.name.toLowerCase().includes(query))
-  }, [heroQuery])
+  }, [currentTeam?.heroQuery])
 
   const filteredPets = useMemo(() => {
-    const query = petQuery.trim().toLowerCase()
+    const query = (currentTeam?.petQuery ?? '').trim().toLowerCase()
     if (!query) return pets
     return pets.filter((pet) => pet.name.toLowerCase().includes(query))
-  }, [petQuery])
+  }, [currentTeam?.petQuery])
+
+  const updateCurrentTeam = (updater) => {
+    setTeamStates((prev) =>
+      prev.map((team, index) => (index === activeTeamIndex ? updater(team) : team)),
+    )
+  }
+  const updateTeamByIndex = (teamIndex, updater) => {
+    setTeamStates((prev) =>
+      prev.map((team, index) => (index === teamIndex ? updater(team) : team)),
+    )
+  }
+
   const handleSelectHero = (heroId) => {
     if (!heroId) return
-    setSelectedHeroes((prev) => {
-      const existingIndex = prev.findIndex((id) => id === heroId)
+    updateCurrentTeam((team) => {
+      const existingIndex = team.selectedHeroes.findIndex((id) => id === heroId)
       if (existingIndex !== -1) {
-        return prev
+        return team
       }
-      if (activeHeroSlot === null) {
-        return prev
+      if (team.activeHeroSlot === null) {
+        return team
       }
-      const next = [...prev]
-      next[activeHeroSlot] = heroId
-      return next
+      const next = [...team.selectedHeroes]
+      next[team.activeHeroSlot] = heroId
+      return {
+        ...team,
+        selectedHeroes: next,
+        activeHeroSlot: null,
+        heroQuery: '',
+      }
     })
-    setActiveHeroSlot(null)
-    setHeroQuery('')
   }
   const handleSelectPet = (petId) => {
     if (!petId) return
-    if (!isPetSlotActive) return
-    setSelectedPet(petId)
-    setIsPetSlotActive(false)
-    setPetQuery('')
+    if (!currentTeam?.isPetSlotActive) return
+    updateCurrentTeam((team) => ({
+      ...team,
+      selectedPet: petId,
+      isPetSlotActive: false,
+      petQuery: '',
+    }))
   }
   const handleHeroSlotClick = (index) => {
-    const heroId = selectedHeroes[index]
+    const heroId = currentTeam?.selectedHeroes[index]
     if (heroId) {
-      setEquipmentModalSlot(index)
-      setActiveHeroSlot(null)
-      setHeroQuery('')
-      setIsPetSlotActive(false)
-      setPetQuery('')
+      setEquipmentModalState({ teamIndex: activeTeamIndex, slotIndex: index })
+      updateCurrentTeam((team) => ({
+        ...team,
+        activeHeroSlot: null,
+        heroQuery: '',
+        isPetSlotActive: false,
+        petQuery: '',
+      }))
       return
     }
-    setActiveHeroSlot(index)
-    setIsPetSlotActive(false)
-    setPetQuery('')
+    updateCurrentTeam((team) => ({
+      ...team,
+      activeHeroSlot: index,
+      isPetSlotActive: false,
+      petQuery: '',
+    }))
   }
   const handlePetSlotClick = () => {
-    if (selectedPet) {
-      setSelectedPet(null)
-      setIsPetSlotActive(false)
-      setPetQuery('')
+    if (currentTeam?.selectedPet) {
+      updateCurrentTeam((team) => ({
+        ...team,
+        selectedPet: null,
+        isPetSlotActive: false,
+        petQuery: '',
+      }))
       return
     }
-    setIsPetSlotActive(true)
-    setActiveHeroSlot(null)
-    setHeroQuery('')
+    updateCurrentTeam((team) => ({
+      ...team,
+      isPetSlotActive: true,
+      activeHeroSlot: null,
+      heroQuery: '',
+    }))
   }
   useEffect(() => {
     const handleDocClick = (event) => {
       const target = event.target
       if (!(target instanceof Element)) return
       if (target.closest('.deck-units--write') || target.closest('.deck-write-picker')) return
-      setActiveHeroSlot(null)
-      setHeroQuery('')
-      setIsPetSlotActive(false)
-      setPetQuery('')
+      setTeamStates((prev) =>
+        prev.map((team, index) =>
+          index === activeTeamIndex
+            ? {
+                ...team,
+                activeHeroSlot: null,
+                heroQuery: '',
+                isPetSlotActive: false,
+                petQuery: '',
+              }
+            : team,
+        ),
+      )
     }
 
     document.addEventListener('mousedown', handleDocClick)
     return () => document.removeEventListener('mousedown', handleDocClick)
-  }, [])
+  }, [activeTeamIndex])
 
-  const handleCloseEquipmentModal = () => {
-    setEquipmentModalSlot(null)
+  const handleCloseEquipmentModal = () => setEquipmentModalState(null)
+
+  const handleRemoveHero = (teamIndex, index) => {
+    updateTeamByIndex(teamIndex, (team) => {
+      const nextHeroes = [...team.selectedHeroes]
+      nextHeroes[index] = null
+      const nextEquipments = [...team.equipmentBySlot]
+      nextEquipments[index] = createEmptySlot()
+      return {
+        ...team,
+        selectedHeroes: nextHeroes,
+        equipmentBySlot: nextEquipments,
+      }
+    })
+    setEquipmentModalState(null)
   }
 
-  const handleRemoveHero = (index) => {
-    setSelectedHeroes((prev) => {
-      const next = [...prev]
-      next[index] = null
-      return next
-    });
-    setEquipmentBySlot((prev) => {
-      const next = [...prev]
-      next[index] = createEmptySlot()
-      return next
-    });
-    setEquipmentModalSlot(null)
-  }
-
-  const handleEquipmentMainChange = (index, slotId, value) => {
-    setEquipmentBySlot((prev) =>
-      prev.map((slot, idx) =>
+  const handleEquipmentMainChange = (teamIndex, index, slotId, value) => {
+    updateTeamByIndex(teamIndex, (team) => ({
+      ...team,
+      equipmentBySlot: team.equipmentBySlot.map((slot, idx) =>
         idx === index
           ? {
               ...slot,
@@ -273,15 +326,16 @@ function GuidesDeckWrite({ mode }) {
             }
           : slot,
       ),
-    )
-    setInvalidSubSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
-    setInvalidEquipSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
+      invalidSubSlots: team.invalidSubSlots.filter((slotIndex) => slotIndex !== index),
+      invalidEquipSlots: team.invalidEquipSlots.filter((slotIndex) => slotIndex !== index),
+    }))
   }
 
-  const handleEquipmentSubChange = (index, slotId, selectedValues) => {
+  const handleEquipmentSubChange = (teamIndex, index, slotId, selectedValues) => {
     const trimmed = selectedValues.slice(0, 4);
-    setEquipmentBySlot((prev) =>
-      prev.map((slot, idx) =>
+    updateTeamByIndex(teamIndex, (team) => ({
+      ...team,
+      equipmentBySlot: team.equipmentBySlot.map((slot, idx) =>
         idx === index
           ? {
               ...slot,
@@ -292,25 +346,31 @@ function GuidesDeckWrite({ mode }) {
             }
           : slot,
       ),
-    )
-    setInvalidSubSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
-    setInvalidEquipSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
+      invalidSubSlots: team.invalidSubSlots.filter((slotIndex) => slotIndex !== index),
+      invalidEquipSlots: team.invalidEquipSlots.filter((slotIndex) => slotIndex !== index),
+    }))
   }
 
-  const handleEquipmentRingChange = (index, value) => {
-    setEquipmentBySlot((prev) =>
-      prev.map((slot, idx) => (idx === index ? { ...slot, ring: value } : slot)),
-    )
-    setInvalidSubSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
-    setInvalidEquipSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
+  const handleEquipmentRingChange = (teamIndex, index, value) => {
+    updateTeamByIndex(teamIndex, (team) => ({
+      ...team,
+      equipmentBySlot: team.equipmentBySlot.map((slot, idx) =>
+        idx === index ? { ...slot, ring: value } : slot,
+      ),
+      invalidSubSlots: team.invalidSubSlots.filter((slotIndex) => slotIndex !== index),
+      invalidEquipSlots: team.invalidEquipSlots.filter((slotIndex) => slotIndex !== index),
+    }))
   }
 
-  const handleEquipmentSetChange = (index, value) => {
-    setEquipmentBySlot((prev) =>
-      prev.map((slot, idx) => (idx === index ? { ...slot, set: value } : slot)),
-    )
-    setInvalidSubSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
-    setInvalidEquipSlots((prev) => prev.filter((slotIndex) => slotIndex !== index))
+  const handleEquipmentSetChange = (teamIndex, index, value) => {
+    updateTeamByIndex(teamIndex, (team) => ({
+      ...team,
+      equipmentBySlot: team.equipmentBySlot.map((slot, idx) =>
+        idx === index ? { ...slot, set: value } : slot,
+      ),
+      invalidSubSlots: team.invalidSubSlots.filter((slotIndex) => slotIndex !== index),
+      invalidEquipSlots: team.invalidEquipSlots.filter((slotIndex) => slotIndex !== index),
+    }))
   }
 
   const hasSavedEquipment = (slotState) => {
@@ -322,19 +382,19 @@ function GuidesDeckWrite({ mode }) {
     return hasSet || hasRing || hasAnyMain || hasAnySubs
   }
 
-  const hasAllHeroEquipmentSaved = () =>
-    selectedHeroes.every((heroId, index) => {
+  const hasAllHeroEquipmentSaved = (team) =>
+    team.selectedHeroes.every((heroId, index) => {
       if (!heroId) return true
-      return hasSavedEquipment(equipmentBySlot[index])
+      return hasSavedEquipment(team.equipmentBySlot[index])
     })
 
-  const hasAllHeroSlotsFilled = () => selectedHeroes.every((heroId) => Boolean(heroId))
+  const hasAllHeroSlotsFilled = (team) => team.selectedHeroes.every((heroId) => Boolean(heroId))
 
-  const getInvalidSubSlots = () =>
-    selectedHeroes
+  const getInvalidSubSlots = (team) =>
+    team.selectedHeroes
       .map((heroId, index) => {
         if (!heroId) return null
-        const slotState = equipmentBySlot[index]
+        const slotState = team.equipmentBySlot[index]
         const invalid = equipmentSlots.some((slot) => {
           const subs = slotState.equipment[slot.id]?.subs ?? []
           return subs.length < 1 || subs.length > 4
@@ -343,11 +403,11 @@ function GuidesDeckWrite({ mode }) {
       })
       .filter((value) => value !== null)
 
-  const getInvalidEquipmentSlots = () =>
-    selectedHeroes
+  const getInvalidEquipmentSlots = (team) =>
+    team.selectedHeroes
       .map((heroId, index) => {
         if (!heroId) return null
-        return hasSavedEquipment(equipmentBySlot[index]) ? null : index
+        return hasSavedEquipment(team.equipmentBySlot[index]) ? null : index
       })
       .filter((value) => value !== null)
 
@@ -364,23 +424,23 @@ function GuidesDeckWrite({ mode }) {
               ? 'GROWTH'
               : 'UNKNOWN'
 
-  const buildTeamSlots = () =>
-    selectedHeroes
+  const buildTeamSlots = (team) =>
+    team.selectedHeroes
       .map((heroId, index) => (heroId ? { position: index + 1, heroId } : null))
       .filter(Boolean)
 
-  const buildSkillOrders = () =>
-    skillOrder.map((item, index) => ({
+  const buildSkillOrders = (team) =>
+    team.skillOrder.map((item, index) => ({
       order: index + 1,
       heroId: item.heroId,
       skill: item.skill,
     }))
 
-  const buildHeroEquipments = () =>
-    selectedHeroes
+  const buildHeroEquipments = (team) =>
+    team.selectedHeroes
       .map((heroId, index) => {
         if (!heroId) return null
-        const slotState = equipmentBySlot[index]
+        const slotState = team.equipmentBySlot[index]
         const slotDetails = equipmentSlots.map((slot) => ({
           slotId: slot.id,
           main: slotState.equipment[slot.id]?.main ?? '',
@@ -397,43 +457,71 @@ function GuidesDeckWrite({ mode }) {
 
   const handleSubmit = async () => {
     if (status === 'loading') return
-    if (!hasAllHeroSlotsFilled()) {
+    if (!getAccessToken()) {
       setStatus('error')
-      setErrorMessage('모든 슬롯에 영웅을 등록해주세요.')
+      setErrorMessage('공략덱 작성은 회원만 가능합니다. 로그인 후 다시 시도해주세요.')
       return
     }
-    if (skillOrder.length === 0) {
-      setStatus('error')
-      setErrorMessage('스킬순서를 지정해주세요.')
-      return
-    }
-    if (!hasAllHeroEquipmentSaved()) {
-      setStatus('error')
-      setErrorMessage('슬롯에 등록된 영웅을 클릭해 장비를 저장해주세요.')
-      setInvalidEquipSlots(getInvalidEquipmentSlots())
-      return
-    }
-    const invalidSlots = getInvalidSubSlots()
-    if (invalidSlots.length) {
-      setStatus('error')
-      setErrorMessage('부옵은 최소1개 ~ 최대4개까지 설정가능합니다.')
-      setInvalidSubSlots(invalidSlots)
-      return
+    for (let i = 0; i < teamStates.length; i += 1) {
+      const team = teamStates[i]
+      if (!hasAllHeroSlotsFilled(team)) {
+        setStatus('error')
+        setErrorMessage(`${i + 1}팀의 모든 슬롯에 영웅을 등록해주세요.`)
+        setActiveTeamIndex(i)
+        return
+      }
+      if (team.skillOrder.length === 0) {
+        setStatus('error')
+        setErrorMessage(`${i + 1}팀의 스킬순서를 지정해주세요.`)
+        setActiveTeamIndex(i)
+        return
+      }
+      if (!hasAllHeroEquipmentSaved(team)) {
+        setStatus('error')
+        setErrorMessage(`${i + 1}팀 슬롯에 등록된 영웅을 클릭해 장비를 저장해주세요.`)
+        setActiveTeamIndex(i)
+        setTeamStates((prev) =>
+          prev.map((entry, idx) =>
+            idx === i ? { ...entry, invalidEquipSlots: getInvalidEquipmentSlots(entry) } : entry,
+          ),
+        )
+        return
+      }
+      const invalidSlots = getInvalidSubSlots(team)
+      if (invalidSlots.length) {
+        setStatus('error')
+        setErrorMessage(`${i + 1}팀 부옵은 최소1개 ~ 최대4개까지 설정가능합니다.`)
+        setActiveTeamIndex(i)
+        setTeamStates((prev) =>
+          prev.map((entry, idx) =>
+            idx === i ? { ...entry, invalidSubSlots: invalidSlots } : entry,
+          ),
+        )
+        return
+      }
     }
     setStatus('loading')
     setErrorMessage('')
     try {
+      const buildTeamPayload = (team) => ({
+        formationId: team.formationId,
+        petId: team.selectedPet,
+        slots: buildTeamSlots(team),
+        skillOrders: buildSkillOrders(team),
+        heroEquipments: buildHeroEquipments(team),
+      })
+      const mergedSkillOrders = teamStates.flatMap((team) => buildSkillOrders(team))
+      const mergedHeroEquipments = teamStates.flatMap((team) => buildHeroEquipments(team))
       const payload = {
         guideType,
         raidId: mode === 'raid' ? raidId : undefined,
         stageId: mode === 'growth' ? stageId : undefined,
-        team: {
-          formationId,
-          petId: selectedPet,
-          slots: buildTeamSlots(),
-        },
-        skillOrders: buildSkillOrders(),
-        heroEquipments: buildHeroEquipments(),
+        team: !isAdventureMode && teamStates[0] ? buildTeamPayload(teamStates[0]) : undefined,
+        teams: isAdventureMode
+          ? teamStates.map((team) => buildTeamPayload(team))
+          : undefined,
+        skillOrders: mergedSkillOrders,
+        heroEquipments: mergedHeroEquipments,
       }
       await createGuideDeck(payload)
       setStatus('success')
@@ -461,11 +549,27 @@ function GuidesDeckWrite({ mode }) {
 
       <div className="deck-write-card">
         <div className="deck-write-section">
+          {isAdventureMode ? (
+            <div className="deck-team-tabs">
+              {[0, 1].map((index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className={`community-tab${activeTeamIndex === index ? ' is-active' : ''}`}
+                  onClick={() => setActiveTeamIndex(index)}
+                >
+                  {index + 1}팀
+                </button>
+              ))}
+            </div>
+          ) : null}
           <div className="deck-write-label">진형</div>
           <select
             className="deck-write-select"
-            value={formationId}
-            onChange={(event) => setFormationId(event.target.value)}
+            value={currentTeam?.formationId ?? formationOptions[0].id}
+            onChange={(event) =>
+              updateCurrentTeam((team) => ({ ...team, formationId: event.target.value }))
+            }
           >
             {formationOptions.map((formation) => (
               <option key={formation.id} value={formation.id}>{formation.label}</option>
@@ -474,16 +578,19 @@ function GuidesDeckWrite({ mode }) {
           <div className="deck-units deck-units--lineup deck-units--write">
             {Array.from({ length: heroSlotCount }).map((_, index) => {
               const isBack = backPositions.includes(index + 1)
-              const heroId = selectedHeroes[index]
+              const heroId = currentTeam?.selectedHeroes[index]
               const hero = heroId ? heroById.get(heroId) : null
-              const isActive = activeHeroSlot === index
+              const isActive = currentTeam?.activeHeroSlot === index
               return (
                 <DeckSlot
                   key={`slot-${index}`}
                   isBack={isBack}
                   filled={Boolean(hero)}
                   isActive={isActive}
-                  isInvalid={invalidSubSlots.includes(index) || invalidEquipSlots.includes(index)}
+                  isInvalid={
+                    (currentTeam?.invalidSubSlots ?? []).includes(index) ||
+                    (currentTeam?.invalidEquipSlots ?? []).includes(index)
+                  }
                   onClick={() => handleHeroSlotClick(index)}
                 >
                   {hero ? (
@@ -498,14 +605,14 @@ function GuidesDeckWrite({ mode }) {
             })}
             <DeckSlot
               isBack={false}
-              filled={Boolean(selectedPet)}
-              isActive={isPetSlotActive}
+              filled={Boolean(currentTeam?.selectedPet)}
+              isActive={Boolean(currentTeam?.isPetSlotActive)}
               onClick={handlePetSlotClick}
             >
-              {selectedPet ? (
+              {currentTeam?.selectedPet ? (
                 <div className="deck-unit deck-unit--pet">
                   {(() => {
-                    const pet = petById.get(selectedPet)
+                    const pet = petById.get(currentTeam.selectedPet)
                     return pet ? (
                       <>
                         <img src={pet.image} alt={pet.name} />
@@ -529,12 +636,14 @@ function GuidesDeckWrite({ mode }) {
                   <input
                   className="hero-search-input"
                   placeholder="영웅 검색"
-                  value={heroQuery}
-                  onChange={(event) => setHeroQuery(event.target.value)}
+                  value={currentTeam?.heroQuery ?? ''}
+                  onChange={(event) =>
+                    updateCurrentTeam((team) => ({ ...team, heroQuery: event.target.value }))
+                  }
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') {
                       event.preventDefault()
-                      if (filteredHeroes.length && activeHeroSlot !== null) {
+                      if (filteredHeroes.length && currentTeam?.activeHeroSlot !== null) {
                         handleSelectHero(filteredHeroes[0].id)
                       }
                     }
@@ -542,8 +651,8 @@ function GuidesDeckWrite({ mode }) {
                 />
                   <button className="hero-search-button" type="button">검색</button>
                 </div>
-                <div className={`hero-search-results${heroQuery.trim().length ? '' : ' is-empty'}`}>
-                  {heroQuery.trim().length ? (
+                <div className={`hero-search-results${(currentTeam?.heroQuery ?? '').trim().length ? '' : ' is-empty'}`}>
+                  {(currentTeam?.heroQuery ?? '').trim().length ? (
                     filteredHeroes.length ? (
                       filteredHeroes.map((hero) => (
                         <button
@@ -570,12 +679,14 @@ function GuidesDeckWrite({ mode }) {
                   <input
                   className="hero-search-input"
                   placeholder="펫 검색"
-                  value={petQuery}
-                  onChange={(event) => setPetQuery(event.target.value)}
+                  value={currentTeam?.petQuery ?? ''}
+                  onChange={(event) =>
+                    updateCurrentTeam((team) => ({ ...team, petQuery: event.target.value }))
+                  }
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') {
                       event.preventDefault()
-                      if (filteredPets.length && isPetSlotActive) {
+                      if (filteredPets.length && currentTeam?.isPetSlotActive) {
                         handleSelectPet(filteredPets[0].id)
                       }
                     }
@@ -583,8 +694,8 @@ function GuidesDeckWrite({ mode }) {
                 />
                   <button className="hero-search-button" type="button">검색</button>
                 </div>
-                <div className={`hero-search-results${petQuery.trim().length ? '' : ' is-empty'}`}>
-                  {petQuery.trim().length ? (
+                <div className={`hero-search-results${(currentTeam?.petQuery ?? '').trim().length ? '' : ' is-empty'}`}>
+                  {(currentTeam?.petQuery ?? '').trim().length ? (
                     filteredPets.length ? (
                       filteredPets.map((pet) => (
                         <button
@@ -608,7 +719,7 @@ function GuidesDeckWrite({ mode }) {
           <div className="deck-write-label">스킬순서</div>          <p className="skill-order-help">각 영웅의 스킬을 클릭해 스킬순서를 배치하세요.</p>
           <div className="skill-order-panel">
             <div className="skill-order-choices">
-              {selectedHeroes
+              {(currentTeam?.selectedHeroes ?? [])
                 .map((heroId, index) => ({ heroId, index }))
                 .filter(({ heroId }) => Boolean(heroId))
                 .map(({ heroId, index }) => {
@@ -622,7 +733,10 @@ function GuidesDeckWrite({ mode }) {
                           type="button"
                           className="skill-order-button"
                           onClick={() =>
-                            setSkillOrder((prev) => [...prev, { heroId, skill: 1 }])
+                            updateCurrentTeam((team) => ({
+                              ...team,
+                              skillOrder: [...team.skillOrder, { heroId, skill: 1 }],
+                            }))
                           }
                         >
                           스킬1
@@ -631,7 +745,10 @@ function GuidesDeckWrite({ mode }) {
                           type="button"
                           className="skill-order-button"
                           onClick={() =>
-                            setSkillOrder((prev) => [...prev, { heroId, skill: 2 }])
+                            updateCurrentTeam((team) => ({
+                              ...team,
+                              skillOrder: [...team.skillOrder, { heroId, skill: 2 }],
+                            }))
                           }
                         >
                           스킬2
@@ -642,9 +759,9 @@ function GuidesDeckWrite({ mode }) {
                 })}
             </div>
             <div className="skill-order-selected">
-              {skillOrder.length ? (
+              {(currentTeam?.skillOrder?.length ?? 0) ? (
                 <div className="skill-order-list">
-                  {skillOrder.map((item, idx) => {
+                  {(currentTeam?.skillOrder ?? []).map((item, idx) => {
                     const hero = heroById.get(item.heroId)
                     const label = hero ? `${hero.name}${item.skill}` : `스킬${item.skill}`
                     return (
@@ -653,13 +770,16 @@ function GuidesDeckWrite({ mode }) {
                           type="button"
                           className="skill-order-chip"
                           onClick={() =>
-                            setSkillOrder((prev) => prev.filter((_, i) => i !== idx))
+                            updateCurrentTeam((team) => ({
+                              ...team,
+                              skillOrder: team.skillOrder.filter((_, i) => i !== idx),
+                            }))
                           }
                           title="클릭해서 제거"
                         >
                           {label}
                         </button>
-                        {idx < skillOrder.length - 1 ? (
+                        {idx < (currentTeam?.skillOrder?.length ?? 0) - 1 ? (
                           <span className="skill-order-arrow">→</span>
                         ) : null}
                       </div>
@@ -690,7 +810,7 @@ function GuidesDeckWrite({ mode }) {
           <Link className="community-cancel" to={backTo}>취소</Link>
         </div>
       </div>
-      {equipmentModalSlot !== null && activeHero ? (
+      {equipmentModalState !== null && activeHero ? (
         <div className="equipment-modal" role="dialog" aria-modal="true">
           <button
             type="button"
@@ -710,7 +830,13 @@ function GuidesDeckWrite({ mode }) {
                   <select
                     className="deck-write-select"
                     value={activeEquipmentSlot?.set ?? ''}
-                    onChange={(event) => handleEquipmentSetChange(equipmentModalSlot, event.target.value)}
+                    onChange={(event) =>
+                      handleEquipmentSetChange(
+                        equipmentModalState.teamIndex,
+                        equipmentModalState.slotIndex,
+                        event.target.value,
+                      )
+                    }
                   >
                     <option value="">선택</option>
                     {equipmentSetOptions.map((option) => (
@@ -723,7 +849,13 @@ function GuidesDeckWrite({ mode }) {
                   <select
                     className="deck-write-select"
                     value={activeEquipmentSlot?.ring ?? ''}
-                    onChange={(event) => handleEquipmentRingChange(equipmentModalSlot, event.target.value)}
+                    onChange={(event) =>
+                      handleEquipmentRingChange(
+                        equipmentModalState.teamIndex,
+                        equipmentModalState.slotIndex,
+                        event.target.value,
+                      )
+                    }
                   >
                     <option value="">선택</option>
                     {ringOptions.map((option) => (
@@ -749,7 +881,12 @@ function GuidesDeckWrite({ mode }) {
                         className="deck-write-select"
                         value={slotState.main}
                         onChange={(event) =>
-                          handleEquipmentMainChange(equipmentModalSlot, slot.id, event.target.value)
+                          handleEquipmentMainChange(
+                            equipmentModalState.teamIndex,
+                            equipmentModalState.slotIndex,
+                            slot.id,
+                            event.target.value,
+                          )
                         }
                       >
                         <option value="">선택</option>
@@ -775,7 +912,12 @@ function GuidesDeckWrite({ mode }) {
                                   const next = event.target.checked
                                     ? [...current, option]
                                     : current.filter((value) => value !== option)
-                                  handleEquipmentSubChange(equipmentModalSlot, slot.id, next)
+                                  handleEquipmentSubChange(
+                                    equipmentModalState.teamIndex,
+                                    equipmentModalState.slotIndex,
+                                    slot.id,
+                                    next,
+                                  )
                                 }}
                               />
                               <span>{option}</span>
@@ -795,7 +937,9 @@ function GuidesDeckWrite({ mode }) {
               <button
                 className="community-modal-cancel"
                 type="button"
-                onClick={() => handleRemoveHero(equipmentModalSlot)}
+                onClick={() =>
+                  handleRemoveHero(equipmentModalState.teamIndex, equipmentModalState.slotIndex)
+                }
               >
                 슬롯 비우기
               </button>

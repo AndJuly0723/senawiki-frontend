@@ -31,6 +31,7 @@ function GuidesAdventure() {
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
   const [votePendingDeckId, setVotePendingDeckId] = useState(null)
+  const [activeTeamByDeck, setActiveTeamByDeck] = useState({})
   const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState('likes')
   const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [])
@@ -222,6 +223,25 @@ function GuidesAdventure() {
     }
   }
 
+  const getActiveTeamIndex = (deck) => {
+    const teamCount = Array.isArray(deck?.teams) && deck.teams.length ? deck.teams.length : 1
+    const selected = activeTeamByDeck[deck?.id] ?? 0
+    return Math.max(0, Math.min(selected, teamCount - 1))
+  }
+
+  const getVisibleTeam = (deck) => {
+    if (Array.isArray(deck?.teams) && deck.teams.length) {
+      return deck.teams[getActiveTeamIndex(deck)] ?? deck.teams[0]
+    }
+    return {
+      heroes: deck?.heroes ?? [],
+      pet: deck?.pet ?? null,
+      formationId: deck?.formationId ?? null,
+      formationLabel: deck?.formationLabel ?? '',
+      skillOrder: deck?.skillOrder ?? '',
+    }
+  }
+
   return (
     <section className="adventure-page">
       <div className="community-toolbar">
@@ -265,6 +285,25 @@ function GuidesAdventure() {
         ) : (
           pagedDecks.map((deck) => (
             <div key={deck.id} className="deck-card">
+              {Array.isArray(deck.teams) && deck.teams.length > 1 ? (
+                <div className="deck-team-tabs">
+                  {deck.teams.map((_, index) => (
+                    <button
+                      key={`${deck.id}-team-${index}`}
+                      type="button"
+                      className={`community-tab${getActiveTeamIndex(deck) === index ? ' is-active' : ''}`}
+                      onClick={() =>
+                        setActiveTeamByDeck((prev) => ({
+                          ...prev,
+                          [deck.id]: index,
+                        }))
+                      }
+                    >
+                      {index + 1}팀
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               {canManageDeck(deck) ? (
                 <div className="deck-card-actions">
                   <button
@@ -301,9 +340,9 @@ function GuidesAdventure() {
                 <div className="deck-center">
                   <div className="deck-row">
                     <div className="deck-units deck-units--lineup">
-                      {deck.heroes.map((heroKey, index) => {
+                      {getVisibleTeam(deck).heroes.map((heroKey, index) => {
                         const hero = heroById.get(heroKey) || heroByName.get(heroKey)
-                        const backPositions = formationBackPositions[deck.formationId] ?? []
+                        const backPositions = formationBackPositions[getVisibleTeam(deck).formationId] ?? []
                         const isBack = backPositions.includes(index + 1)
                         return hero ? (
                           <button
@@ -319,7 +358,8 @@ function GuidesAdventure() {
                         ) : null
                       })}
                       {(() => {
-                        const pet = petById.get(deck.pet) || petByName.get(deck.pet)
+                        const petKey = getVisibleTeam(deck).pet
+                        const pet = petById.get(petKey) || petByName.get(petKey)
                         return pet ? (
                           <div className="deck-unit deck-unit--pet">
                             <img src={pet.image} alt={pet.name} />
@@ -343,12 +383,12 @@ function GuidesAdventure() {
               <div className="deck-meta-row">
                 <span className="deck-meta-label">진형</span>
                 <span className="deck-meta-value">
-                  {deck.formationLabel || formationLabelById[deck.formationId] || ''}
+                  {getVisibleTeam(deck).formationLabel || formationLabelById[getVisibleTeam(deck).formationId] || ''}
                 </span>
                 </div>
                 <div className="deck-meta-row deck-meta-row--skill">
                   <span className="deck-meta-label">스킬순서</span>
-                  <span className="deck-meta-value deck-meta-value--skill">{deck.skillOrder}</span>
+                  <span className="deck-meta-value deck-meta-value--skill">{getVisibleTeam(deck).skillOrder}</span>
                 </div>
               </div>
               <div className="deck-reactions">

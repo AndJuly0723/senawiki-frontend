@@ -392,6 +392,44 @@ body {
   gap: 10px;
 }
 
+.deck-team-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.deck-team-tabs .community-tab {
+  min-width: 56px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #161616;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.deck-team-tabs .community-tab:hover {
+  background: #232323;
+  border-color: rgba(255, 255, 255, 0.26);
+}
+
+.deck-team-tabs .community-tab.is-active {
+  background: #6b0000;
+  border-color: rgba(255, 180, 180, 0.6);
+  color: #ffffff;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14) inset;
+}
+
+.deck-team-tabs .community-tab:focus-visible {
+  outline: 2px solid rgba(255, 213, 138, 0.7);
+  outline-offset: 2px;
+}
+
 .deck-write-label {
   font-size: 15px;
   color: rgba(255, 255, 255, 0.75);
@@ -1627,6 +1665,14 @@ body {
   position: relative;
 }
 
+.deck-card > .deck-team-tabs {
+  position: absolute;
+  top: 8px;
+  left: 16px;
+  margin-bottom: 0;
+  z-index: 2;
+}
+
 .deck-card-actions {
   position: absolute;
   top: 2px;
@@ -1649,6 +1695,7 @@ body {
 
 .deck-layout {
   position: relative;
+  margin-top: 28px;
   gap: 16px;
   align-items: start;
 }

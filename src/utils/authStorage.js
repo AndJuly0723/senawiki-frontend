@@ -2,9 +2,15 @@ const ACCESS_TOKEN_KEY = 'sena_access_token'
 const REFRESH_TOKEN_KEY = 'sena_refresh_token'
 const USER_KEY = 'sena_user'
 
-export const getAccessToken = () => localStorage.getItem(ACCESS_TOKEN_KEY)
+const normalizeToken = (token) => {
+  if (!token) return null
+  if (token === 'null' || token === 'undefined') return null
+  return token
+}
 
-export const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY)
+export const getAccessToken = () => normalizeToken(localStorage.getItem(ACCESS_TOKEN_KEY))
+
+export const getRefreshToken = () => normalizeToken(localStorage.getItem(REFRESH_TOKEN_KEY))
 
 export const setAuthTokens = (accessToken, refreshToken) => {
   localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)

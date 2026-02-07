@@ -64,57 +64,73 @@ export const normalizeGuideDeckList = (data, heroById, heroByName) => {
 
 export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
   if (!raw) return null
-  const team = raw.team ?? raw.teams?.[0] ?? raw.lineup ?? {}
-  const heroesRaw =
-    raw.heroes ??
-    team.heroes ??
-    team.heroIds ??
-    team.heroList ??
-    raw.heroIds ??
-    []
+  const normalizeTeam = (teamRaw, fallbackRaw = null) => {
+    const heroesRaw =
+      teamRaw?.heroes ??
+      teamRaw?.heroIds ??
+      teamRaw?.heroList ??
+      fallbackRaw?.heroes ??
+      fallbackRaw?.heroIds ??
+      []
 
-  let heroKeys = []
-  if (Array.isArray(heroesRaw) && heroesRaw.length) {
-    heroKeys = heroesRaw.map(normalizeHeroKey).filter(Boolean)
-  } else {
-    const slots = team.slots ?? raw.slots ?? []
-    const sortedSlots = [...slots].sort((a, b) => {
-      const aPos = a.position ?? a.slotIndex ?? a.order ?? a.slot ?? 0
-      const bPos = b.position ?? b.slotIndex ?? b.order ?? b.slot ?? 0
-      return aPos - bPos
-    })
-    heroKeys = sortedSlots
-      .map((slot) => normalizeHeroKey(slot.heroId ?? slot.hero ?? slot))
-      .filter(Boolean)
+    let heroes = []
+    if (Array.isArray(heroesRaw) && heroesRaw.length) {
+      heroes = heroesRaw.map(normalizeHeroKey).filter(Boolean)
+    } else {
+      const slots = teamRaw?.slots ?? fallbackRaw?.slots ?? []
+      const sortedSlots = [...slots].sort((a, b) => {
+        const aPos = a.position ?? a.slotIndex ?? a.order ?? a.slot ?? 0
+        const bPos = b.position ?? b.slotIndex ?? b.order ?? b.slot ?? 0
+        return aPos - bPos
+      })
+      heroes = sortedSlots
+        .map((slot) => normalizeHeroKey(slot.heroId ?? slot.hero ?? slot))
+        .filter(Boolean)
+    }
+
+    const pet =
+      teamRaw?.pet ??
+      teamRaw?.petId ??
+      fallbackRaw?.pet ??
+      fallbackRaw?.petId ??
+      fallbackRaw?.petName ??
+      null
+
+    const formationId =
+      teamRaw?.formationId ??
+      teamRaw?.formation ??
+      fallbackRaw?.formationId ??
+      fallbackRaw?.formation ??
+      fallbackRaw?.formationType ??
+      fallbackRaw?.formation?.id ??
+      null
+
+    const skillOrderRaw =
+      teamRaw?.skillOrders ??
+      teamRaw?.skillOrder ??
+      teamRaw?.skillSequence ??
+      teamRaw?.skillList ??
+      fallbackRaw?.skillOrder ??
+      fallbackRaw?.skillOrders ??
+      fallbackRaw?.skillSequence ??
+      fallbackRaw?.skillList
+
+    return {
+      heroes,
+      pet,
+      formationId,
+      formationLabel: teamRaw?.formation?.label ?? formationLabelById[formationId] ?? '',
+      skillOrder: formatSkillOrder(skillOrderRaw, heroById, heroByName),
+    }
   }
 
-  const petKey =
-    raw.pet ??
-    raw.petId ??
-    team.pet ??
-    team.petId ??
-    raw.petName ??
-    null
-
-  const formationId =
-    raw.formationId ??
-    raw.formation ??
-    team.formationId ??
-    team.formation ??
-    raw.formationType ??
-    raw.formation?.id ??
-    null
-
-  const skillOrderRaw =
-    team.skillOrders ??
-    team.skillOrder ??
-    team.skillSequence ??
-    team.skillList ??
-    raw.skillOrder ??
-    raw.skillOrders ??
-    raw.skillSequence ??
-    raw.skillList
-  const skillOrderText = formatSkillOrder(skillOrderRaw, heroById, heroByName)
+  const rawTeams = Array.isArray(raw.teams) && raw.teams.length
+    ? raw.teams
+    : [raw.team ?? raw.lineup ?? {}]
+  const teams = rawTeams
+    .map((teamRaw, index) => normalizeTeam(teamRaw, index === 0 ? raw : null))
+    .filter((team) => team.heroes.length || team.pet || team.formationId || team.skillOrder)
+  const primaryTeam = teams[0] ?? normalizeTeam(raw.team ?? raw.lineup ?? {}, raw)
 
   const authorCandidate =
     raw.authorNickname ??
@@ -141,11 +157,12 @@ export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
     createdAt: raw.createdAt ?? raw.createdDate ?? raw.createdTime,
     likes: raw.likes ?? raw.likeCount ?? raw.recommendCount ?? raw.upVotes ?? raw.upCount ?? 0,
     dislikes: raw.dislikes ?? raw.dislikeCount ?? raw.unrecommendCount ?? raw.downVotes ?? raw.downCount ?? 0,
-    heroes: heroKeys,
-    pet: petKey,
-    formationId,
-    formationLabel: raw.formation?.label ?? formationLabelById[formationId] ?? '',
-    skillOrder: skillOrderText,
+    heroes: primaryTeam.heroes,
+    pet: primaryTeam.pet,
+    formationId: primaryTeam.formationId,
+    formationLabel: primaryTeam.formationLabel,
+    skillOrder: primaryTeam.skillOrder,
+    teams,
   }
 }
 
