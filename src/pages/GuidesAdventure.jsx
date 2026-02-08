@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom'
 import { heroes } from '../data/heroes'
 import { pets } from '../data/pets'
+import DeckSkillOrder from '../components/DeckSkillOrder'
 import { deleteGuideDeck, fetchGuideDeckEquipment, fetchGuideDecks, voteGuideDeck } from '../api/endpoints/guideDecks'
 import {
   equipmentSlots,
@@ -239,6 +240,7 @@ function GuidesAdventure() {
       formationId: deck?.formationId ?? null,
       formationLabel: deck?.formationLabel ?? '',
       skillOrder: deck?.skillOrder ?? '',
+      skillOrderItems: deck?.skillOrderItems ?? [],
     }
   }
 
@@ -388,7 +390,10 @@ function GuidesAdventure() {
                 </div>
                 <div className="deck-meta-row deck-meta-row--skill">
                   <span className="deck-meta-label">스킬순서</span>
-                  <span className="deck-meta-value deck-meta-value--skill">{getVisibleTeam(deck).skillOrder}</span>
+                  <DeckSkillOrder
+                    items={getVisibleTeam(deck).skillOrderItems}
+                    text={getVisibleTeam(deck).skillOrder}
+                  />
                 </div>
               </div>
               <div className="deck-reactions">

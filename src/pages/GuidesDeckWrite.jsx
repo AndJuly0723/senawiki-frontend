@@ -725,34 +725,32 @@ function GuidesDeckWrite({ mode }) {
                 .map(({ heroId, index }) => {
                   const hero = heroById.get(heroId)
                   if (!hero) return null
+                  const skillButtons = [
+                    { skill: 1, image: `/images/heroskill/${hero.id}/skill1.png`, label: '스킬1' },
+                    ...(hero.hasSkill2
+                      ? [{ skill: 2, image: `/images/heroskill/${hero.id}/skill2.png`, label: '스킬2' }]
+                      : []),
+                  ]
                   return (
                     <div key={`${heroId}-${index}`} className="skill-order-hero">
                       <div className="skill-order-hero-name">{hero.name}</div>
                       <div className="skill-order-buttons">
-                        <button
-                          type="button"
-                          className="skill-order-button"
-                          onClick={() =>
-                            updateCurrentTeam((team) => ({
-                              ...team,
-                              skillOrder: [...team.skillOrder, { heroId, skill: 1 }],
-                            }))
-                          }
-                        >
-                          스킬1
-                        </button>
-                        <button
-                          type="button"
-                          className="skill-order-button"
-                          onClick={() =>
-                            updateCurrentTeam((team) => ({
-                              ...team,
-                              skillOrder: [...team.skillOrder, { heroId, skill: 2 }],
-                            }))
-                          }
-                        >
-                          스킬2
-                        </button>
+                        {skillButtons.map((skillButton) => (
+                          <button
+                            key={`${heroId}-${skillButton.skill}`}
+                            type="button"
+                            className="skill-order-button"
+                            onClick={() =>
+                              updateCurrentTeam((team) => ({
+                                ...team,
+                                skillOrder: [...team.skillOrder, { heroId, skill: skillButton.skill }],
+                              }))
+                            }
+                            title={`${hero.name} ${skillButton.label}`}
+                          >
+                            <img src={skillButton.image} alt={`${hero.name} ${skillButton.label}`} />
+                          </button>
+                        ))}
                       </div>
                     </div>
                   )
@@ -764,6 +762,8 @@ function GuidesDeckWrite({ mode }) {
                   {(currentTeam?.skillOrder ?? []).map((item, idx) => {
                     const hero = heroById.get(item.heroId)
                     const label = hero ? `${hero.name}${item.skill}` : `스킬${item.skill}`
+                    const showSkillImage = Boolean(hero?.id && (item.skill === 1 || item.skill === 2))
+                    const skillImage = showSkillImage ? `/images/heroskill/${hero.id}/skill${item.skill}.png` : ''
                     return (
                       <div key={`${item.heroId}-${item.skill}-${idx}`} className="skill-order-item">
                         <button
@@ -777,7 +777,11 @@ function GuidesDeckWrite({ mode }) {
                           }
                           title="클릭해서 제거"
                         >
-                          {label}
+                          {skillImage ? (
+                            <img src={skillImage} alt={label} />
+                          ) : (
+                            <span>{label}</span>
+                          )}
                         </button>
                         {idx < (currentTeam?.skillOrder?.length ?? 0) - 1 ? (
                           <span className="skill-order-arrow">→</span>

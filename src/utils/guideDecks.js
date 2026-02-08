@@ -55,6 +55,77 @@ const normalizeSlotKey = (value) => {
   return value
 }
 
+const normalizeSkillValue = (value) => {
+  if (value == null || value === '') return null
+  const parsed = Number(value)
+  if (Number.isFinite(parsed)) return parsed
+  return null
+}
+
+export const normalizeSkillOrder = (skillOrderRaw, heroById, heroByName) => {
+  if (!skillOrderRaw) return { text: '', items: [] }
+
+  const buildItem = ({ hero, heroName, skill, label }) => {
+    const normalizedSkill = normalizeSkillValue(skill)
+    const canShowImage = Boolean(hero?.id && (normalizedSkill === 1 || normalizedSkill === 2))
+    const resolvedLabel = label || `${heroName ?? ''}${normalizedSkill ?? ''}`.trim()
+    if (!resolvedLabel) return null
+    return {
+      heroId: hero?.id ?? null,
+      heroName: hero?.name ?? heroName ?? '',
+      skill: normalizedSkill,
+      label: resolvedLabel,
+      image: canShowImage ? `/images/heroskill/${hero.id}/skill${normalizedSkill}.png` : '',
+    }
+  }
+
+  if (typeof skillOrderRaw === 'string') {
+    const tokens = skillOrderRaw
+      .split('-')
+      .map((token) => token.trim())
+      .filter(Boolean)
+    const items = tokens
+      .map((token) => {
+        const matched = token.match(/^(.*?)(\d+)$/)
+        if (!matched) return buildItem({ hero: null, heroName: '', skill: null, label: token })
+        const heroName = matched[1]?.trim() ?? ''
+        const skill = normalizeSkillValue(matched[2])
+        const hero = heroByName.get(heroName)
+        return buildItem({ hero, heroName, skill, label: token })
+      })
+      .filter(Boolean)
+    return {
+      text: skillOrderRaw,
+      items,
+    }
+  }
+
+  if (!Array.isArray(skillOrderRaw)) return { text: '', items: [] }
+
+  const items = skillOrderRaw
+    .map((item) => {
+      if (!item) return null
+      const heroKey = normalizeHeroKey(item.heroId ?? item.hero ?? item.heroName ?? item)
+      const hero = heroById.get(heroKey) || heroByName.get(heroKey)
+      const skill = normalizeSkillValue(
+        item.skill ?? item.skillNo ?? item.skillNumber ?? item.orderSkill ?? item.skillId,
+      )
+      const heroName = hero?.name ?? (typeof heroKey === 'string' ? heroKey : '')
+      return buildItem({
+        hero,
+        heroName,
+        skill,
+        label: heroName && skill ? `${heroName}${skill}` : '',
+      })
+    })
+    .filter(Boolean)
+
+  return {
+    text: items.map((item) => item.label).join('-'),
+    items,
+  }
+}
+
 export const normalizeGuideDeckList = (data, heroById, heroByName) => {
   const list = Array.isArray(data) ? data : data?.items ?? data?.content ?? data?.data ?? []
   return list
@@ -115,12 +186,15 @@ export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
       fallbackRaw?.skillSequence ??
       fallbackRaw?.skillList
 
+    const skillOrderData = normalizeSkillOrder(skillOrderRaw, heroById, heroByName)
+
     return {
       heroes,
       pet,
       formationId,
       formationLabel: teamRaw?.formation?.label ?? formationLabelById[formationId] ?? '',
-      skillOrder: formatSkillOrder(skillOrderRaw, heroById, heroByName),
+      skillOrder: skillOrderData.text,
+      skillOrderItems: skillOrderData.items,
     }
   }
 
@@ -129,7 +203,7 @@ export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
     : [raw.team ?? raw.lineup ?? {}]
   const teams = rawTeams
     .map((teamRaw, index) => normalizeTeam(teamRaw, index === 0 ? raw : null))
-    .filter((team) => team.heroes.length || team.pet || team.formationId || team.skillOrder)
+    .filter((team) => team.heroes.length || team.pet || team.formationId || team.skillOrder || team.skillOrderItems.length)
   const primaryTeam = teams[0] ?? normalizeTeam(raw.team ?? raw.lineup ?? {}, raw)
 
   const authorCandidate =
@@ -162,25 +236,13 @@ export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
     formationId: primaryTeam.formationId,
     formationLabel: primaryTeam.formationLabel,
     skillOrder: primaryTeam.skillOrder,
+    skillOrderItems: primaryTeam.skillOrderItems,
     teams,
   }
 }
 
 export const formatSkillOrder = (skillOrderRaw, heroById, heroByName) => {
-  if (!skillOrderRaw) return ''
-  if (typeof skillOrderRaw === 'string') return skillOrderRaw
-  if (!Array.isArray(skillOrderRaw)) return ''
-  return skillOrderRaw
-    .map((item) => {
-      if (!item) return null
-      const heroKey = normalizeHeroKey(item.heroId ?? item.hero ?? item.heroName ?? item)
-      const hero = heroById.get(heroKey) || heroByName.get(heroKey)
-      const skill = item.skill ?? item.skillNo ?? item.skillNumber ?? item.orderSkill ?? item.skillId
-      if (!hero || !skill) return null
-      return `${hero.name}${skill}`
-    })
-    .filter(Boolean)
-    .join('-')
+  return normalizeSkillOrder(skillOrderRaw, heroById, heroByName).text
 }
 
 export const normalizeEquipmentResponse = (raw) => {

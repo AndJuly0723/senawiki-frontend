@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom'
 import { heroes } from '../data/heroes'
 import { pets } from '../data/pets'
+import DeckSkillOrder from '../components/DeckSkillOrder'
 import { deleteGuideDeck, fetchGuideDeckEquipment, fetchGuideDecks, voteGuideDeck } from '../api/endpoints/guideDecks'
 import {
   equipmentSlots,
@@ -349,7 +350,7 @@ function GuidesArena() {
               </div>
               <div className="deck-meta-row deck-meta-row--skill">
                 <span className="deck-meta-label">스킬순서</span>
-                <span className="deck-meta-value deck-meta-value--skill">{deck.skillOrder}</span>
+                <DeckSkillOrder items={deck.skillOrderItems} text={deck.skillOrder} />
               </div>
             </div>
             <div className="deck-reactions">
