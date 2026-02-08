@@ -39,7 +39,7 @@ apiClient.interceptors.response.use(
     }
 
     const status = error.response?.status
-    if (status !== 401) {
+    if (status !== 401 && status !== 403) {
       return Promise.reject(error)
     }
 

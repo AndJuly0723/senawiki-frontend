@@ -4,8 +4,15 @@ const USER_KEY = 'sena_user'
 
 const normalizeToken = (token) => {
   if (!token) return null
-  if (token === 'null' || token === 'undefined') return null
-  return token
+  const trimmed = String(token).trim()
+  if (!trimmed || trimmed === 'null' || trimmed === 'undefined') return null
+  const unquoted =
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+      ? trimmed.slice(1, -1)
+      : trimmed
+  const withoutBearer = unquoted.replace(/^Bearer\s+/i, '').trim()
+  return withoutBearer || null
 }
 
 export const getAccessToken = () => normalizeToken(localStorage.getItem(ACCESS_TOKEN_KEY))

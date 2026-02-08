@@ -150,23 +150,55 @@ function GuidesGrowthStage() {
     setIsLoading(true)
     setLoadError('')
     setPage(1)
-    fetchGuideDecks({ category: 'GROWTH', type: 'GROWTH', stageId })
-      .then((data) => {
-        if (!active) return
-        setDecks(normalizeGuideDeckList(data, heroById, heroByName))
+
+    const loadDecks = async () => {
+      const growthType = 'GROWTH_DUNGEON'
+      const upperStageId = stageId ? String(stageId).toUpperCase() : ''
+      const stageCandidates = Array.from(new Set([
+        stageId,
+        upperStageId,
+        upperStageId ? `${upperStageId}_DUNGEON` : '',
+        upperStageId ? `${upperStageId}_ELEMENT` : '',
+        upperStageId ? `ELEMENT_${upperStageId}` : '',
+      ].filter(Boolean)))
+
+      const paramCandidates = []
+      stageCandidates.forEach((stageCandidate) => {
+        paramCandidates.push({ category: growthType, type: growthType, stageId: stageCandidate })
+        paramCandidates.push({ category: growthType, type: growthType, stage: stageCandidate })
+        paramCandidates.push({ guideType: growthType, stageId: stageCandidate })
+        paramCandidates.push({ type: growthType, stageId: stageCandidate })
+        // Fallback for legacy backend values.
+        paramCandidates.push({ category: 'GROWTH', type: 'GROWTH', stageId: stageCandidate })
       })
-      .catch((error) => {
-        if (!active) return
-        const message =
-          error?.response?.data?.message ||
-          error?.message ||
-          '덱 목록을 불러오지 못했습니다.'
-        setLoadError(message)
-      })
+
+      let lastError = null
+
+      for (const params of paramCandidates) {
+        try {
+          const data = await fetchGuideDecks(params)
+          if (!active) return
+          setDecks(normalizeGuideDeckList(data, heroById, heroByName))
+          return
+        } catch (error) {
+          lastError = error
+        }
+      }
+
+      if (!active) return
+      const message =
+        lastError?.response?.data?.message ||
+        lastError?.message ||
+        '덱 목록을 불러오지 못했습니다.'
+      setLoadError(message)
+    }
+
+    loadDecks()
       .finally(() => {
         if (!active) return
         setIsLoading(false)
       })
+
     return () => {
       active = false
     }

@@ -112,6 +112,9 @@ function GuidesDeckWrite({ mode }) {
   const { raidId, stageId } = useParams()
   const navigate = useNavigate()
   const isAdventureMode = mode === 'adventure'
+  const isTotalWarMode = mode === 'total-war'
+  const isMultiTeamMode = isAdventureMode || isTotalWarMode
+  const teamCount = isAdventureMode ? 2 : isTotalWarMode ? 5 : 1
 
   let label = '공략'
   let backTo = '/'
@@ -161,7 +164,7 @@ function GuidesDeckWrite({ mode }) {
 
   const [activeTeamIndex, setActiveTeamIndex] = useState(0)
   const [teamStates, setTeamStates] = useState(() =>
-    Array.from({ length: isAdventureMode ? 2 : 1 }, () => createEmptyTeamState()),
+    Array.from({ length: teamCount }, () => createEmptyTeamState()),
   )
   const [equipmentModalState, setEquipmentModalState] = useState(null)
   const [status, setStatus] = useState('idle')
@@ -421,7 +424,7 @@ function GuidesDeckWrite({ mode }) {
           : mode === 'raid'
             ? 'RAID'
             : mode === 'growth'
-              ? 'GROWTH'
+              ? 'GROWTH_DUNGEON'
               : 'UNKNOWN'
 
   const buildTeamSlots = (team) =>
@@ -516,8 +519,8 @@ function GuidesDeckWrite({ mode }) {
         guideType,
         raidId: mode === 'raid' ? raidId : undefined,
         stageId: mode === 'growth' ? stageId : undefined,
-        team: !isAdventureMode && teamStates[0] ? buildTeamPayload(teamStates[0]) : undefined,
-        teams: isAdventureMode
+        team: !isMultiTeamMode && teamStates[0] ? buildTeamPayload(teamStates[0]) : undefined,
+        teams: isMultiTeamMode
           ? teamStates.map((team) => buildTeamPayload(team))
           : undefined,
         skillOrders: mergedSkillOrders,
@@ -549,9 +552,9 @@ function GuidesDeckWrite({ mode }) {
 
       <div className="deck-write-card">
         <div className="deck-write-section">
-          {isAdventureMode ? (
+          {isMultiTeamMode ? (
             <div className="deck-team-tabs">
-              {[0, 1].map((index) => (
+              {Array.from({ length: teamCount }, (_, index) => (
                 <button
                   key={index}
                   type="button"
@@ -734,7 +737,7 @@ function GuidesDeckWrite({ mode }) {
                   return (
                     <div key={`${heroId}-${index}`} className="skill-order-hero">
                       <div className="skill-order-hero-name">{hero.name}</div>
-                      <div className="skill-order-buttons">
+                      <div className={`skill-order-buttons${skillButtons.length === 1 ? ' is-single' : ''}`}>
                         {skillButtons.map((skillButton) => (
                           <button
                             key={`${heroId}-${skillButton.skill}`}

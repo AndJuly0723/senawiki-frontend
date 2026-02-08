@@ -45,6 +45,30 @@ const normalizeHeroKey = (value) => {
   return value.id || value.heroId || value.heroName || value.name || null
 }
 
+const normalizeRaidKey = (value) => {
+  if (!value) return null
+  const raw = String(value).trim()
+  if (!raw) return null
+  const normalized = raw
+    .replace(/[\s-]+/g, '_')
+    .replace(/[^\p{L}\p{N}_]/gu, '')
+    .toUpperCase()
+  return normalized || null
+}
+
+const pickRaidName = (raw) => {
+  if (!raw) return ''
+  const candidate =
+    raw.raidName ??
+    raw.bossName ??
+    raw.targetName ??
+    raw.raidLabel ??
+    raw.raid?.name ??
+    raw.raidInfo?.name ??
+    ''
+  return typeof candidate === 'string' ? candidate.trim() : ''
+}
+
 const normalizeSlotKey = (value) => {
   if (!value) return null
   const key = String(value).toLowerCase()
@@ -231,6 +255,23 @@ export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
     createdAt: raw.createdAt ?? raw.createdDate ?? raw.createdTime,
     likes: raw.likes ?? raw.likeCount ?? raw.recommendCount ?? raw.upVotes ?? raw.upCount ?? 0,
     dislikes: raw.dislikes ?? raw.dislikeCount ?? raw.unrecommendCount ?? raw.downVotes ?? raw.downCount ?? 0,
+    raidId: normalizeRaidKey(
+      raw.raidId ??
+      raw.raid ??
+      raw.raidType ??
+      raw.raidCode ??
+      raw.bossId ??
+      raw.bossType ??
+      raw.targetId ??
+      raw.targetType ??
+      raw.raidInfo?.id ??
+      raw.raidInfo?.code ??
+      raw.raidInfo?.type ??
+      raw.raid?.id ??
+      raw.raid?.code ??
+      raw.raid?.type,
+    ),
+    raidName: pickRaidName(raw),
     heroes: primaryTeam.heroes,
     pet: primaryTeam.pet,
     formationId: primaryTeam.formationId,

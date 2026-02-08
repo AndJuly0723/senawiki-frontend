@@ -32,6 +32,7 @@ function GuidesTotalWar() {
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
   const [votePendingDeckId, setVotePendingDeckId] = useState(null)
+  const [activeTeamByDeck, setActiveTeamByDeck] = useState({})
   const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState('likes')
   const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [])
@@ -223,6 +224,26 @@ function GuidesTotalWar() {
     }
   }
 
+  const getActiveTeamIndex = (deck) => {
+    const teamCount = Array.isArray(deck?.teams) && deck.teams.length ? deck.teams.length : 1
+    const selected = activeTeamByDeck[deck?.id] ?? 0
+    return Math.max(0, Math.min(selected, teamCount - 1))
+  }
+
+  const getVisibleTeam = (deck) => {
+    if (Array.isArray(deck?.teams) && deck.teams.length) {
+      return deck.teams[getActiveTeamIndex(deck)] ?? deck.teams[0]
+    }
+    return {
+      heroes: deck?.heroes ?? [],
+      pet: deck?.pet ?? null,
+      formationId: deck?.formationId ?? null,
+      formationLabel: deck?.formationLabel ?? '',
+      skillOrder: deck?.skillOrder ?? '',
+      skillOrderItems: deck?.skillOrderItems ?? [],
+    }
+  }
+
   return (
     <section className="total-war-page">
       <div className="community-toolbar">
@@ -266,6 +287,25 @@ function GuidesTotalWar() {
         ) : (
           pagedDecks.map((deck) => (
             <div key={deck.id} className="deck-card">
+              {Array.isArray(deck.teams) && deck.teams.length > 1 ? (
+                <div className="deck-team-tabs">
+                  {deck.teams.map((_, index) => (
+                    <button
+                      key={`${deck.id}-team-${index}`}
+                      type="button"
+                      className={`community-tab${getActiveTeamIndex(deck) === index ? ' is-active' : ''}`}
+                      onClick={() =>
+                        setActiveTeamByDeck((prev) => ({
+                          ...prev,
+                          [deck.id]: index,
+                        }))
+                      }
+                    >
+                      {index + 1}팀
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               {canManageDeck(deck) ? (
                 <div className="deck-card-actions">
                   <button
@@ -302,9 +342,9 @@ function GuidesTotalWar() {
                 <div className="deck-center">
                   <div className="deck-row">
                     <div className="deck-units deck-units--lineup">
-                      {deck.heroes.map((heroKey, index) => {
+                      {getVisibleTeam(deck).heroes.map((heroKey, index) => {
                         const hero = heroById.get(heroKey) || heroByName.get(heroKey)
-                        const backPositions = formationBackPositions[deck.formationId] ?? []
+                        const backPositions = formationBackPositions[getVisibleTeam(deck).formationId] ?? []
                         const isBack = backPositions.includes(index + 1)
                         return hero ? (
                           <button
@@ -320,7 +360,8 @@ function GuidesTotalWar() {
                         ) : null
                       })}
                       {(() => {
-                        const pet = petById.get(deck.pet) || petByName.get(deck.pet)
+                        const petKey = getVisibleTeam(deck).pet
+                        const pet = petById.get(petKey) || petByName.get(petKey)
                         return pet ? (
                           <div className="deck-unit deck-unit--pet">
                             <img src={pet.image} alt={pet.name} />
@@ -333,23 +374,26 @@ function GuidesTotalWar() {
                 </div>
               </div>
               <div className="deck-meta">
-              <div className="deck-meta-row">
-                <span className="deck-meta-label">작성자</span>
-                <span className="deck-meta-value">{deck.author}</span>
-              </div>
-              <div className="deck-meta-row">
-                <span className="deck-meta-label">작성일</span>
-                <span className="deck-meta-value">{formatGuideDeckDate(deck.createdAt)}</span>
-              </div>
-              <div className="deck-meta-row">
-                <span className="deck-meta-label">진형</span>
-                <span className="deck-meta-value">
-                  {deck.formationLabel || formationLabelById[deck.formationId] || ''}
-                </span>
+                <div className="deck-meta-row">
+                  <span className="deck-meta-label">작성자</span>
+                  <span className="deck-meta-value">{deck.author}</span>
+                </div>
+                <div className="deck-meta-row">
+                  <span className="deck-meta-label">작성일</span>
+                  <span className="deck-meta-value">{formatGuideDeckDate(deck.createdAt)}</span>
+                </div>
+                <div className="deck-meta-row">
+                  <span className="deck-meta-label">진형</span>
+                  <span className="deck-meta-value">
+                    {getVisibleTeam(deck).formationLabel || formationLabelById[getVisibleTeam(deck).formationId] || ''}
+                  </span>
                 </div>
                 <div className="deck-meta-row deck-meta-row--skill">
                   <span className="deck-meta-label">스킬순서</span>
-                  <DeckSkillOrder items={deck.skillOrderItems} text={deck.skillOrder} />
+                  <DeckSkillOrder
+                    items={getVisibleTeam(deck).skillOrderItems}
+                    text={getVisibleTeam(deck).skillOrder}
+                  />
                 </div>
               </div>
               <div className="deck-reactions">

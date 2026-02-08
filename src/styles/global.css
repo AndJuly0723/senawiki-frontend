@@ -3161,34 +3161,45 @@ body {
 }
 
 .skill-order-choices {
-  display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
-.skill-order-hero {
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  padding: 10px;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
+.skill-order-hero {
+  width: 165px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .skill-order-hero-name {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #fff;
+  text-align: center;
 }
 
 .skill-order-buttons {
   display: flex;
   gap: 8px;
+  justify-content: center;
+}
+
+.skill-order-buttons.is-single {
+  justify-content: center;
+}
+
+.skill-order-buttons.is-single .skill-order-button {
+  flex: 0 0 44px;
 }
 
 .skill-order-button {
-  flex: 1;
+  flex: 0 0 44px;
   background: #0b0b0b;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
