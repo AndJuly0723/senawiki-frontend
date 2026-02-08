@@ -550,6 +550,11 @@ body {
   animation: deckSlotGlow 1.2s ease-in-out infinite;
 }
 
+.deck-unit.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 @keyframes deckSlotGlow {
   0%,
   100% {
@@ -2197,6 +2202,13 @@ body {
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: #111;
+}
+
+.deck-unit--view-placeholder {
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .pet-card {

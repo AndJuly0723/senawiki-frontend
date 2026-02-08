@@ -94,14 +94,23 @@ const equipmentSetOptions = [
   '조율자세트',
 ]
 
-const heroSlotCount = 5
+const siegeDayEnumBySlug = {
+  mon: 'MON',
+  tue: 'TUE',
+  wed: 'WED',
+  thu: 'THU',
+  fri: 'FRI',
+  sat: 'SAT',
+  sun: 'SUN',
+}
 
-function DeckSlot({ children, isBack, filled, isActive, isInvalid, onClick }) {
+function DeckSlot({ children, isBack, filled, isActive, isInvalid, isDisabled, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`deck-unit${filled ? '' : ' deck-unit--placeholder'}${isBack ? ' is-back' : ''}${isActive ? ' is-active' : ''}${isInvalid ? ' is-invalid' : ''}`}
+      className={`deck-unit${filled ? '' : ' deck-unit--placeholder'}${isBack ? ' is-back' : ''}${isActive ? ' is-active' : ''}${isInvalid ? ' is-invalid' : ''}${isDisabled ? ' is-disabled' : ''}`}
+      disabled={isDisabled}
     >
       {children}
     </button>
@@ -109,12 +118,15 @@ function DeckSlot({ children, isBack, filled, isActive, isInvalid, onClick }) {
 }
 
 function GuidesDeckWrite({ mode }) {
-  const { raidId, stageId } = useParams()
+  const { raidId, stageId, day } = useParams()
   const navigate = useNavigate()
   const isAdventureMode = mode === 'adventure'
   const isTotalWarMode = mode === 'total-war'
+  const isGuildWarMode = mode === 'guild-war'
   const isMultiTeamMode = isAdventureMode || isTotalWarMode
   const teamCount = isAdventureMode ? 2 : isTotalWarMode ? 5 : 1
+  const heroSlotCount = 5
+  const requiredHeroCount = isGuildWarMode ? 3 : heroSlotCount
 
   let label = '공략'
   let backTo = '/'
@@ -135,6 +147,12 @@ function GuidesDeckWrite({ mode }) {
   } else if (mode === 'growth') {
     label = stageMeta[stageId] ?? '성장던전'
     backTo = `/guides/growth-dungeon/${stageId ?? ''}`.replace(/\/$/, '')
+  } else if (mode === 'siege') {
+    label = '공성전'
+    backTo = `/guild/siege/${day ?? ''}`.replace(/\/$/, '')
+  } else if (mode === 'guild-war') {
+    label = '길드전'
+    backTo = '/guild/guild-war'
   }
 
   const createEmptyEquipment = () =>
@@ -217,6 +235,14 @@ function GuidesDeckWrite({ mode }) {
       if (team.activeHeroSlot === null) {
         return team
       }
+      const selectedCount = team.selectedHeroes.filter(Boolean).length
+      if (isGuildWarMode && selectedCount >= requiredHeroCount && !team.selectedHeroes[team.activeHeroSlot]) {
+        return {
+          ...team,
+          activeHeroSlot: null,
+          heroQuery: '',
+        }
+      }
       const next = [...team.selectedHeroes]
       next[team.activeHeroSlot] = heroId
       return {
@@ -239,6 +265,7 @@ function GuidesDeckWrite({ mode }) {
   }
   const handleHeroSlotClick = (index) => {
     const heroId = currentTeam?.selectedHeroes[index]
+    const selectedCount = (currentTeam?.selectedHeroes ?? []).filter(Boolean).length
     if (heroId) {
       setEquipmentModalState({ teamIndex: activeTeamIndex, slotIndex: index })
       updateCurrentTeam((team) => ({
@@ -250,6 +277,7 @@ function GuidesDeckWrite({ mode }) {
       }))
       return
     }
+    if (isGuildWarMode && selectedCount >= requiredHeroCount) return
     updateCurrentTeam((team) => ({
       ...team,
       activeHeroSlot: index,
@@ -391,7 +419,10 @@ function GuidesDeckWrite({ mode }) {
       return hasSavedEquipment(team.equipmentBySlot[index])
     })
 
-  const hasAllHeroSlotsFilled = (team) => team.selectedHeroes.every((heroId) => Boolean(heroId))
+  const hasAllHeroSlotsFilled = (team) => {
+    const selectedCount = team.selectedHeroes.filter(Boolean).length
+    return isGuildWarMode ? selectedCount === requiredHeroCount : team.selectedHeroes.every((heroId) => Boolean(heroId))
+  }
 
   const getInvalidSubSlots = (team) =>
     team.selectedHeroes
@@ -425,6 +456,10 @@ function GuidesDeckWrite({ mode }) {
             ? 'RAID'
             : mode === 'growth'
               ? 'GROWTH_DUNGEON'
+              : mode === 'siege'
+                ? 'SIEGE'
+                : mode === 'guild-war'
+                  ? 'GUILD_WAR'
               : 'UNKNOWN'
 
   const buildTeamSlots = (team) =>
@@ -520,6 +555,8 @@ function GuidesDeckWrite({ mode }) {
         guideType,
         raidId: mode === 'raid' ? raidId : undefined,
         stageId: mode === 'growth' ? stageId : undefined,
+        day: mode === 'siege' ? day : undefined,
+        siegeDay: mode === 'siege' ? (siegeDayEnumBySlug[day] ?? String(day ?? '').toUpperCase()) : undefined,
         team: !isMultiTeamMode && teamStates[0] ? buildTeamPayload(teamStates[0]) : undefined,
         teams: isMultiTeamMode
           ? teamStates.map((team) => buildTeamPayload(team))
@@ -585,12 +622,15 @@ function GuidesDeckWrite({ mode }) {
               const heroId = currentTeam?.selectedHeroes[index]
               const hero = heroId ? heroById.get(heroId) : null
               const isActive = currentTeam?.activeHeroSlot === index
+              const selectedCount = (currentTeam?.selectedHeroes ?? []).filter(Boolean).length
+              const isDisabled = isGuildWarMode && !hero && selectedCount >= requiredHeroCount
               return (
                 <DeckSlot
                   key={`slot-${index}`}
                   isBack={isBack}
                   filled={Boolean(hero)}
                   isActive={isActive}
+                  isDisabled={isDisabled}
                   isInvalid={
                     (currentTeam?.invalidSubSlots ?? []).includes(index) ||
                     (currentTeam?.invalidEquipSlots ?? []).includes(index)

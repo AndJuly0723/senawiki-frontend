@@ -65,7 +65,9 @@ createRoot(document.getElementById('root')).render(
         <Route path="/guides/growth-dungeon/:stageId/write" element={<GuidesDeckWrite mode="growth" />} />
         <Route path="/guild/siege" element={<GuildSiege />} />
         <Route path="/guild/siege/:day" element={<GuildSiegeDay />} />
+        <Route path="/guild/siege/:day/write" element={<GuidesDeckWrite mode="siege" />} />
         <Route path="/guild/guild-war" element={<GuildWar />} />
+        <Route path="/guild/guild-war/write" element={<GuidesDeckWrite mode="guild-war" />} />
         <Route path="/guild/expedition" element={<GuildExpedition />} />
       </Route>
       </Routes>

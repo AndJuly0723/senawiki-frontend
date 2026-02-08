@@ -69,6 +69,41 @@ const pickRaidName = (raw) => {
   return typeof candidate === 'string' ? candidate.trim() : ''
 }
 
+const normalizeSiegeDay = (value) => {
+  if (!value) return null
+  const raw = String(value).trim()
+  if (!raw) return null
+  const upper = raw.toUpperCase()
+  const map = {
+    MON: 'MON',
+    MONDAY: 'MON',
+    TUE: 'TUE',
+    TUESDAY: 'TUE',
+    WED: 'WED',
+    WEDNESDAY: 'WED',
+    THU: 'THU',
+    THURSDAY: 'THU',
+    FRI: 'FRI',
+    FRIDAY: 'FRI',
+    SAT: 'SAT',
+    SATURDAY: 'SAT',
+    SUN: 'SUN',
+    SUNDAY: 'SUN',
+  }
+  if (map[upper]) return map[upper]
+  const slugMap = {
+    MON: 'MON',
+    TUE: 'TUE',
+    WED: 'WED',
+    THU: 'THU',
+    FRI: 'FRI',
+    SAT: 'SAT',
+    SUN: 'SUN',
+  }
+  const slug = upper.slice(0, 3)
+  return slugMap[slug] ?? null
+}
+
 const normalizeSlotKey = (value) => {
   if (!value) return null
   const key = String(value).toLowerCase()
@@ -178,9 +213,18 @@ export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
         const bPos = b.position ?? b.slotIndex ?? b.order ?? b.slot ?? 0
         return aPos - bPos
       })
-      heroes = sortedSlots
-        .map((slot) => normalizeHeroKey(slot.heroId ?? slot.hero ?? slot))
-        .filter(Boolean)
+      const maxPosition = sortedSlots.reduce((max, slot) => {
+        const position = Number(slot.position ?? slot.slotIndex ?? slot.order ?? slot.slot ?? 0)
+        return Number.isFinite(position) ? Math.max(max, position) : max
+      }, 0)
+      heroes = maxPosition > 0 ? Array.from({ length: maxPosition }, () => null) : []
+      sortedSlots.forEach((slot) => {
+        const position = Number(slot.position ?? slot.slotIndex ?? slot.order ?? slot.slot ?? 0)
+        const heroKey = normalizeHeroKey(slot.heroId ?? slot.hero ?? slot)
+        if (!Number.isFinite(position) || position < 1) return
+        if (position - 1 >= heroes.length) return
+        heroes[position - 1] = heroKey
+      })
     }
 
     const pet =
@@ -272,6 +316,17 @@ export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
       raw.raid?.type,
     ),
     raidName: pickRaidName(raw),
+    siegeDay: normalizeSiegeDay(
+      raw.siegeDay ??
+      raw.day ??
+      raw.dayOfWeek ??
+      raw.weekDay ??
+      raw.weekday ??
+      raw.siege?.day ??
+      raw.siege?.siegeDay ??
+      raw.siegeInfo?.day ??
+      raw.siegeInfo?.siegeDay,
+    ),
     heroes: primaryTeam.heroes,
     pet: primaryTeam.pet,
     formationId: primaryTeam.formationId,
