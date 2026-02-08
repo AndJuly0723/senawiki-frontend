@@ -30,6 +30,7 @@ import GuildSiege from './pages/GuildSiege.jsx'
 import GuildSiegeDay from './pages/GuildSiegeDay.jsx'
 import GuildWar from './pages/GuildWar.jsx'
 import GuildExpedition from './pages/GuildExpedition.jsx'
+import GuildExpeditionStage from './pages/GuildExpeditionStage.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -69,6 +70,8 @@ createRoot(document.getElementById('root')).render(
         <Route path="/guild/guild-war" element={<GuildWar />} />
         <Route path="/guild/guild-war/write" element={<GuidesDeckWrite mode="guild-war" />} />
         <Route path="/guild/expedition" element={<GuildExpedition />} />
+        <Route path="/guild/expedition/:expeditionId" element={<GuildExpeditionStage />} />
+        <Route path="/guild/expedition/:expeditionId/write" element={<GuidesDeckWrite mode="expedition" />} />
       </Route>
       </Routes>
     </BrowserRouter>

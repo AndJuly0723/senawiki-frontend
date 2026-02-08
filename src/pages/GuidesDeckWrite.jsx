@@ -21,6 +21,14 @@ const stageMeta = {
   gold: '골드 던전',
 }
 
+const expeditionMeta = {
+  teo: '태오',
+  kyle: '카일',
+  yeonhee: '연희',
+  karma: '카르마',
+  'destroyer-god': '파괴신',
+}
+
 const weaponMainOptions = [
   '약공 확률',
   '치명타 확률',
@@ -118,13 +126,14 @@ function DeckSlot({ children, isBack, filled, isActive, isInvalid, isDisabled, o
 }
 
 function GuidesDeckWrite({ mode }) {
-  const { raidId, stageId, day } = useParams()
+  const { raidId, stageId, day, expeditionId } = useParams()
   const navigate = useNavigate()
   const isAdventureMode = mode === 'adventure'
   const isTotalWarMode = mode === 'total-war'
   const isGuildWarMode = mode === 'guild-war'
-  const isMultiTeamMode = isAdventureMode || isTotalWarMode
-  const teamCount = isAdventureMode ? 2 : isTotalWarMode ? 5 : 1
+  const isExpeditionMode = mode === 'expedition'
+  const isMultiTeamMode = isAdventureMode || isTotalWarMode || isExpeditionMode
+  const teamCount = isAdventureMode || isExpeditionMode ? 2 : isTotalWarMode ? 5 : 1
   const heroSlotCount = 5
   const requiredHeroCount = isGuildWarMode ? 3 : heroSlotCount
 
@@ -153,6 +162,9 @@ function GuidesDeckWrite({ mode }) {
   } else if (mode === 'guild-war') {
     label = '길드전'
     backTo = '/guild/guild-war'
+  } else if (mode === 'expedition') {
+    label = expeditionMeta[expeditionId] ?? '강림원정대'
+    backTo = `/guild/expedition/${expeditionId ?? ''}`.replace(/\/$/, '')
   }
 
   const createEmptyEquipment = () =>
@@ -178,6 +190,7 @@ function GuidesDeckWrite({ mode }) {
     skillOrder: [],
     invalidSubSlots: [],
     invalidEquipSlots: [],
+    invalidRingSlots: [],
   })
 
   const [activeTeamIndex, setActiveTeamIndex] = useState(0)
@@ -338,6 +351,7 @@ function GuidesDeckWrite({ mode }) {
         ...team,
         selectedHeroes: nextHeroes,
         equipmentBySlot: nextEquipments,
+        invalidRingSlots: team.invalidRingSlots.filter((slotIndex) => slotIndex !== index),
       }
     })
     setEquipmentModalState(null)
@@ -388,6 +402,7 @@ function GuidesDeckWrite({ mode }) {
       equipmentBySlot: team.equipmentBySlot.map((slot, idx) =>
         idx === index ? { ...slot, ring: value } : slot,
       ),
+      invalidRingSlots: team.invalidRingSlots.filter((slotIndex) => slotIndex !== index),
       invalidSubSlots: team.invalidSubSlots.filter((slotIndex) => slotIndex !== index),
       invalidEquipSlots: team.invalidEquipSlots.filter((slotIndex) => slotIndex !== index),
     }))
@@ -445,6 +460,15 @@ function GuidesDeckWrite({ mode }) {
       })
       .filter((value) => value !== null)
 
+  const getInvalidRingSlots = (team) =>
+    team.selectedHeroes
+      .map((heroId, index) => {
+        if (!heroId) return null
+        const slotState = team.equipmentBySlot[index]
+        return slotState?.ring ? null : index
+      })
+      .filter((value) => value !== null)
+
   const guideType =
     mode === 'adventure'
       ? 'ADVENTURE'
@@ -460,6 +484,8 @@ function GuidesDeckWrite({ mode }) {
                 ? 'SIEGE'
                 : mode === 'guild-war'
                   ? 'GUILD_WAR'
+                  : mode === 'expedition'
+                    ? 'EXPEDITION'
               : 'UNKNOWN'
 
   const buildTeamSlots = (team) =>
@@ -526,6 +552,18 @@ function GuidesDeckWrite({ mode }) {
         )
         return
       }
+      const invalidRingSlots = getInvalidRingSlots(team)
+      if (invalidRingSlots.length) {
+        setStatus('error')
+        setErrorMessage(`${teamLabel}반지를 선택해주세요.`)
+        setActiveTeamIndex(i)
+        setTeamStates((prev) =>
+          prev.map((entry, idx) =>
+            idx === i ? { ...entry, invalidRingSlots } : entry,
+          ),
+        )
+        return
+      }
       const invalidSlots = getInvalidSubSlots(team)
       if (invalidSlots.length) {
         setStatus('error')
@@ -557,6 +595,7 @@ function GuidesDeckWrite({ mode }) {
         stageId: mode === 'growth' ? stageId : undefined,
         day: mode === 'siege' ? day : undefined,
         siegeDay: mode === 'siege' ? (siegeDayEnumBySlug[day] ?? String(day ?? '').toUpperCase()) : undefined,
+        expeditionId: mode === 'expedition' ? expeditionId : undefined,
         team: !isMultiTeamMode && teamStates[0] ? buildTeamPayload(teamStates[0]) : undefined,
         teams: isMultiTeamMode
           ? teamStates.map((team) => buildTeamPayload(team))
@@ -632,6 +671,7 @@ function GuidesDeckWrite({ mode }) {
                   isActive={isActive}
                   isDisabled={isDisabled}
                   isInvalid={
+                    (currentTeam?.invalidRingSlots ?? []).includes(index) ||
                     (currentTeam?.invalidSubSlots ?? []).includes(index) ||
                     (currentTeam?.invalidEquipSlots ?? []).includes(index)
                   }

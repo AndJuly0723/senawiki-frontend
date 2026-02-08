@@ -1,5 +1,5 @@
-﻿import { Link, useParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import { heroes } from '../data/heroes'
 import { pets } from '../data/pets'
 import DeckSkillOrder from '../components/DeckSkillOrder'
@@ -15,16 +15,17 @@ import {
 import { getStoredUser, isAdminUser } from '../utils/authStorage'
 import { getAccessToken } from '../utils/authStorage'
 
-const raidMeta = {
-  'ruin-eye': '파멸의 눈동자',
-  'bull-demon-king': '우마왕',
-  'iron-devourer': '강철의 포식자',
+const expeditionMeta = {
+  teo: '태오',
+  kyle: '카일',
+  yeonhee: '연희',
+  karma: '카르마',
+  'destroyer-god': '파괴신',
 }
 
-
-function GuidesRaidStage() {
-  const { raidId } = useParams()
-  const label = raidMeta[raidId] ?? '레이드'
+function GuildExpeditionStage() {
+  const { expeditionId } = useParams()
+  const label = expeditionMeta[expeditionId] ?? '강림원정대'
   const [equipmentState, setEquipmentState] = useState({
     hero: null,
     data: null,
@@ -41,6 +42,7 @@ function GuidesRaidStage() {
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
   const [votePendingDeckId, setVotePendingDeckId] = useState(null)
+  const [activeTeamByDeck, setActiveTeamByDeck] = useState({})
   const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState('likes')
   const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [])
@@ -151,8 +153,19 @@ function GuidesRaidStage() {
   }
 
   useEffect(() => {
-    setPage(1)
+    const idCandidates = Array.from(
+      new Set([expeditionId, expeditionId ? String(expeditionId).toUpperCase() : expeditionId].filter(Boolean)),
+    )
+    const paramCandidates = []
+    idCandidates.forEach((candidate) => {
+      paramCandidates.push({ category: 'EXPEDITION', type: 'EXPEDITION', expeditionId: candidate })
+      paramCandidates.push({ category: 'EXPEDITION', type: 'EXPEDITION', bossId: candidate })
+      paramCandidates.push({ guideType: 'EXPEDITION', expeditionId: candidate })
+      paramCandidates.push({ type: 'EXPEDITION', expeditionId: candidate })
+    })
+
     let active = true
+    setPage(1)
     setEquipmentState({
       hero: null,
       data: null,
@@ -161,27 +174,38 @@ function GuidesRaidStage() {
     })
     setIsLoading(true)
     setLoadError('')
-    fetchGuideDecks({ category: 'RAID', type: 'RAID', raidId })
-      .then((data) => {
-        if (!active) return
-        setDecks(normalizeGuideDeckList(data, heroById, heroByName))
-      })
-      .catch((error) => {
-        if (!active) return
-        const message =
-          error?.response?.data?.message ||
-          error?.message ||
-          '덱 목록을 불러오지 못했습니다.'
-        setLoadError(message)
-      })
+
+    const loadDecks = async () => {
+      let lastError = null
+      for (const params of paramCandidates) {
+        try {
+          const data = await fetchGuideDecks(params)
+          if (!active) return
+          setDecks(normalizeGuideDeckList(data, heroById, heroByName))
+          return
+        } catch (error) {
+          lastError = error
+        }
+      }
+
+      if (!active) return
+      const message =
+        lastError?.response?.data?.message ||
+        lastError?.message ||
+        '덱 목록을 불러오지 못했습니다.'
+      setLoadError(message)
+    }
+
+    loadDecks()
       .finally(() => {
         if (!active) return
         setIsLoading(false)
       })
+
     return () => {
       active = false
     }
-  }, [raidId, heroById, heroByName])
+  }, [expeditionId, heroById, heroByName])
 
   useEffect(() => {
     setPage(1)
@@ -244,13 +268,33 @@ function GuidesRaidStage() {
     }
   }
 
+  const getActiveTeamIndex = (deck) => {
+    const teamCount = Array.isArray(deck?.teams) && deck.teams.length ? deck.teams.length : 1
+    const selected = activeTeamByDeck[deck?.id] ?? 0
+    return Math.max(0, Math.min(selected, teamCount - 1))
+  }
+
+  const getVisibleTeam = (deck) => {
+    if (Array.isArray(deck?.teams) && deck.teams.length) {
+      return deck.teams[getActiveTeamIndex(deck)] ?? deck.teams[0]
+    }
+    return {
+      heroes: deck?.heroes ?? [],
+      pet: deck?.pet ?? null,
+      formationId: deck?.formationId ?? null,
+      formationLabel: deck?.formationLabel ?? '',
+      skillOrder: deck?.skillOrder ?? '',
+      skillOrderItems: deck?.skillOrderItems ?? [],
+    }
+  }
+
   return (
-    <section className="raid-stage">
-      <Link to="/guides/raid" className="hero-back">← 레이드</Link>
+    <section className="expedition-stage">
+      <Link to="/guild/expedition" className="hero-back">← 강림원정대</Link>
       <div className="community-toolbar">
         <div className="community-title">
           <h1>{label}</h1>
-          <p className="community-title-note">레이드 공략덱 추가는 회원만 가능합니다. 덱 장비는 각 영웅을 클릭하여 확인하세요.</p>
+          <p className="community-title-note">강림원정대 공략덱 추가는 회원만 가능합니다. 덱 장비는 각 영웅을 클릭하여 확인하세요.</p>
         </div>
         <div className="community-actions">
           <div className="deck-sort">
@@ -268,7 +312,7 @@ function GuidesRaidStage() {
                 setWriteNoticeOpen(true)
                 return
               }
-              window.location.href = `/guides/raid/${raidId}/write`
+              window.location.href = `/guild/expedition/${expeditionId}/write`
             }}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -288,6 +332,25 @@ function GuidesRaidStage() {
         ) : (
           pagedDecks.map((deck) => (
             <div key={deck.id} className="deck-card">
+              {Array.isArray(deck.teams) && deck.teams.length > 1 ? (
+                <div className="deck-team-tabs">
+                  {deck.teams.map((_, index) => (
+                    <button
+                      key={`${deck.id}-team-${index}`}
+                      type="button"
+                      className={`community-tab${getActiveTeamIndex(deck) === index ? ' is-active' : ''}`}
+                      onClick={() =>
+                        setActiveTeamByDeck((prev) => ({
+                          ...prev,
+                          [deck.id]: index,
+                        }))
+                      }
+                    >
+                      {index + 1}팀
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               {canManageDeck(deck) ? (
                 <div className="deck-card-actions">
                   <button
@@ -324,9 +387,9 @@ function GuidesRaidStage() {
                 <div className="deck-center">
                   <div className="deck-row">
                     <div className="deck-units deck-units--lineup">
-                      {deck.heroes.map((heroKey, index) => {
+                      {getVisibleTeam(deck).heroes.map((heroKey, index) => {
                         const hero = heroById.get(heroKey) || heroByName.get(heroKey)
-                        const backPositions = formationBackPositions[deck.formationId] ?? []
+                        const backPositions = formationBackPositions[getVisibleTeam(deck).formationId] ?? []
                         const isBack = backPositions.includes(index + 1)
                         return hero ? (
                           <button
@@ -342,7 +405,8 @@ function GuidesRaidStage() {
                         ) : null
                       })}
                       {(() => {
-                        const pet = petById.get(deck.pet) || petByName.get(deck.pet)
+                        const petKey = getVisibleTeam(deck).pet
+                        const pet = petById.get(petKey) || petByName.get(petKey)
                         return pet ? (
                           <div className="deck-unit deck-unit--pet">
                             <img src={pet.image} alt={pet.name} />
@@ -355,23 +419,26 @@ function GuidesRaidStage() {
                 </div>
               </div>
               <div className="deck-meta">
-              <div className="deck-meta-row">
-                <span className="deck-meta-label">작성자</span>
-                <span className="deck-meta-value">{deck.author}</span>
-              </div>
-              <div className="deck-meta-row">
-                <span className="deck-meta-label">작성일</span>
-                <span className="deck-meta-value">{formatGuideDeckDate(deck.createdAt)}</span>
-              </div>
-              <div className="deck-meta-row">
-                <span className="deck-meta-label">진형</span>
-                <span className="deck-meta-value">
-                  {deck.formationLabel || formationLabelById[deck.formationId] || ''}
-                </span>
+                <div className="deck-meta-row">
+                  <span className="deck-meta-label">작성자</span>
+                  <span className="deck-meta-value">{deck.author}</span>
+                </div>
+                <div className="deck-meta-row">
+                  <span className="deck-meta-label">작성일</span>
+                  <span className="deck-meta-value">{formatGuideDeckDate(deck.createdAt)}</span>
+                </div>
+                <div className="deck-meta-row">
+                  <span className="deck-meta-label">진형</span>
+                  <span className="deck-meta-value">
+                    {getVisibleTeam(deck).formationLabel || formationLabelById[getVisibleTeam(deck).formationId] || ''}
+                  </span>
                 </div>
                 <div className="deck-meta-row deck-meta-row--skill">
                   <span className="deck-meta-label">스킬순서</span>
-                  <DeckSkillOrder items={deck.skillOrderItems} text={deck.skillOrder} />
+                  <DeckSkillOrder
+                    items={getVisibleTeam(deck).skillOrderItems}
+                    text={getVisibleTeam(deck).skillOrder}
+                  />
                 </div>
               </div>
               <div className="deck-reactions">
@@ -412,7 +479,6 @@ function GuidesRaidStage() {
           ))
         )}
       </div>
-      
       {equipmentState.hero ? (
         <div className="equipment-modal" role="dialog" aria-modal="true">
           <button
@@ -624,4 +690,4 @@ function GuidesRaidStage() {
   )
 }
 
-export default GuidesRaidStage
+export default GuildExpeditionStage

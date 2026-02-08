@@ -1624,6 +1624,91 @@ body {
   filter: brightness(1.15);
 }
 
+.expedition-page h1 {
+  margin: 0 0 6px;
+}
+
+.expedition-page p {
+  margin: 0 0 20px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.expedition-map-page p {
+  margin-bottom: 18px;
+  font-size: 18px;
+}
+
+.expedition-map {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1217 / 581;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.expedition-map::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/images/advent_squad/Advent_Squad.png') left bottom/cover no-repeat;
+  transform: translate(-2.2%, 0.8%) scaleX(1.22) scaleY(1.12);
+  transform-origin: center;
+}
+
+.expedition-site {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  z-index: 1;
+}
+
+.expedition-site-label {
+  font-size: 34px;
+  font-weight: 800;
+  color: rgba(255, 80, 80, 0.92);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.expedition-site--1 {
+  top: 42%;
+  left: 2%;
+  width: 18%;
+  height: 30%;
+}
+
+.expedition-site--2 {
+  top: 34%;
+  left: 21%;
+  width: 22%;
+  height: 32%;
+}
+
+.expedition-site--3 {
+  top: 16%;
+  left: 37.5%;
+  width: 22%;
+  height: 40%;
+}
+
+.expedition-site--4 {
+  top: 32%;
+  left: 55.5%;
+  width: 22%;
+  height: 34%;
+}
+
+.expedition-site--5 {
+  top: 35%;
+  left: 78%;
+  width: 20%;
+  height: 34%;
+}
+
 @media (max-width: 900px) {
   .siege-map {
     aspect-ratio: 4 / 3;
@@ -1638,6 +1723,10 @@ body {
     font-size: 12px;
     padding: 3px 7px;
   }
+
+  .expedition-site-label {
+    font-size: 28px;
+  }
 }
 
 @media (max-width: 600px) {
@@ -1647,6 +1736,10 @@ body {
 
   .siege-site {
     gap: 4px;
+  }
+
+  .expedition-site-label {
+    font-size: 22px;
   }
 }
 

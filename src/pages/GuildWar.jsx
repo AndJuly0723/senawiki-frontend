@@ -26,6 +26,7 @@ function GuildWar() {
   const [writeNoticeOpen, setWriteNoticeOpen] = useState(false)
   const [voteNoticeOpen, setVoteNoticeOpen] = useState(false)
   const [voteNoticeMessage, setVoteNoticeMessage] = useState('')
+  const [deleteConfirmDeck, setDeleteConfirmDeck] = useState(null)
   const [decks, setDecks] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
@@ -73,12 +74,18 @@ function GuildWar() {
     return Boolean(userName && deck?.author && userName === String(deck.author).trim())
   }
 
-  const handleDeleteDeck = async (deck) => {
+  const requestDeleteDeck = (deck) => {
     if (!deck?.id) return
-    if (!window.confirm('정말 삭제할까요?')) return
+    setDeleteConfirmDeck(deck)
+  }
+
+  const handleDeleteDeck = async () => {
+    const deck = deleteConfirmDeck
+    if (!deck?.id) return
     try {
       await deleteGuideDeck(deck.id)
       setDecks((prev) => prev.filter((item) => item.id !== deck.id))
+      setDeleteConfirmDeck(null)
     } catch (error) {
       const message =
         error?.response?.data?.message ||
@@ -305,7 +312,7 @@ function GuildWar() {
                         type="button"
                         onClick={() => {
                           setActionMenuOpenId(null)
-                          handleDeleteDeck(deck)
+                          requestDeleteDeck(deck)
                         }}
                       >
                         삭제
@@ -477,6 +484,40 @@ function GuildWar() {
                 })}
               </div>
             )}
+          </div>
+        </div>
+      ) : null}
+      {deleteConfirmDeck ? (
+        <div className="community-modal" role="dialog" aria-modal="true">
+          <button
+            className="community-modal-backdrop"
+            type="button"
+            onClick={() => setDeleteConfirmDeck(null)}
+            aria-label="닫기"
+          />
+          <div className="community-modal-card">
+            <div className="community-modal-header">
+              <h2>알림</h2>
+            </div>
+            <div className="community-modal-body">
+              정말 삭제하시겠습니까?
+            </div>
+            <div className="community-modal-actions">
+              <button
+                className="community-modal-submit"
+                type="button"
+                onClick={handleDeleteDeck}
+              >
+                확인
+              </button>
+              <button
+                className="community-modal-cancel"
+                type="button"
+                onClick={() => setDeleteConfirmDeck(null)}
+              >
+                취소
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
