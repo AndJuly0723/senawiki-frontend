@@ -467,21 +467,22 @@ function GuidesDeckWrite({ mode }) {
     }
     for (let i = 0; i < teamStates.length; i += 1) {
       const team = teamStates[i]
+      const teamLabel = isMultiTeamMode ? `${i + 1}팀의 ` : ''
       if (!hasAllHeroSlotsFilled(team)) {
         setStatus('error')
-        setErrorMessage(`${i + 1}팀의 모든 슬롯에 영웅을 등록해주세요.`)
+        setErrorMessage(`${teamLabel}모든 슬롯에 영웅을 등록해주세요.`)
         setActiveTeamIndex(i)
         return
       }
       if (team.skillOrder.length === 0) {
         setStatus('error')
-        setErrorMessage(`${i + 1}팀의 스킬순서를 지정해주세요.`)
+        setErrorMessage(`${teamLabel}스킬순서를 지정해주세요.`)
         setActiveTeamIndex(i)
         return
       }
       if (!hasAllHeroEquipmentSaved(team)) {
         setStatus('error')
-        setErrorMessage(`${i + 1}팀 슬롯에 등록된 영웅을 클릭해 장비를 저장해주세요.`)
+        setErrorMessage(`${teamLabel}슬롯에 등록된 영웅을 클릭해 장비를 저장해주세요.`)
         setActiveTeamIndex(i)
         setTeamStates((prev) =>
           prev.map((entry, idx) =>
@@ -493,7 +494,7 @@ function GuidesDeckWrite({ mode }) {
       const invalidSlots = getInvalidSubSlots(team)
       if (invalidSlots.length) {
         setStatus('error')
-        setErrorMessage(`${i + 1}팀 부옵은 최소1개 ~ 최대4개까지 설정가능합니다.`)
+        setErrorMessage(`${teamLabel}부옵은 최소1개 ~ 최대4개까지 설정가능합니다.`)
         setActiveTeamIndex(i)
         setTeamStates((prev) =>
           prev.map((entry, idx) =>
