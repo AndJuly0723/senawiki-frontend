@@ -1,9 +1,25 @@
-﻿import { Link, useParams } from 'react-router-dom'
-import { pets } from '../data/pets'
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { getPetById } from '../utils/contentStorage'
 
 function PetDetail() {
   const { petId } = useParams()
-  const pet = pets.find((item) => item.id === petId)
+  const [pet, setPet] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    const loadPet = async () => {
+      const result = await getPetById(petId)
+      if (mounted) setPet(result ?? null)
+    }
+    loadPet()
+    return () => {
+      mounted = false
+    }
+  }, [petId])
+
+  const skillImage = pet?.skillImage || `/images/petskill/${pet?.id}/skill.png`
+
   const resolvePetTargets = () => {
     if (pet?.skill?.targets) {
       return pet.skill.targets
@@ -13,6 +29,7 @@ function PetDetail() {
     }
     return []
   }
+
   const renderPetSkillLine = (line, target, index) => (
     <span key={`${line}-${index}`}>
       {index > 0 ? <br /> : null}
@@ -57,7 +74,7 @@ function PetDetail() {
             </div>
             <div className="hero-meta-row">
               <span>획득 경로</span>
-              <strong>모험·소환, 합성</strong>
+              <strong>{pet.acquisition && pet.acquisition.length > 0 ? pet.acquisition.join(', ') : '모험·소환, 합성'}</strong>
             </div>
           </div>
         </aside>
@@ -66,7 +83,7 @@ function PetDetail() {
             <div className="hero-skills-header">스킬</div>
             <div className="hero-skill-row">
               <div className="hero-skill-icon">
-                <img src={`/images/petskill/${pet.id}/skill.png`} alt="" aria-hidden="true" />
+                <img src={skillImage} alt="" aria-hidden="true" />
               </div>
               <div className="hero-skill-body">
                 <h3>
@@ -132,3 +149,4 @@ function PetDetail() {
 }
 
 export default PetDetail
+

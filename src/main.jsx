@@ -31,6 +31,9 @@ import GuildSiegeDay from './pages/GuildSiegeDay.jsx'
 import GuildWar from './pages/GuildWar.jsx'
 import GuildExpedition from './pages/GuildExpedition.jsx'
 import GuildExpeditionStage from './pages/GuildExpeditionStage.jsx'
+import Admin from './pages/Admin.jsx'
+import AdminHeroCreate from './pages/AdminHeroCreate.jsx'
+import AdminPetCreate from './pages/AdminPetCreate.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -72,6 +75,9 @@ createRoot(document.getElementById('root')).render(
         <Route path="/guild/expedition" element={<GuildExpedition />} />
         <Route path="/guild/expedition/:expeditionId" element={<GuildExpeditionStage />} />
         <Route path="/guild/expedition/:expeditionId/write" element={<GuidesDeckWrite mode="expedition" />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/heroes" element={<AdminHeroCreate />} />
+        <Route path="/admin/pets" element={<AdminPetCreate />} />
       </Route>
       </Routes>
     </BrowserRouter>

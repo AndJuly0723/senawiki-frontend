@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { heroes } from '../data/heroes'
+import { contentChangeEvent, getAllHeroes } from '../utils/contentStorage'
 
 function Heroes() {
   const [gradeFilter, setGradeFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [allHeroes, setAllHeroes] = useState([])
 
   useEffect(() => {
     const savedScroll = sessionStorage.getItem('heroesScrollY')
@@ -22,29 +23,25 @@ function Heroes() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const gradeOrder = {
-    sena: 0,
-    special: 1,
-    legend: 2,
-    rare: 3,
-    unknown: 99,
-  }
+  useEffect(() => {
+    const loadHeroes = async () => {
+      setAllHeroes(await getAllHeroes())
+    }
+    const handleContentChange = () => {
+      loadHeroes()
+    }
+    loadHeroes()
+    window.addEventListener(contentChangeEvent, handleContentChange)
+    return () => window.removeEventListener(contentChangeEvent, handleContentChange)
+  }, [])
 
   const filteredHeroes = useMemo(() => {
-    return heroes.filter((hero) => {
+    return allHeroes.filter((hero) => {
       const gradeOk = gradeFilter === 'all' || hero.grade === gradeFilter
       const typeOk = typeFilter === 'all' || hero.type === typeFilter
       return gradeOk && typeOk
     })
-  }, [gradeFilter, typeFilter])
-
-  const sortedHeroes = useMemo(() => {
-    return [...filteredHeroes].sort((a, b) => {
-      const byGrade = (gradeOrder[a.grade] ?? 99) - (gradeOrder[b.grade] ?? 99)
-      if (byGrade !== 0) return byGrade
-      return a.name.localeCompare(b.name, 'ko')
-    })
-  }, [filteredHeroes])
+  }, [allHeroes, gradeFilter, typeFilter])
 
   return (
     <section>
@@ -81,7 +78,7 @@ function Heroes() {
         </div>
       </div>
       <div className="hero-grid">
-        {sortedHeroes.map((hero) => (
+        {filteredHeroes.map((hero) => (
           <Link
             key={hero.id}
             to={`/heroes/${hero.id}`}

@@ -1,9 +1,27 @@
-﻿import { Link, useParams } from 'react-router-dom'
-import { heroes } from '../data/heroes'
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { getHeroById } from '../utils/contentStorage'
 
 function HeroDetail() {
   const { heroId } = useParams()
-  const hero = heroes.find((item) => item.id === heroId)
+  const [hero, setHero] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    const loadHero = async () => {
+      const result = await getHeroById(heroId)
+      if (mounted) setHero(result ?? null)
+    }
+    loadHero()
+    return () => {
+      mounted = false
+    }
+  }, [heroId])
+
+  const basicSkillImage = hero?.basicSkillImage || `/images/heroskill/${hero?.id}/basic.png`
+  const skill1Image = hero?.skill1Image || `/images/heroskill/${hero?.id}/skill1.png`
+  const skill2Image = hero?.skill2Image || `/images/heroskill/${hero?.id}/skill2.png`
+  const passiveSkillImage = hero?.passiveSkillImage || `/images/heroskill/${hero?.id}/passive.png`
 
   if (!hero) {
     return (
@@ -52,7 +70,7 @@ function HeroDetail() {
             <div className="hero-skills-header">스킬</div>
             <div className="hero-skill-row">
               <div className="hero-skill-icon">
-                <img src={`/images/heroskill/${hero.id}/basic.png`} alt="" aria-hidden="true" />
+                <img src={basicSkillImage} alt="" aria-hidden="true" />
               </div>
               <div className="hero-skill-body">
                 <h3>기본 공격</h3>
@@ -60,7 +78,7 @@ function HeroDetail() {
             </div>
             <div className="hero-skill-row">
               <div className="hero-skill-icon">
-                <img src={`/images/heroskill/${hero.id}/skill1.png`} alt="" aria-hidden="true" />
+                <img src={skill1Image} alt="" aria-hidden="true" />
               </div>
               <div className="hero-skill-body">
                 <h3>스킬 1</h3>
@@ -69,7 +87,7 @@ function HeroDetail() {
             {hero.hasSkill2 && (
               <div className="hero-skill-row">
                 <div className="hero-skill-icon">
-                  <img src={`/images/heroskill/${hero.id}/skill2.png`} alt="" aria-hidden="true" />
+                  <img src={skill2Image} alt="" aria-hidden="true" />
                 </div>
                 <div className="hero-skill-body">
                   <h3>스킬 2</h3>
@@ -78,7 +96,7 @@ function HeroDetail() {
             )}
             <div className="hero-skill-row">
               <div className="hero-skill-icon">
-                <img src={`/images/heroskill/${hero.id}/passive.png`} alt="" aria-hidden="true" />
+                <img src={passiveSkillImage} alt="" aria-hidden="true" />
               </div>
               <div className="hero-skill-body">
                 <h3>패시브</h3>

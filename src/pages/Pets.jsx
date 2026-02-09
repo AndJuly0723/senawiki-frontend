@@ -1,28 +1,27 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { pets } from '../data/pets'
+import { contentChangeEvent, getAllPets } from '../utils/contentStorage'
 
 function Pets() {
   const [gradeFilter, setGradeFilter] = useState('all')
+  const [allPets, setAllPets] = useState([])
 
-  const gradeOrder = {
-    legend: 0,
-    rare: 1,
-    unknown: 99,
-  }
+  useEffect(() => {
+    const loadPets = async () => {
+      setAllPets(await getAllPets())
+    }
+    const handleContentChange = () => {
+      loadPets()
+    }
+    loadPets()
+    window.addEventListener(contentChangeEvent, handleContentChange)
+    return () => window.removeEventListener(contentChangeEvent, handleContentChange)
+  }, [])
 
   const filteredPets = useMemo(() => {
-    if (gradeFilter === 'all') return pets
-    return pets.filter((pet) => pet.grade === gradeFilter)
-  }, [gradeFilter])
-
-  const sortedPets = useMemo(() => {
-    return [...filteredPets].sort((a, b) => {
-      const byGrade = (gradeOrder[a.grade] ?? 99) - (gradeOrder[b.grade] ?? 99)
-      if (byGrade !== 0) return byGrade
-      return a.name.localeCompare(b.name, 'ko')
-    })
-  }, [filteredPets])
+    if (gradeFilter === 'all') return allPets
+    return allPets.filter((pet) => pet.grade === gradeFilter)
+  }, [allPets, gradeFilter])
 
   return (
     <section>
@@ -43,7 +42,7 @@ function Pets() {
         </div>
       </div>
       <div className="pet-grid">
-        {sortedPets.map((pet) => (
+        {filteredPets.map((pet) => (
           <Link key={pet.id} to={`/pets/${pet.id}`} className={`pet-card pet-card--${pet.grade}`}>
             <div className="pet-card-image">
               <img src={pet.image} alt={pet.name} loading="lazy" />

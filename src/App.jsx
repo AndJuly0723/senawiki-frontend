@@ -1,9 +1,9 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import ScrollToTop from './components/ScrollToTop'
-import { heroes } from './data/heroes'
 import { logoutUser } from './api/endpoints/auth'
-import { clearAuth, getRefreshToken, getStoredUser } from './utils/authStorage'
+import { clearAuth, getRefreshToken, getStoredUser, isAdminUser } from './utils/authStorage'
+import { contentChangeEvent, getAllHeroes } from './utils/contentStorage'
 
 function App() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -11,12 +11,14 @@ function App() {
   const [openMenu, setOpenMenu] = useState(null)
   const navigate = useNavigate()
   const [currentUser, setCurrentUser] = useState(getStoredUser())
+  const [allHeroes, setAllHeroes] = useState([])
+  const isAdmin = useMemo(() => isAdminUser(currentUser), [currentUser])
 
   const searchResults = useMemo(() => {
     if (!trimmedSearch) return []
     const query = trimmedSearch.toLowerCase()
-    return heroes.filter((hero) => hero.name.toLowerCase().includes(query))
-  }, [trimmedSearch])
+    return allHeroes.filter((hero) => hero.name.toLowerCase().includes(query))
+  }, [allHeroes, trimmedSearch])
 
   const handleSearch = () => {
     if (searchResults.length > 0) {
@@ -43,8 +45,19 @@ function App() {
     const handleAuthChange = () => {
       setCurrentUser(getStoredUser())
     }
+    const loadHeroes = async () => {
+      setAllHeroes(await getAllHeroes())
+    }
+    const handleContentChange = () => {
+      loadHeroes()
+    }
+    loadHeroes()
     window.addEventListener('authchange', handleAuthChange)
-    return () => window.removeEventListener('authchange', handleAuthChange)
+    window.addEventListener(contentChangeEvent, handleContentChange)
+    return () => {
+      window.removeEventListener('authchange', handleAuthChange)
+      window.removeEventListener(contentChangeEvent, handleContentChange)
+    }
   }, [])
 
   return (
@@ -107,6 +120,11 @@ function App() {
           {currentUser ? (
             <>
               <span className="auth-user">{currentUser.nickname ?? currentUser.name}</span>
+              {isAdmin ? (
+                <Link className="auth-button auth-button--ghost" to="/admin">
+                  ADMIN
+                </Link>
+              ) : null}
               <button
                 className="auth-button auth-button--ghost"
                 type="button"
@@ -232,3 +250,4 @@ function App() {
 }
 
 export default App
+
