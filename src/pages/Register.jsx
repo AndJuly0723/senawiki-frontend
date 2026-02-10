@@ -100,7 +100,7 @@ function Register() {
         setStoredUser(data.user)
       }
       setStatus('success')
-      navigate('/community', { replace: true })
+      navigate('/', { replace: true })
     } catch (error) {
       const message =
         error?.response?.data?.detail ||

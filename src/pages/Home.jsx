@@ -67,6 +67,14 @@ const resolveHasFile = (post) => {
 
 const normalizePost = (post, index) => {
   const hasFile = resolveHasFile(post)
+  const parsedViews = Number(
+    post.viewCount ??
+      post.views ??
+      post.view ??
+      post.readCount ??
+      post.hit ??
+      0,
+  )
   return {
     id: post.id ?? post.postId ?? post.communityId ?? post._id ?? `post-${index}`,
     title: post.title ?? post.subject ?? '',
@@ -82,6 +90,7 @@ const normalizePost = (post, index) => {
     date: formatDate(post.createdAt ?? post.created_at ?? post.date),
     pinned: post.pinned ?? post.notice ?? false,
     commentCount: Number.isFinite(post.commentCount) ? post.commentCount : 0,
+    views: Number.isFinite(parsedViews) ? parsedViews : 0,
     hasFile: hasFile.value,
     hasFileKnown: hasFile.known,
   }
@@ -248,6 +257,7 @@ function Home() {
             <span className="col-title">제목</span>
             <span className="col-author">작성자</span>
             <span className="col-date">작성일</span>
+            <span className="col-views">조회</span>
           </div>
           <div className="community-body">
             {status === 'loading' ? (
@@ -284,6 +294,7 @@ function Home() {
                 </div>
                 <span className="col-author">{post.author}</span>
                 <span className="col-date">{post.date}</span>
+                <span className="col-views">{post.views}</span>
               </div>
             ))}
           </div>
@@ -307,6 +318,7 @@ function Home() {
             <span className="col-title">제목</span>
             <span className="col-author">작성자</span>
             <span className="col-date">작성일</span>
+            <span className="col-views">조회</span>
           </div>
           <div className="community-body">
             {tipStatus === 'loading' ? (
@@ -343,6 +355,7 @@ function Home() {
                 </div>
                 <span className="col-author">{post.author}</span>
                 <span className="col-date">{post.date}</span>
+                <span className="col-views">{post.views}</span>
               </div>
             ))}
           </div>
