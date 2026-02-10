@@ -23,10 +23,11 @@ function Admin() {
 
   return (
     <section className="admin-page admin-page--entry">
-      <h1>콘텐츠 관리자</h1>
+      <h1>관리자 페이지</h1>
       <div className="admin-entry-grid">
         <Link to="/admin/heroes" className="admin-entry-button">영웅 등록</Link>
         <Link to="/admin/pets" className="admin-entry-button">펫 등록</Link>
+        <Link to="/admin/stats" className="admin-entry-button">통계</Link>
       </div>
     </section>
   )

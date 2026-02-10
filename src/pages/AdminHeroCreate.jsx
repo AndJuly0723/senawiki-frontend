@@ -1,5 +1,5 @@
 ﻿import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getStoredUser, isAdminUser } from '../utils/authStorage'
 import {
   addCustomHero,
@@ -38,6 +38,7 @@ const toArray = (value) =>
 function AdminHeroCreate() {
   const user = getStoredUser()
   const isAdmin = useMemo(() => isAdminUser(user), [user])
+  const navigate = useNavigate()
 
   const [heroForm, setHeroForm] = useState(initialHeroForm)
   const [heroFiles, setHeroFiles] = useState(initialHeroFiles)
@@ -92,6 +93,11 @@ function AdminHeroCreate() {
     } catch (error) {
       setHeroStatus({ type: 'error', message: error.message || '영웅 등록에 실패했습니다.' })
     }
+  }
+
+  const handleSuccessConfirm = () => {
+    setHeroStatus({ type: 'idle', message: '' })
+    navigate('/admin')
   }
 
   if (!isAdmin) {
@@ -222,9 +228,34 @@ function AdminHeroCreate() {
           />
           스킬2 사용
         </label>
-        {heroStatus.type !== 'idle' ? <div className={`admin-message admin-message--${heroStatus.type}`}>{heroStatus.message}</div> : null}
+        {heroStatus.type === 'error' ? <div className="admin-message admin-message--error">{heroStatus.message}</div> : null}
         <button type="submit" className="admin-submit-button">영웅 등록</button>
       </form>
+      {heroStatus.type === 'success' ? (
+        <div className="community-modal" role="dialog" aria-modal="true">
+          <button
+            className="community-modal-backdrop"
+            type="button"
+            onClick={handleSuccessConfirm}
+            aria-label="닫기"
+          />
+          <div className="community-modal-card">
+            <div className="community-modal-header">
+              <h2>알림</h2>
+            </div>
+            <div className="community-modal-body">{heroStatus.message}</div>
+            <div className="community-modal-actions">
+              <button
+                className="community-modal-cancel"
+                type="button"
+                onClick={handleSuccessConfirm}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }

@@ -1,7 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { heroes } from '../data/heroes'
-import { pets } from '../data/pets'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import DeckSkillOrder from '../components/DeckSkillOrder'
 import { deleteGuideDeck, fetchGuideDeckEquipment, fetchGuideDecks, voteGuideDeck } from '../api/endpoints/guideDecks'
 import {
@@ -14,6 +12,7 @@ import {
 } from '../utils/guideDecks'
 import { getStoredUser, isAdminUser } from '../utils/authStorage'
 import { getAccessToken } from '../utils/authStorage'
+import { getAllHeroes, getAllPets } from '../utils/contentStorage'
 
 const stageMeta = {
   fire: '불의 원소 던전',
@@ -26,6 +25,7 @@ const stageMeta = {
 
 function GuidesGrowthStage() {
   const { stageId } = useParams()
+  const navigate = useNavigate()
   const [equipmentState, setEquipmentState] = useState({
     hero: null,
     data: null,
@@ -45,10 +45,30 @@ function GuidesGrowthStage() {
   const [sortBy, setSortBy] = useState('likes')
   const [page, setPage] = useState(1)
   const label = stageMeta[stageId] ?? '성장던전'
-  const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [])
-  const heroByName = useMemo(() => new Map(heroes.map((hero) => [hero.name, hero])), [])
-  const petById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet])), [])
-  const petByName = useMemo(() => new Map(pets.map((pet) => [pet.name, pet])), [])
+  const [heroes, setHeroes] = useState([])
+  const [pets, setPets] = useState([])
+  const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [heroes])
+  const heroByName = useMemo(() => new Map(heroes.map((hero) => [hero.name, hero])), [heroes])
+  const petById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet])), [pets])
+  const petByName = useMemo(() => new Map(pets.map((pet) => [pet.name, pet])), [pets])
+
+  useEffect(() => {
+    let active = true
+    Promise.all([getAllHeroes(), getAllPets()])
+      .then(([heroList, petList]) => {
+        if (!active) return
+        setHeroes(heroList)
+        setPets(petList)
+      })
+      .catch(() => {
+        if (!active) return
+        setHeroes([])
+        setPets([])
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const openVoteNotice = (message) => {
     setVoteNoticeMessage(message)
@@ -217,7 +237,7 @@ function GuidesGrowthStage() {
     if (sortBy === 'likes') {
       list.sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0))
     } else if (sortBy === 'createdAt') {
-      list.sort((a, b) => new Date(b.createdAt ?? 0) - new Date(a.createdAt ?? 0))
+      list.sort((a, b) => (b.createdAtTs ?? new Date(b.createdAt ?? 0).getTime()) - (a.createdAtTs ?? new Date(a.createdAt ?? 0).getTime()))
     }
     return list
   }, [decks, sortBy])
@@ -295,7 +315,7 @@ function GuidesGrowthStage() {
           <div className="deck-sort">
             <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="정렬">
               <option value="likes">추천순</option>
-              <option value="createdAt">등록일순</option>
+              <option value="createdAt">최신순</option>
             </select>
           </div>
           <button
@@ -307,7 +327,7 @@ function GuidesGrowthStage() {
                 setWriteNoticeOpen(true)
                 return
               }
-              window.location.href = `/guides/growth-dungeon/${stageId}/write`
+              navigate(`/guides/growth-dungeon/${stageId}/write`)
             }}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -344,6 +364,18 @@ function GuidesGrowthStage() {
                   </button>
                   {actionMenuOpenId === deck.id ? (
                     <div className="community-action-menu" role="menu">
+                      <button
+                        className="community-action-item"
+                        type="button"
+                        onClick={() => {
+                          setActionMenuOpenId(null)
+                          navigate(`/guides/growth-dungeon/${stageId}/write`, {
+                            state: { deckId: deck.id, editDeck: deck },
+                          })
+                        }}
+                      >
+                        수정
+                      </button>
                       <button
                         className="community-action-item community-action-item--danger"
                         type="button"
@@ -608,4 +640,6 @@ function GuidesGrowthStage() {
 }
 
 export default GuidesGrowthStage
+
+
 

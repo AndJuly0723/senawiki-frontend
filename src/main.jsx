@@ -34,6 +34,7 @@ import GuildExpeditionStage from './pages/GuildExpeditionStage.jsx'
 import Admin from './pages/Admin.jsx'
 import AdminHeroCreate from './pages/AdminHeroCreate.jsx'
 import AdminPetCreate from './pages/AdminPetCreate.jsx'
+import AdminStats from './pages/AdminStats.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -78,6 +79,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/admin" element={<Admin />} />
         <Route path="/admin/heroes" element={<AdminHeroCreate />} />
         <Route path="/admin/pets" element={<AdminPetCreate />} />
+        <Route path="/admin/stats" element={<AdminStats />} />
       </Route>
       </Routes>
     </BrowserRouter>

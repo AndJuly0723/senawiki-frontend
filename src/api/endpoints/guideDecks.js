@@ -15,6 +15,9 @@ export const fetchGuideDeckEquipment = (deckId, heroId) =>
 export const createGuideDeck = (payload) =>
   apiClient.post('/api/deck_create', payload).then((response) => response.data)
 
+export const updateGuideDeck = (deckId, payload) =>
+  apiClient.put(`${GUIDE_DECKS_ENDPOINT}/${deckId}`, payload).then((response) => response.data)
+
 export const deleteGuideDeck = (deckId) =>
   apiClient.delete(`${GUIDE_DECKS_ENDPOINT}/${deckId}`).then((response) => response.data)
 

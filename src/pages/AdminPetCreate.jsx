@@ -1,5 +1,5 @@
 ﻿import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getStoredUser, isAdminUser } from '../utils/authStorage'
 import {
   addCustomPet,
@@ -33,6 +33,7 @@ const toArray = (value) =>
 function AdminPetCreate() {
   const user = getStoredUser()
   const isAdmin = useMemo(() => isAdminUser(user), [user])
+  const navigate = useNavigate()
 
   const [petForm, setPetForm] = useState(initialPetForm)
   const [petFiles, setPetFiles] = useState(initialPetFiles)
@@ -82,6 +83,11 @@ function AdminPetCreate() {
     } catch (error) {
       setPetStatus({ type: 'error', message: error.message || '펫 등록에 실패했습니다.' })
     }
+  }
+
+  const handleSuccessConfirm = () => {
+    setPetStatus({ type: 'idle', message: '' })
+    navigate('/admin')
   }
 
   if (!isAdmin) {
@@ -190,9 +196,34 @@ function AdminPetCreate() {
             onChange={(event) => setPetForm((prev) => ({ ...prev, skillDescription: event.target.value }))}
           />
         </label>
-        {petStatus.type !== 'idle' ? <div className={`admin-message admin-message--${petStatus.type}`}>{petStatus.message}</div> : null}
+        {petStatus.type === 'error' ? <div className="admin-message admin-message--error">{petStatus.message}</div> : null}
         <button type="submit" className="admin-submit-button">펫 등록</button>
       </form>
+      {petStatus.type === 'success' ? (
+        <div className="community-modal" role="dialog" aria-modal="true">
+          <button
+            className="community-modal-backdrop"
+            type="button"
+            onClick={handleSuccessConfirm}
+            aria-label="닫기"
+          />
+          <div className="community-modal-card">
+            <div className="community-modal-header">
+              <h2>알림</h2>
+            </div>
+            <div className="community-modal-body">{petStatus.message}</div>
+            <div className="community-modal-actions">
+              <button
+                className="community-modal-cancel"
+                type="button"
+                onClick={handleSuccessConfirm}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }

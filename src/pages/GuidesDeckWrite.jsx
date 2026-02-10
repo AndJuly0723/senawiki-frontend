@@ -1,10 +1,9 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { heroes } from '../data/heroes'
-import { pets } from '../data/pets'
-import { createGuideDeck } from '../api/endpoints/guideDecks'
-import { equipmentSlots, formationBackPositions, formationOptions } from '../utils/guideDecks'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { createGuideDeck, fetchGuideDeckEquipment, updateGuideDeck } from '../api/endpoints/guideDecks'
+import { equipmentSlots, formationBackPositions, formationOptions, normalizeEquipmentResponse } from '../utils/guideDecks'
 import { getAccessToken } from '../utils/authStorage'
+import { getAllHeroes, getAllPets } from '../utils/contentStorage'
 
 const raidMeta = {
   'ruin-eye': '파멸의 눈동자',
@@ -127,6 +126,7 @@ function DeckSlot({ children, isBack, filled, isActive, isInvalid, isDisabled, o
 
 function GuidesDeckWrite({ mode }) {
   const { raidId, stageId, day, expeditionId } = useParams()
+  const location = useLocation()
   const navigate = useNavigate()
   const isAdventureMode = mode === 'adventure'
   const isTotalWarMode = mode === 'total-war'
@@ -200,12 +200,200 @@ function GuidesDeckWrite({ mode }) {
   const [equipmentModalState, setEquipmentModalState] = useState(null)
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const [heroes, setHeroes] = useState([])
+  const [pets, setPets] = useState([])
+  const [initializedFromEdit, setInitializedFromEdit] = useState(false)
+  const [equipmentHydrated, setEquipmentHydrated] = useState(false)
   const currentTeam = teamStates[activeTeamIndex]
   const backPositions = formationBackPositions[currentTeam?.formationId] ?? []
+  const editDeck = location.state?.editDeck ?? null
+  const editDeckId = location.state?.deckId ?? editDeck?.id ?? null
+  const isEditMode = Boolean(editDeckId)
 
-  const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [])
-  const petById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet])), [])
-  
+  const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [heroes])
+  const heroByName = useMemo(() => new Map(heroes.map((hero) => [hero.name, hero])), [heroes])
+  const petById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet])), [pets])
+  const petByName = useMemo(() => new Map(pets.map((pet) => [pet.name, pet])), [pets])
+
+  useEffect(() => {
+    let active = true
+    Promise.all([getAllHeroes(), getAllPets()])
+      .then(([heroList, petList]) => {
+        if (!active) return
+        setHeroes(heroList)
+        setPets(petList)
+      })
+      .catch(() => {
+        if (!active) return
+        setHeroes([])
+        setPets([])
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isEditMode || !editDeck || initializedFromEdit) return
+
+    const resolveHeroId = (heroKey) => {
+      if (!heroKey) return null
+      const byId = heroById.get(heroKey)
+      if (byId?.id) return byId.id
+      const byName = heroByName.get(heroKey)
+      if (byName?.id) return byName.id
+      return typeof heroKey === 'string' ? heroKey : null
+    }
+
+    const resolvePetId = (petKey) => {
+      if (!petKey) return null
+      const byId = petById.get(petKey)
+      if (byId?.id) return byId.id
+      const byName = petByName.get(petKey)
+      if (byName?.id) return byName.id
+      return typeof petKey === 'string' ? petKey : null
+    }
+
+    const normalizeTeamState = (teamRaw) => {
+      const next = {
+        formationId: formationOptions[0].id,
+        equipmentBySlot: Array.from({ length: heroSlotCount }, () => ({
+          equipment: equipmentSlots.reduce((acc, slot) => {
+            acc[slot.id] = { main: '', subs: [] }
+            return acc
+          }, {}),
+          ring: '',
+          set: '',
+        })),
+        selectedHeroes: Array(heroSlotCount).fill(null),
+        selectedPet: null,
+        heroQuery: '',
+        petQuery: '',
+        activeHeroSlot: null,
+        isPetSlotActive: false,
+        skillOrder: [],
+        invalidSubSlots: [],
+        invalidEquipSlots: [],
+        invalidRingSlots: [],
+      }
+      if (teamRaw?.formationId) {
+        next.formationId = teamRaw.formationId
+      }
+      const heroesFromTeam = Array.isArray(teamRaw?.heroes) ? teamRaw.heroes : []
+      heroesFromTeam.slice(0, heroSlotCount).forEach((heroKey, index) => {
+        next.selectedHeroes[index] = resolveHeroId(heroKey)
+      })
+      next.selectedPet = resolvePetId(teamRaw?.pet)
+      if (Array.isArray(teamRaw?.skillOrderItems)) {
+        next.skillOrder = teamRaw.skillOrderItems
+          .map((item) => {
+            const heroId = resolveHeroId(item?.heroId ?? item?.heroName)
+            const skill = Number(item?.skill)
+            if (!heroId || !Number.isFinite(skill)) return null
+            return { heroId, skill }
+          })
+          .filter(Boolean)
+      }
+      return next
+    }
+
+    const sourceTeams =
+      Array.isArray(editDeck?.teams) && editDeck.teams.length
+        ? editDeck.teams
+        : [editDeck]
+
+    const normalizedTeams = Array.from({ length: teamCount }, (_, index) =>
+      normalizeTeamState(sourceTeams[index] ?? {}),
+    )
+    const timerId = setTimeout(() => {
+      setTeamStates(normalizedTeams)
+      setActiveTeamIndex(0)
+      setInitializedFromEdit(true)
+    }, 0)
+    return () => {
+      clearTimeout(timerId)
+    }
+  }, [
+    editDeck,
+    heroById,
+    heroByName,
+    heroSlotCount,
+    initializedFromEdit,
+    isEditMode,
+    petById,
+    petByName,
+    teamCount,
+  ])
+
+  useEffect(() => {
+    if (!isEditMode || !initializedFromEdit || !editDeckId || equipmentHydrated) return
+    const heroIds = Array.from(
+      new Set(
+        teamStates
+          .flatMap((team) => team.selectedHeroes)
+          .filter((heroId) => Boolean(heroId)),
+      ),
+    )
+    if (!heroIds.length) {
+      const timerId = setTimeout(() => {
+        setEquipmentHydrated(true)
+      }, 0)
+      return () => {
+        clearTimeout(timerId)
+      }
+    }
+
+    let active = true
+    Promise.all(
+      heroIds.map(async (heroId) => {
+        try {
+          const data = await fetchGuideDeckEquipment(editDeckId, heroId)
+          return { heroId, equipment: normalizeEquipmentResponse(data) }
+        } catch {
+          return null
+        }
+      }),
+    ).then((results) => {
+      if (!active) return
+      const equipmentByHeroId = new Map(
+        results
+          .filter(Boolean)
+          .map((item) => [item.heroId, item.equipment]),
+      )
+      if (equipmentByHeroId.size) {
+        setTeamStates((prev) =>
+          prev.map((team) => ({
+            ...team,
+            equipmentBySlot: team.equipmentBySlot.map((slotState, slotIndex) => {
+              const heroId = team.selectedHeroes[slotIndex]
+              const equipment = heroId ? equipmentByHeroId.get(heroId) : null
+              if (!equipment) return slotState
+              const nextEquipment = equipmentSlots.reduce((acc, slot) => {
+                const item = equipment.slots?.[slot.id]
+                acc[slot.id] = {
+                  main: item?.main ?? '',
+                  subs: Array.isArray(item?.subs) ? item.subs : [],
+                }
+                return acc
+              }, {})
+              return {
+                ...slotState,
+                set: equipment.setName ?? '',
+                ring: equipment.ring ?? '',
+                equipment: nextEquipment,
+              }
+            }),
+          })),
+        )
+      }
+      setEquipmentHydrated(true)
+    })
+
+    return () => {
+      active = false
+    }
+  }, [editDeckId, equipmentHydrated, initializedFromEdit, isEditMode, teamStates])
+
   const activeEquipmentSlot =
     equipmentModalState !== null
       ? teamStates[equipmentModalState.teamIndex]?.equipmentBySlot[equipmentModalState.slotIndex]
@@ -219,13 +407,13 @@ function GuidesDeckWrite({ mode }) {
     const query = (currentTeam?.heroQuery ?? '').trim().toLowerCase()
     if (!query) return heroes
     return heroes.filter((hero) => hero.name.toLowerCase().includes(query))
-  }, [currentTeam?.heroQuery])
+  }, [currentTeam?.heroQuery, heroes])
 
   const filteredPets = useMemo(() => {
     const query = (currentTeam?.petQuery ?? '').trim().toLowerCase()
     if (!query) return pets
     return pets.filter((pet) => pet.name.toLowerCase().includes(query))
-  }, [currentTeam?.petQuery])
+  }, [currentTeam?.petQuery, pets])
 
   const updateCurrentTeam = (updater) => {
     setTeamStates((prev) =>
@@ -580,7 +768,8 @@ function GuidesDeckWrite({ mode }) {
     setStatus('loading')
     setErrorMessage('')
     try {
-      const buildTeamPayload = (team) => ({
+      const buildTeamPayload = (team, teamIndex) => ({
+        teamNo: teamIndex + 1,
         formationId: team.formationId,
         petId: team.selectedPet,
         slots: buildTeamSlots(team),
@@ -596,21 +785,25 @@ function GuidesDeckWrite({ mode }) {
         day: mode === 'siege' ? day : undefined,
         siegeDay: mode === 'siege' ? (siegeDayEnumBySlug[day] ?? String(day ?? '').toUpperCase()) : undefined,
         expeditionId: mode === 'expedition' ? expeditionId : undefined,
-        team: !isMultiTeamMode && teamStates[0] ? buildTeamPayload(teamStates[0]) : undefined,
+        team: !isMultiTeamMode && teamStates[0] ? buildTeamPayload(teamStates[0], 0) : undefined,
         teams: isMultiTeamMode
-          ? teamStates.map((team) => buildTeamPayload(team))
+          ? teamStates.map((team, index) => buildTeamPayload(team, index))
           : undefined,
-        skillOrders: mergedSkillOrders,
-        heroEquipments: mergedHeroEquipments,
+        skillOrders: !isMultiTeamMode ? mergedSkillOrders : undefined,
+        heroEquipments: !isMultiTeamMode ? mergedHeroEquipments : undefined,
       }
-      await createGuideDeck(payload)
+      if (isEditMode) {
+        await updateGuideDeck(editDeckId, payload)
+      } else {
+        await createGuideDeck(payload)
+      }
       setStatus('success')
       navigate(backTo)
     } catch (error) {
       const message =
         error?.response?.data?.message ||
         error?.message ||
-        '덱 등록에 실패했습니다.'
+        (isEditMode ? '덱 수정에 실패했습니다.' : '덱 등록에 실패했습니다.')
       setErrorMessage(message)
       setStatus('error')
     }
@@ -622,7 +815,7 @@ function GuidesDeckWrite({ mode }) {
       <Link to={backTo} className="hero-back">← 이전으로</Link>
       <div className="community-toolbar">
         <div className="community-title">
-          <h1>{label} 덱 작성</h1>
+          <h1>{label} 덱 {isEditMode ? '수정' : '작성'}</h1>
           <p>{note}</p>
         </div>
       </div>
@@ -810,9 +1003,9 @@ function GuidesDeckWrite({ mode }) {
                   const hero = heroById.get(heroId)
                   if (!hero) return null
                   const skillButtons = [
-                    { skill: 1, image: `/images/heroskill/${hero.id}/skill1.png`, label: '스킬1' },
+                    { skill: 1, image: hero.skill1Image || `/images/heroskill/${hero.id}/skill1.png`, label: '스킬1' },
                     ...(hero.hasSkill2
-                      ? [{ skill: 2, image: `/images/heroskill/${hero.id}/skill2.png`, label: '스킬2' }]
+                      ? [{ skill: 2, image: hero.skill2Image || `/images/heroskill/${hero.id}/skill2.png`, label: '스킬2' }]
                       : []),
                   ]
                   return (
@@ -847,7 +1040,11 @@ function GuidesDeckWrite({ mode }) {
                     const hero = heroById.get(item.heroId)
                     const label = hero ? `${hero.name}${item.skill}` : `스킬${item.skill}`
                     const showSkillImage = Boolean(hero?.id && (item.skill === 1 || item.skill === 2))
-                    const skillImage = showSkillImage ? `/images/heroskill/${hero.id}/skill${item.skill}.png` : ''
+                    const skillImage = showSkillImage
+                      ? (item.skill === 1
+                        ? (hero.skill1Image || `/images/heroskill/${hero.id}/skill1.png`)
+                        : (hero.skill2Image || `/images/heroskill/${hero.id}/skill2.png`))
+                      : ''
                     return (
                       <div key={`${item.heroId}-${item.skill}-${idx}`} className="skill-order-item">
                         <button
@@ -893,7 +1090,7 @@ function GuidesDeckWrite({ mode }) {
             onClick={handleSubmit}
             disabled={status === 'loading'}
           >
-            {status === 'loading' ? '등록 중...' : '등록'}
+            {status === 'loading' ? (isEditMode ? '수정 중...' : '등록 중...') : (isEditMode ? '수정' : '등록')}
           </button>
           <Link className="community-cancel" to={backTo}>취소</Link>
         </div>

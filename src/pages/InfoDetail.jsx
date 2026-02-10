@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+﻿import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   deleteTipPost,
@@ -27,6 +27,19 @@ const formatDateTime = (value) => {
   })
 }
 
+const resolveFileUrl = (value) => {
+  if (!value) return ''
+  const raw = String(value).trim()
+  if (!raw) return ''
+  if (/^(https?:)?\/\//i.test(raw) || raw.startsWith('data:') || raw.startsWith('blob:')) {
+    return raw
+  }
+  const apiBase = String(import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')
+  if (!apiBase) return raw
+  if (raw.startsWith('/')) return `${apiBase}${raw}`
+  return `${apiBase}/${raw}`
+}
+
 function InfoDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -37,7 +50,7 @@ function InfoDetail() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState('delete')
-  const [guestName, setGuestName] = useState('')
+  const [guestName] = useState('')
   const [guestPassword, setGuestPassword] = useState('')
   const [actionError, setActionError] = useState('')
   const [comments, setComments] = useState([])
@@ -52,7 +65,6 @@ function InfoDetail() {
   const [commentModalOpen, setCommentModalOpen] = useState(false)
   const [commentModalMode, setCommentModalMode] = useState('delete')
   const [commentActionTarget, setCommentActionTarget] = useState(null)
-  const [commentActionName, setCommentActionName] = useState('')
   const [commentActionPassword, setCommentActionPassword] = useState('')
   const [commentActionContent, setCommentActionContent] = useState('')
   const [commentActionError, setCommentActionError] = useState('')
@@ -98,7 +110,7 @@ function InfoDetail() {
     }
   }, [id])
 
-  const loadComments = async (isActiveRef) => {
+  const loadComments = useCallback(async (isActiveRef) => {
     setCommentStatus('loading')
     setCommentError('')
     try {
@@ -107,7 +119,7 @@ function InfoDetail() {
         ? data
         : data?.content ?? data?.items ?? data?.data ?? []
       const normalized = list.map((comment, index) => ({
-        id: comment.id ?? comment.commentId ?? comment._id ?? `comment-${index}`,
+        id: comment.id ?? comment.commentId ?? comment._id ?? 'comment-' + index,
         author:
           comment.authorName ??
           comment.authorNickname ??
@@ -133,7 +145,7 @@ function InfoDetail() {
         setCommentStatus('error')
       }
     }
-  }
+  }, [id])
 
   useEffect(() => {
     const isActiveRef = { current: true }
@@ -141,12 +153,12 @@ function InfoDetail() {
     return () => {
       isActiveRef.current = false
     }
-  }, [id])
+  }, [loadComments])
 
   const isGuest = post?.authorType === 'GUEST'
   const isNotice = Boolean(post?.notice)
   const createdAt = useMemo(() => formatDateTime(post?.createdAt), [post?.createdAt])
-  const fileUrl = post?.fileDownloadUrl
+  const fileUrl = resolveFileUrl(post?.fileDownloadUrl)
   const isImage = post?.fileContentType?.startsWith('image/')
 
   const openModal = (mode) => {
@@ -285,7 +297,6 @@ function InfoDetail() {
     setCommentModalMode(mode)
     setCommentActionTarget(comment)
     setCommentActionContent(comment?.content ?? '')
-    setCommentActionName('')
     setCommentActionPassword('')
     setCommentActionError('')
     setCommentModalOpen(true)
@@ -295,7 +306,6 @@ function InfoDetail() {
     setCommentModalOpen(false)
     setCommentActionTarget(null)
     setCommentActionContent('')
-    setCommentActionName('')
     setCommentActionPassword('')
     setCommentActionError('')
   }
@@ -403,15 +413,20 @@ function InfoDetail() {
         <div className="community-detail-body">
           <div className="community-detail-content">
             <p className="community-detail-text">{post?.content ?? ''}</p>
+            {fileUrl && isImage ? (
+              <a href={fileUrl} target="_blank" rel="noreferrer" className="community-detail-image-link">
+                <img
+                  className="community-detail-inline-image"
+                  src={fileUrl}
+                  alt={post?.fileOriginalName ?? '첨부 이미지'}
+                />
+              </a>
+            ) : null}
           </div>
-          {fileUrl ? (
+          {fileUrl && !isImage ? (
             <div className="community-detail-file">
               <span className="community-detail-file-label">첨부파일</span>
-              {isImage ? (
-                <img src={fileUrl} alt={post?.fileOriginalName ?? '첨부 이미지'} />
-              ) : (
-                <a href={fileUrl}>{post?.fileOriginalName ?? '파일 다운로드'}</a>
-              )}
+              <a href={fileUrl}>{post?.fileOriginalName ?? '파일 다운로드'}</a>
             </div>
           ) : null}
         </div>
@@ -629,3 +644,9 @@ function InfoDetail() {
 }
 
 export default InfoDetail
+
+
+
+
+
+

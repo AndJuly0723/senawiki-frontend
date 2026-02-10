@@ -121,6 +121,27 @@ const normalizeSkillValue = (value) => {
   return null
 }
 
+const toNumber = (value, fallback = 0) => {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
+
+const toTimestamp = (value) => {
+  if (!value) return 0
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  const date = new Date(value)
+  const time = date.getTime()
+  return Number.isFinite(time) ? time : 0
+}
+
+const getHeroSkillImage = (hero, skill) => {
+  if (!hero || (skill !== 1 && skill !== 2)) return ''
+  const image = skill === 1 ? hero.skill1Image : hero.skill2Image
+  if (image) return image
+  if (!hero.id) return ''
+  return `/images/heroskill/${hero.id}/skill${skill}.png`
+}
+
 export const normalizeSkillOrder = (skillOrderRaw, heroById, heroByName) => {
   if (!skillOrderRaw) return { text: '', items: [] }
 
@@ -134,7 +155,7 @@ export const normalizeSkillOrder = (skillOrderRaw, heroById, heroByName) => {
       heroName: hero?.name ?? heroName ?? '',
       skill: normalizedSkill,
       label: resolvedLabel,
-      image: canShowImage ? `/images/heroskill/${hero.id}/skill${normalizedSkill}.png` : '',
+      image: canShowImage ? getHeroSkillImage(hero, normalizedSkill) : '',
     }
   }
 
@@ -287,6 +308,19 @@ export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
       ? authorCandidate
       : authorCandidate?.nickname ?? authorCandidate?.name ?? ''
 
+  const createdAt =
+    raw.createdAt ??
+    raw.createdDate ??
+    raw.createdTime ??
+    raw.created_at ??
+    raw.createAt ??
+    raw.regDate ??
+    raw.registeredAt ??
+    raw.deck?.createdAt ??
+    raw.deck?.createdDate
+  const likes = toNumber(raw.likes ?? raw.likeCount ?? raw.recommendCount ?? raw.upVotes ?? raw.upCount, 0)
+  const dislikes = toNumber(raw.dislikes ?? raw.dislikeCount ?? raw.unrecommendCount ?? raw.downVotes ?? raw.downCount, 0)
+
   return {
     id:
       raw.id ??
@@ -296,9 +330,10 @@ export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
       raw.guide_deck_id ??
       raw.deck?.id,
     author,
-    createdAt: raw.createdAt ?? raw.createdDate ?? raw.createdTime,
-    likes: raw.likes ?? raw.likeCount ?? raw.recommendCount ?? raw.upVotes ?? raw.upCount ?? 0,
-    dislikes: raw.dislikes ?? raw.dislikeCount ?? raw.unrecommendCount ?? raw.downVotes ?? raw.downCount ?? 0,
+    createdAt,
+    createdAtTs: toTimestamp(createdAt),
+    likes,
+    dislikes,
     raidId: normalizeRaidKey(
       raw.raidId ??
       raw.raid ??

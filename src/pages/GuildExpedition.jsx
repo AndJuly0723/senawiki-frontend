@@ -12,7 +12,7 @@ function GuildExpedition() {
   return (
     <section className="expedition-page expedition-map-page">
       <h1>강림원정대</h1>
-      <p>공략할 대상을 선택해주세요.</p>
+      <p>공략할 대상을 선택해 주세요.</p>
       <div className="expedition-map" role="img" aria-label="강림원정대 배치도">
         {expeditionSites.map((site) => (
           <Link
