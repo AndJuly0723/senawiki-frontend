@@ -12,23 +12,23 @@ const CONTENT_CHANGE_EVENT = 'sena-content-change'
 const CDN_BASE_URL = String(import.meta.env.VITE_CDN_BASE_URL ?? '').replace(/\/+$/, '')
 
 const HERO_TYPE_OPTIONS = [
-  { key: 'attack', label: '°ø°ÝÇü', icon: '/images/types/attack.png' },
-  { key: 'magic', label: '¸¶¹ýÇü', icon: '/images/types/magic.png' },
-  { key: 'defense', label: '¹æ¾îÇü', icon: '/images/types/defense.png' },
-  { key: 'support', label: 'Áö¿øÇü', icon: '/images/types/support.png' },
-  { key: 'allround', label: '¸¸´ÉÇü', icon: '/images/types/allround.png' },
+  { key: 'attack', label: 'ê³µê²©í˜•', icon: '/images/types/attack.png' },
+  { key: 'magic', label: 'ë§ˆë²•í˜•', icon: '/images/types/magic.png' },
+  { key: 'defense', label: 'ë°©ì–´í˜•', icon: '/images/types/defense.png' },
+  { key: 'support', label: 'ì§€ì›í˜•', icon: '/images/types/support.png' },
+  { key: 'allround', label: 'ë§ŒëŠ¥í˜•', icon: '/images/types/allround.png' },
 ]
 
 const HERO_GRADE_OPTIONS = [
-  { key: 'rare', label: 'Èñ±Í' },
-  { key: 'legend', label: 'Àü¼³' },
-  { key: 'special', label: '½ºÆä¼È' },
-  { key: 'sena', label: '±¸¼¼³ª' },
+  { key: 'rare', label: 'í¬ê·€' },
+  { key: 'legend', label: 'ì „ì„¤' },
+  { key: 'special', label: 'ìŠ¤íŽ˜ì…œ' },
+  { key: 'sena', label: 'êµ¬ì„¸ë‚˜' },
 ]
 
 const PET_GRADE_OPTIONS = [
-  { key: 'legend', label: 'Àü¼³' },
-  { key: 'rare', label: 'Èñ±Í' },
+  { key: 'legend', label: 'ì „ì„¤' },
+  { key: 'rare', label: 'í¬ê·€' },
 ]
 
 const mapByKey = (items) =>
@@ -90,9 +90,9 @@ const normalizeHero = (hero) => {
     usage: normalizeList(hero?.usage),
     gear: normalizeList(hero?.gear),
     acquisition: normalizeList(hero?.acquisition),
-    typeLabel: hero?.typeLabel ?? typeMeta?.label ?? '¹ÌºÐ·ù',
+    typeLabel: typeMeta?.label ?? hero?.typeLabel ?? 'ë¯¸ë¶„ë¥˜',
     typeIcon: hero?.typeIcon ?? typeMeta?.icon ?? '',
-    gradeLabel: hero?.gradeLabel ?? gradeMeta?.label ?? '¹ÌºÐ·ù',
+    gradeLabel: gradeMeta?.label ?? hero?.gradeLabel ?? 'ë¯¸ë¶„ë¥˜',
     hasSkill2: hero?.hasSkill2 ?? true,
   }
 }
@@ -101,15 +101,16 @@ const normalizePet = (pet) => {
   const gradeMeta = petGradeMap[pet?.grade] ?? null
   const imageKey = pet?.imageKey ?? pet?.image_key ?? ''
   const skillImageKey = pet?.skillImageKey ?? pet?.skill_image_key ?? ''
+  const imageSource = imageKey || pet?.image || (pet?.id ? `/images/pets/${pet.id}.png` : '')
   return {
     ...pet,
     imageKey,
     skillImageKey,
-    image: toAssetUrl(imageKey || pet?.image),
+    image: toAssetUrl(imageSource),
     skillImage: toAssetUrl(skillImageKey || pet?.skillImage),
     nickname: pet?.nickname ?? '',
     acquisition: normalizeList(pet?.acquisition),
-    gradeLabel: pet?.gradeLabel ?? gradeMeta?.label ?? '¹ÌºÐ·ù',
+    gradeLabel: gradeMeta?.label ?? pet?.gradeLabel ?? 'ë¯¸ë¶„ë¥˜',
     skill: pet?.skill ?? null,
   }
 }
@@ -181,7 +182,7 @@ export const slugifyId = (value) =>
   String(value ?? '')
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9°¡-ÆR]+/g, '-')
+    .replace(/[^a-z0-9ê°€-íž£]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .replace(/-+/g, '-')
 
@@ -189,4 +190,3 @@ export const contentChangeEvent = CONTENT_CHANGE_EVENT
 export const heroTypeOptions = HERO_TYPE_OPTIONS
 export const heroGradeOptions = HERO_GRADE_OPTIONS
 export const petGradeOptions = PET_GRADE_OPTIONS
-
