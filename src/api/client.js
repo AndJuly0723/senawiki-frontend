@@ -30,9 +30,50 @@ const refreshClient = axios.create({
 
 let refreshPromise = null
 
+const toPathname = (url) => {
+  const raw = String(url ?? '')
+  if (!raw) return ''
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      return new URL(raw).pathname
+    } catch {
+      return raw.split('?')[0]
+    }
+  }
+  return raw.split('?')[0]
+}
+
+const isPublicReadRequest = (config) => {
+  const method = String(config?.method ?? 'get').toLowerCase()
+  if (method !== 'get') return false
+  const path = toPathname(config?.url)
+  if (!path) return false
+  const publicPrefixes = [
+    '/api/heroes',
+    '/api/pets',
+    '/api/community',
+    '/api/tip',
+    '/api/guide-decks',
+    '/api/boards',
+  ]
+  return publicPrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))
+}
+
+const shouldAttachAuthorization = (config) => {
+  if (!config) return false
+  const path = toPathname(config.url)
+  if (path.startsWith('/api/auth/')) {
+    return false
+  }
+  if (isPublicReadRequest(config)) {
+    return false
+  }
+  return true
+}
+
 apiClient.interceptors.request.use((config) => {
   const accessToken = getAccessToken()
-  if (accessToken) {
+  if (accessToken && shouldAttachAuthorization(config)) {
     config.headers = config.headers ?? {}
     if (!config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${accessToken}`
@@ -51,6 +92,9 @@ apiClient.interceptors.response.use(
 
     const requestUrl = String(originalRequest.url ?? '')
     if (requestUrl.startsWith('/api/auth/')) {
+      return Promise.reject(error)
+    }
+    if (!shouldAttachAuthorization(originalRequest)) {
       return Promise.reject(error)
     }
 
