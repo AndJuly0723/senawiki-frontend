@@ -1,0 +1,158 @@
+{
+  "generatedAt": "2026-02-09T14:20:47.841Z",
+  "bucket": "senawiki-assets",
+  "prefix": "pet-skills",
+  "fileCount": 25,
+  "rows": [
+    {
+      "petId": "dello",
+      "localPath": "public/images/petskill/dello/skill.png",
+      "key": "pet-skills/d30160bc-ed28-47ca-bbcc-d5e08cb19159.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "doo",
+      "localPath": "public/images/petskill/doo/skill.png",
+      "key": "pet-skills/1dafdf47-8710-4c8f-90f5-e85a0f95aaea.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "durgi",
+      "localPath": "public/images/petskill/durgi/skill.png",
+      "key": "pet-skills/2a8ec6ee-0884-4c7d-a459-6176c584cba3.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "eri",
+      "localPath": "public/images/petskill/eri/skill.png",
+      "key": "pet-skills/de801e24-16ea-4cc7-8d02-1b6a27808f1f.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "helepin",
+      "localPath": "public/images/petskill/helepin/skill.png",
+      "key": "pet-skills/157b35d0-3103-45d5-bcb9-3f76015b4ce0.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "irin",
+      "localPath": "public/images/petskill/irin/skill.png",
+      "key": "pet-skills/8601a5ed-7752-4a31-9b79-5f6c60da3665.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "karam",
+      "localPath": "public/images/petskill/karam/skill.png",
+      "key": "pet-skills/e43235a4-2937-4c08-a6e7-d2b7c1f79bd4.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "kri",
+      "localPath": "public/images/petskill/kri/skill.png",
+      "key": "pet-skills/f78e3b41-87d5-48ef-89b1-ae7e119768de.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "kroa",
+      "localPath": "public/images/petskill/kroa/skill.png",
+      "key": "pet-skills/c8c2d0a0-341b-4b21-a581-8ba42754bd03.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "melpe",
+      "localPath": "public/images/petskill/melpe/skill.png",
+      "key": "pet-skills/eb4a9e3b-530b-4fcc-ad79-bae1896f10e0.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "mick",
+      "localPath": "public/images/petskill/mick/skill.png",
+      "key": "pet-skills/dd7533ab-f23e-41ea-bf37-07bc70bcd275.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "mimic",
+      "localPath": "public/images/petskill/mimic/skill.png",
+      "key": "pet-skills/94890b51-fafc-4c10-8941-65137518bf65.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "mumu",
+      "localPath": "public/images/petskill/mumu/skill.png",
+      "key": "pet-skills/6ae3bc4b-e8e3-4cf9-9eaf-aeb76918e746.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "nikki",
+      "localPath": "public/images/petskill/nikki/skill.png",
+      "key": "pet-skills/577f113e-be21-4845-a632-2eb9bada5622.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "nina",
+      "localPath": "public/images/petskill/nina/skill.png",
+      "key": "pet-skills/195c818c-7cda-4e4f-a135-250803669a00.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "note",
+      "localPath": "public/images/petskill/note/skill.png",
+      "key": "pet-skills/c46bf539-47b8-4fd4-8f8d-c3f73a07d07f.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "paragon",
+      "localPath": "public/images/petskill/paragon/skill.png",
+      "key": "pet-skills/798ced70-fa3d-4f5b-89ab-1bd8c32c54ca.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "pike",
+      "localPath": "public/images/petskill/pike/skill.png",
+      "key": "pet-skills/8c25e8a4-a6b0-4155-a440-4b7ed09f8fb2.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "poong",
+      "localPath": "public/images/petskill/poong/skill.png",
+      "key": "pet-skills/f1b42c8c-ce1c-4566-8944-64b90b070da4.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "richel",
+      "localPath": "public/images/petskill/richel/skill.png",
+      "key": "pet-skills/ac0c19b7-b55e-432a-a03b-70d40c4a910e.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "roo",
+      "localPath": "public/images/petskill/roo/skill.png",
+      "key": "pet-skills/c4350c39-c110-4b13-b1d2-6fa0ce73c83f.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "seri",
+      "localPath": "public/images/petskill/seri/skill.png",
+      "key": "pet-skills/6ef403a7-463e-4127-a4d2-04f3adedab85.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "windy",
+      "localPath": "public/images/petskill/windy/skill.png",
+      "key": "pet-skills/c3f10e70-4963-4ed4-b972-8769f97e4990.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "yeonji",
+      "localPath": "public/images/petskill/yeonji/skill.png",
+      "key": "pet-skills/3bec7d75-b863-47aa-8318-f8ad62febe2c.png",
+      "mimeType": "image/png"
+    },
+    {
+      "petId": "yu",
+      "localPath": "public/images/petskill/yu/skill.png",
+      "key": "pet-skills/ffe5825a-4c3b-4999-bd69-2ee62ab573cb.png",
+      "mimeType": "image/png"
+    }
+  ]
+}
