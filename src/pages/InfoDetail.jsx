@@ -14,6 +14,8 @@ import {
 } from '../api/endpoints/boardComments'
 import { getStoredUser, isAdminUser } from '../utils/authStorage'
 
+const normalizeString = (value) => String(value ?? '').trim().toLowerCase()
+
 const formatDateTime = (value) => {
   if (!value) return '-'
   const date = new Date(value)
@@ -157,6 +159,38 @@ function InfoDetail() {
 
   const isGuest = post?.authorType === 'GUEST'
   const isNotice = Boolean(post?.notice)
+  const userTokens = [
+    currentUser?.id,
+    currentUser?.userId,
+    currentUser?.memberId,
+    currentUser?.email,
+    currentUser?.nickname,
+    currentUser?.name,
+    currentUser?.username,
+    currentUser?.loginId,
+  ]
+    .map(normalizeString)
+    .filter(Boolean)
+  const postTokens = [
+    post?.authorId,
+    post?.userId,
+    post?.memberId,
+    post?.authorName,
+    post?.authorNickname,
+    post?.nickname,
+    post?.writer,
+    post?.name,
+    post?.email,
+    post?.author,
+  ]
+    .map(normalizeString)
+    .filter(Boolean)
+  const isPostOwner =
+    Boolean(currentUser) &&
+    userTokens.some((token) => postTokens.includes(token)) &&
+    postTokens.length > 0
+  const canManagePost = isAdmin || isGuest || isPostOwner
+  const canShowPostActionMenu = isNotice ? isAdmin : canManagePost
   const createdAt = useMemo(() => formatDateTime(post?.createdAt), [post?.createdAt])
   const fileUrl = resolveFileUrl(post?.fileDownloadUrl)
   const isImage = post?.fileContentType?.startsWith('image/')
@@ -174,6 +208,7 @@ function InfoDetail() {
   }
 
   const handleDelete = async () => {
+    if (!(isNotice ? isAdmin : canManagePost)) return
     setActionError('')
     if (!isAdmin && !guestPassword) {
       setActionError('비밀번호를 입력해주세요.')
@@ -204,6 +239,7 @@ function InfoDetail() {
   }
 
   const handleConfirm = async () => {
+    if (!(isNotice ? isAdmin : canManagePost)) return
     if (modalMode === 'delete') {
       await handleDelete()
       return
@@ -401,7 +437,7 @@ function InfoDetail() {
           <Link className="community-back community-back--compact" to="/info">
             목록으로
           </Link>
-          {status === 'success' ? renderActionMenu() : null}
+          {status === 'success' && canShowPostActionMenu ? renderActionMenu() : null}
         </div>
       </div>
 
@@ -550,36 +586,43 @@ function InfoDetail() {
         <div className="community-modal" role="dialog" aria-modal="true">
           <button className="community-modal-backdrop" type="button" onClick={closeModal} />
           <div className="community-modal-card">
-            <div className="community-modal-header">
-              <div>
-                <h2>{modalMode === 'delete' ? '게시글 삭제' : '게시글 수정'}</h2>
-                <p>비회원 비밀번호를 입력해주세요.</p>
-              </div>
-            </div>
-            <div className="community-modal-body">
-              <label>
-                비밀번호
-                <input
-                  type="password"
-                  value={guestPassword}
-                  onChange={(event) => setGuestPassword(event.target.value)}
-                  placeholder="비밀번호"
-                />
-              </label>
-              {actionError ? (
-                <div className="community-modal-error" role="alert">
-                  {actionError}
+            <form
+              onSubmit={(event) => {
+                event.preventDefault()
+                handleConfirm()
+              }}
+            >
+              <div className="community-modal-header">
+                <div>
+                  <h2>{modalMode === 'delete' ? '게시글 삭제' : '게시글 수정'}</h2>
+                  <p>비회원 비밀번호를 입력해주세요.</p>
                 </div>
-              ) : null}
-            </div>
-            <div className="community-modal-actions">
-              <button className="community-modal-submit" type="button" onClick={handleConfirm}>
-                확인
-              </button>
-              <button className="community-modal-cancel" type="button" onClick={closeModal}>
-                취소
-              </button>
-            </div>
+              </div>
+              <div className="community-modal-body">
+                <label>
+                  비밀번호
+                  <input
+                    type="password"
+                    value={guestPassword}
+                    onChange={(event) => setGuestPassword(event.target.value)}
+                    placeholder="비밀번호"
+                  />
+                </label>
+                {actionError ? (
+                  <div className="community-modal-error" role="alert">
+                    {actionError}
+                  </div>
+                ) : null}
+              </div>
+              <div className="community-modal-actions">
+                <button className="community-modal-submit" type="submit">
+                  확인
+                </button>
+                <button className="community-modal-cancel" type="button" onClick={closeModal}>
+                  취소
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       ) : null}

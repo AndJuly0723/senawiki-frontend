@@ -12,6 +12,9 @@ export const refreshToken = ({ refreshToken: token }) =>
 export const logoutUser = ({ refreshToken }) =>
   post('/api/auth/logout', { refreshToken })
 
+export const withdrawUser = ({ password }) =>
+  post('/api/auth/withdraw', { password })
+
 export const sendEmailVerification = ({ email }) =>
   post('/api/auth/email/send', { email })
 

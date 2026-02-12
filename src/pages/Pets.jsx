@@ -5,10 +5,17 @@ import { contentChangeEvent, getAllPets } from '../utils/contentStorage'
 function Pets() {
   const [gradeFilter, setGradeFilter] = useState('all')
   const [allPets, setAllPets] = useState([])
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
     const loadPets = async () => {
-      setAllPets(await getAllPets())
+      try {
+        setAllPets(await getAllPets())
+        setLoadError('')
+      } catch (error) {
+        setAllPets([])
+        setLoadError(error?.message || 'Failed to load pets. Please try again.')
+      }
     }
     const handleContentChange = () => {
       loadPets()
@@ -41,6 +48,10 @@ function Pets() {
           </label>
         </div>
       </div>
+      {loadError ? <div className="community-error">{loadError}</div> : null}
+      {!loadError && filteredPets.length === 0 ? (
+        <div className="community-empty">표시할 펫이 없습니다.</div>
+      ) : null}
       <div className="pet-grid">
         {filteredPets.map((pet) => (
           <Link key={pet.id} to={`/pets/${pet.id}`} className={`pet-card pet-card--${pet.grade}`}>

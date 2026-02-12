@@ -1,5 +1,3 @@
-ï»¿import { heroes as baseHeroes } from '../data/heroes'
-import { pets as basePets } from '../data/pets'
 import {
   createHero,
   createPet,
@@ -14,23 +12,23 @@ const CONTENT_CHANGE_EVENT = 'sena-content-change'
 const CDN_BASE_URL = String(import.meta.env.VITE_CDN_BASE_URL ?? '').replace(/\/+$/, '')
 
 const HERO_TYPE_OPTIONS = [
-  { key: 'attack', label: 'ê³µê²©í˜•', icon: '/images/types/attack.png' },
-  { key: 'magic', label: 'ë§ˆë²•í˜•', icon: '/images/types/magic.png' },
-  { key: 'defense', label: 'ë°©ì–´í˜•', icon: '/images/types/defense.png' },
-  { key: 'support', label: 'ì§€ì›í˜•', icon: '/images/types/support.png' },
-  { key: 'allround', label: 'ë§ŒëŠ¥í˜•', icon: '/images/types/allround.png' },
+  { key: 'attack', label: '°ø°ÝÇü', icon: '/images/types/attack.png' },
+  { key: 'magic', label: '¸¶¹ýÇü', icon: '/images/types/magic.png' },
+  { key: 'defense', label: '¹æ¾îÇü', icon: '/images/types/defense.png' },
+  { key: 'support', label: 'Áö¿øÇü', icon: '/images/types/support.png' },
+  { key: 'allround', label: '¸¸´ÉÇü', icon: '/images/types/allround.png' },
 ]
 
 const HERO_GRADE_OPTIONS = [
-  { key: 'rare', label: 'í¬ê·€' },
-  { key: 'legend', label: 'ì „ì„¤' },
-  { key: 'special', label: 'ìŠ¤íŽ˜ì…œ' },
-  { key: 'sena', label: 'êµ¬ì„¸ë‚˜' },
+  { key: 'rare', label: 'Èñ±Í' },
+  { key: 'legend', label: 'Àü¼³' },
+  { key: 'special', label: '½ºÆä¼È' },
+  { key: 'sena', label: '±¸¼¼³ª' },
 ]
 
 const PET_GRADE_OPTIONS = [
-  { key: 'legend', label: 'ì „ì„¤' },
-  { key: 'rare', label: 'í¬ê·€' },
+  { key: 'legend', label: 'Àü¼³' },
+  { key: 'rare', label: 'Èñ±Í' },
 ]
 
 const mapByKey = (items) =>
@@ -92,9 +90,9 @@ const normalizeHero = (hero) => {
     usage: normalizeList(hero?.usage),
     gear: normalizeList(hero?.gear),
     acquisition: normalizeList(hero?.acquisition),
-    typeLabel: hero?.typeLabel ?? typeMeta?.label ?? 'ë¯¸ë¶„ë¥˜',
+    typeLabel: hero?.typeLabel ?? typeMeta?.label ?? '¹ÌºÐ·ù',
     typeIcon: hero?.typeIcon ?? typeMeta?.icon ?? '',
-    gradeLabel: hero?.gradeLabel ?? gradeMeta?.label ?? 'ë¯¸ë¶„ë¥˜',
+    gradeLabel: hero?.gradeLabel ?? gradeMeta?.label ?? '¹ÌºÐ·ù',
     hasSkill2: hero?.hasSkill2 ?? true,
   }
 }
@@ -111,7 +109,7 @@ const normalizePet = (pet) => {
     skillImage: toAssetUrl(skillImageKey || pet?.skillImage),
     nickname: pet?.nickname ?? '',
     acquisition: normalizeList(pet?.acquisition),
-    gradeLabel: pet?.gradeLabel ?? gradeMeta?.label ?? 'ë¯¸ë¶„ë¥˜',
+    gradeLabel: pet?.gradeLabel ?? gradeMeta?.label ?? '¹ÌºÐ·ù',
     skill: pet?.skill ?? null,
   }
 }
@@ -138,39 +136,23 @@ const getUploadKey = (uploadResult) =>
   uploadResult?.imageKey ?? uploadResult?.key ?? ''
 
 export const getAllHeroes = async () => {
-  try {
-    const result = await fetchHeroes()
-    const items = Array.isArray(result) ? result : result?.content ?? result?.items ?? []
-    return sortHeroes(items.map(normalizeHero))
-  } catch {
-    return sortHeroes(baseHeroes)
-  }
+  const result = await fetchHeroes()
+  const items = Array.isArray(result) ? result : result?.content ?? result?.items ?? []
+  return sortHeroes(items.map(normalizeHero))
 }
 
 export const getAllPets = async () => {
-  try {
-    const result = await fetchPets()
-    const items = Array.isArray(result) ? result : result?.content ?? result?.items ?? []
-    return sortPets(items.map(normalizePet))
-  } catch {
-    return sortPets(basePets)
-  }
+  const result = await fetchPets()
+  const items = Array.isArray(result) ? result : result?.content ?? result?.items ?? []
+  return sortPets(items.map(normalizePet))
 }
 
 export const getHeroById = async (id) => {
-  try {
-    return normalizeHero(await fetchHero(id))
-  } catch {
-    return baseHeroes.find((hero) => hero.id === id)
-  }
+  return normalizeHero(await fetchHero(id))
 }
 
 export const getPetById = async (id) => {
-  try {
-    return normalizePet(await fetchPet(id))
-  } catch {
-    return basePets.find((pet) => pet.id === id)
-  }
+  return normalizePet(await fetchPet(id))
 }
 
 export const addCustomHero = async (payload) => {
@@ -199,7 +181,7 @@ export const slugifyId = (value) =>
   String(value ?? '')
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9ê°€-íž£]+/g, '-')
+    .replace(/[^a-z0-9°¡-ÆR]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .replace(/-+/g, '-')
 
@@ -207,3 +189,4 @@ export const contentChangeEvent = CONTENT_CHANGE_EVENT
 export const heroTypeOptions = HERO_TYPE_OPTIONS
 export const heroGradeOptions = HERO_GRADE_OPTIONS
 export const petGradeOptions = PET_GRADE_OPTIONS
+

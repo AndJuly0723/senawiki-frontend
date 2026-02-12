@@ -6,6 +6,7 @@ function Heroes() {
   const [gradeFilter, setGradeFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
   const [allHeroes, setAllHeroes] = useState([])
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
     const savedScroll = sessionStorage.getItem('heroesScrollY')
@@ -25,7 +26,13 @@ function Heroes() {
 
   useEffect(() => {
     const loadHeroes = async () => {
-      setAllHeroes(await getAllHeroes())
+      try {
+        setAllHeroes(await getAllHeroes())
+        setLoadError('')
+      } catch (error) {
+        setAllHeroes([])
+        setLoadError(error?.message || 'Failed to load heroes. Please try again.')
+      }
     }
     const handleContentChange = () => {
       loadHeroes()
@@ -77,6 +84,10 @@ function Heroes() {
           </label>
         </div>
       </div>
+      {loadError ? <div className="community-error">{loadError}</div> : null}
+      {!loadError && filteredHeroes.length === 0 ? (
+        <div className="community-empty">표시할 영웅이 없습니다.</div>
+      ) : null}
       <div className="hero-grid">
         {filteredHeroes.map((hero) => (
           <Link

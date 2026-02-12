@@ -77,6 +77,13 @@ body {
   border-color: rgba(255, 255, 255, 0.25);
 }
 
+.auth-button--user {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .auth-user {
   font-size: 15px;
   color: rgba(255, 255, 255, 0.8);
@@ -84,8 +91,14 @@ body {
 }
 
 .auth-page {
-  margin-top: 24px;
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  padding: 20px;
   display: flex;
+  align-items: center;
   justify-content: center;
 }
 
@@ -95,6 +108,8 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   padding: 24px;
+  max-height: min(88vh, 900px);
+  overflow: auto;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -201,6 +216,35 @@ body {
   color: rgba(255, 255, 255, 0.65);
 }
 
+.auth-consent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-consent-item {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.auth-consent-item input {
+  width: 16px;
+  height: 16px;
+}
+
+.auth-consent-item a {
+  color: #f0d38a;
+  text-decoration: none;
+}
+
+.auth-consent-item a:hover {
+  text-decoration: underline;
+}
+
 .auth-close {
   position: absolute;
   top: 14px;
@@ -233,6 +277,15 @@ body {
 .page p {
   margin: 0;
   opacity: 0.8;
+}
+
+.page-loading {
+  min-height: 40vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 600;
 }
 
 .hero-grid {
@@ -3796,4 +3849,294 @@ body {
   display: flex;
   justify-content: center;
   gap: 10px;
+}
+
+.site-footer {
+  margin-top: 40px;
+  padding: 18px 0 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+}
+
+.site-footer-copy {
+  margin: 0;
+}
+
+.site-footer-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-footer-links a {
+  color: #f0d38a;
+  text-decoration: none;
+}
+
+.site-footer-links a:hover {
+  text-decoration: underline;
+}
+
+.policy-page {
+  margin-top: 18px;
+}
+
+.policy-page h1 {
+  margin: 0 0 14px;
+}
+
+.policy-card {
+  background: #1c1c1c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  line-height: 1.6;
+}
+
+.policy-card h2 {
+  margin: 10px 0 0;
+  font-size: 17px;
+}
+
+.policy-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.policy-card ul {
+  margin: 0;
+  padding-left: 20px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.my-page {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.my-page-header h1 {
+  margin: 0 0 6px;
+}
+
+.my-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.my-page-header p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.my-page-top-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.my-page-withdraw-open {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(216, 74, 74, 0.5);
+  background: #6b0000;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.my-page-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.my-page-card {
+  background: #1c1c1c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.my-page-card h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.my-page-card p {
+  margin: 0;
+}
+
+.my-page-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.my-page-item {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #121212;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.my-page-item a {
+  color: #f0d38a;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.my-page-item a:hover {
+  text-decoration: underline;
+}
+
+.my-page-item p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.my-page-item span {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 12px;
+}
+
+.my-page-empty {
+  color: rgba(255, 255, 255, 0.64);
+}
+
+.my-page-error {
+  color: #ffb0b0;
+}
+
+.my-page-card--danger {
+  border-color: rgba(216, 74, 74, 0.42);
+}
+
+.my-page-withdraw {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.my-page-withdraw input {
+  flex: 1;
+  min-height: 40px;
+  background: #0b0b0b;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f5f5f5;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+
+.my-page-withdraw button {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #6b0000;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.my-page-withdraw button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.my-page-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.my-page-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.my-page-modal-card {
+  position: relative;
+  width: min(460px, 92vw);
+  background: #1c1c1c;
+  border: 1px solid rgba(216, 74, 74, 0.4);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.my-page-modal-header {
+  display: flex;
+  align-items: center;
+}
+
+.my-page-modal-header h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.my-page-modal-desc {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.my-page-modal-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #6b0000;
+  color: #fff;
+  padding: 0;
+}
+
+.my-page-modal-close:hover {
+  background: #860000;
+}
+
+@media (max-width: 720px) {
+  .my-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .my-page-top-actions {
+    justify-content: flex-start;
+  }
+
+  .my-page-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .my-page-withdraw {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

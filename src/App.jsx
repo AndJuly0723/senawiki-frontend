@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import ScrollToTop from './components/ScrollToTop'
 import { logoutUser } from './api/endpoints/auth'
 import { clearAuth, getRefreshToken, getStoredUser, isAdminUser } from './utils/authStorage'
@@ -10,9 +10,11 @@ function App() {
   const trimmedSearch = searchTerm.trim()
   const [openMenu, setOpenMenu] = useState(null)
   const navigate = useNavigate()
+  const location = useLocation()
   const [currentUser, setCurrentUser] = useState(getStoredUser())
   const [allHeroes, setAllHeroes] = useState([])
   const isAdmin = useMemo(() => isAdminUser(currentUser), [currentUser])
+  const returnTo = `${location.pathname}${location.search}${location.hash}`
 
   const searchResults = useMemo(() => {
     if (!trimmedSearch) return []
@@ -46,7 +48,11 @@ function App() {
       setCurrentUser(getStoredUser())
     }
     const loadHeroes = async () => {
-      setAllHeroes(await getAllHeroes())
+      try {
+        setAllHeroes(await getAllHeroes())
+      } catch {
+        setAllHeroes([])
+      }
     }
     const handleContentChange = () => {
       loadHeroes()
@@ -119,7 +125,9 @@ function App() {
         <div className="auth-actions">
           {currentUser ? (
             <>
-              <span className="auth-user">{currentUser.nickname ?? currentUser.name}</span>
+              <Link className="auth-button auth-button--user" to="/mypage">
+                {currentUser.nickname ?? currentUser.name}
+              </Link>
               {isAdmin ? (
                 <Link className="auth-button auth-button--ghost" to="/admin">
                   ADMIN
@@ -135,10 +143,10 @@ function App() {
             </>
           ) : (
             <>
-              <Link className="auth-button auth-button--ghost" to="/login">
+              <Link className="auth-button auth-button--ghost" to="/login" state={{ from: returnTo }}>
                 로그인
               </Link>
-              <Link className="auth-button" to="/register">
+              <Link className="auth-button" to="/register" state={{ from: returnTo }}>
                 회원가입
               </Link>
             </>
@@ -245,6 +253,14 @@ function App() {
       <main className="page">
         <Outlet />
       </main>
+      <footer className="site-footer">
+        <p className="site-footer-copy">© 2026 SenaWiki. All rights reserved.</p>
+        <nav className="site-footer-links" aria-label="Footer">
+          <Link to="/terms">이용약관</Link>
+          <span aria-hidden="true">|</span>
+          <Link to="/privacy-policy">개인정보처리방침</Link>
+        </nav>
+      </footer>
     </div>
   )
 }

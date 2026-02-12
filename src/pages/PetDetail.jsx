@@ -5,12 +5,25 @@ import { getPetById } from '../utils/contentStorage'
 function PetDetail() {
   const { petId } = useParams()
   const [pet, setPet] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
     let mounted = true
     const loadPet = async () => {
-      const result = await getPetById(petId)
-      if (mounted) setPet(result ?? null)
+      setIsLoading(true)
+      try {
+        const result = await getPetById(petId)
+        if (!mounted) return
+        setPet(result ?? null)
+        setLoadError('')
+      } catch (error) {
+        if (!mounted) return
+        setPet(null)
+        setLoadError(error?.message || 'Failed to load pet. Please try again.')
+      } finally {
+        if (mounted) setIsLoading(false)
+      }
     }
     loadPet()
     return () => {
@@ -46,6 +59,24 @@ function PetDetail() {
       {line}
     </span>
   )
+
+  if (isLoading) {
+    return (
+      <section className="hero-detail">
+        <h1>펫 정보를 불러오는 중입니다.</h1>
+        <Link to="/pets" className="hero-back">펫 목록으로</Link>
+      </section>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <section className="hero-detail">
+        <h1>{loadError}</h1>
+        <Link to="/pets" className="hero-back">펫 목록으로</Link>
+      </section>
+    )
+  }
 
   if (!pet) {
     return (

@@ -5,12 +5,25 @@ import { getHeroById } from '../utils/contentStorage'
 function HeroDetail() {
   const { heroId } = useParams()
   const [hero, setHero] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
     let mounted = true
     const loadHero = async () => {
-      const result = await getHeroById(heroId)
-      if (mounted) setHero(result ?? null)
+      setIsLoading(true)
+      try {
+        const result = await getHeroById(heroId)
+        if (!mounted) return
+        setHero(result ?? null)
+        setLoadError('')
+      } catch (error) {
+        if (!mounted) return
+        setHero(null)
+        setLoadError(error?.message || 'Failed to load hero. Please try again.')
+      } finally {
+        if (mounted) setIsLoading(false)
+      }
     }
     loadHero()
     return () => {
@@ -22,6 +35,24 @@ function HeroDetail() {
   const skill1Image = hero?.skill1Image || `/images/heroskill/${hero?.id}/skill1.png`
   const skill2Image = hero?.skill2Image || `/images/heroskill/${hero?.id}/skill2.png`
   const passiveSkillImage = hero?.passiveSkillImage || `/images/heroskill/${hero?.id}/passive.png`
+
+  if (isLoading) {
+    return (
+      <section className="hero-detail">
+        <h1>영웅 정보를 불러오는 중입니다.</h1>
+        <Link to="/heroes" className="hero-back">영웅 목록으로</Link>
+      </section>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <section className="hero-detail">
+        <h1>{loadError}</h1>
+        <Link to="/heroes" className="hero-back">영웅 목록으로</Link>
+      </section>
+    )
+  }
 
   if (!hero) {
     return (

@@ -1,17 +1,28 @@
 import axios from 'axios'
 import { getAccessToken, getRefreshToken, setAuthTokens } from '../utils/authStorage'
 
+const apiBaseURL = String(import.meta.env.VITE_API_BASE_URL ?? '').trim()
+const timeoutFromEnv = Number(import.meta.env.VITE_API_TIMEOUT_MS ?? 10000)
+const requestTimeout = Number.isFinite(timeoutFromEnv) && timeoutFromEnv > 0 ? timeoutFromEnv : 10000
+
+if (import.meta.env.PROD && /(localhost|127\.0\.0\.1)/i.test(apiBaseURL)) {
+  // Surface unsafe production API target early in browser logs.
+  console.error('[API] VITE_API_BASE_URL points to localhost in production build.')
+}
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
-  timeout: 10000,
+  baseURL: apiBaseURL,
+  timeout: requestTimeout,
+  withCredentials: false,
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
 const refreshClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
-  timeout: 10000,
+  baseURL: apiBaseURL,
+  timeout: requestTimeout,
+  withCredentials: false,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -35,6 +46,11 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
     if (!originalRequest || originalRequest._retry) {
+      return Promise.reject(error)
+    }
+
+    const requestUrl = String(originalRequest.url ?? '')
+    if (requestUrl.startsWith('/api/auth/')) {
       return Promise.reject(error)
     }
 

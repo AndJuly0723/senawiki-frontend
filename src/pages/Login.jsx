@@ -1,17 +1,22 @@
 ﻿import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { loginUser } from '../api/endpoints/auth'
 import { setAuthTokens, setStoredUser } from '../utils/authStorage'
 
 function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const returnTo =
+    typeof location.state?.from === 'string' && location.state.from
+      ? location.state.from
+      : '/'
 
   const handleClose = () => {
-    navigate('/', { replace: true })
+    navigate(returnTo, { replace: true })
   }
 
   const handleSubmit = async (event) => {
@@ -27,21 +32,46 @@ function Login() {
         setStoredUser(data.user)
       }
       setStatus('success')
-      navigate('/', { replace: true })
+      navigate(returnTo, { replace: true })
     } catch (error) {
-      const message =
+      const statusCode = error?.response?.status
+      const backendMessage =
         error?.response?.data?.detail ||
         error?.response?.data?.message ||
         error?.message ||
-        '로그인에 실패했습니다.'
+        ''
+      const normalizedMessage = String(backendMessage).toLowerCase()
+
+      let message = '로그인에 실패했습니다.'
+      if (
+        statusCode === 404 ||
+        normalizedMessage.includes('user not found') ||
+        normalizedMessage.includes('no such user') ||
+        normalizedMessage.includes('존재하지') ||
+        normalizedMessage.includes('회원정보가 없')
+      ) {
+        message = '등록된 회원정보가 없습니다.'
+      } else if (
+        statusCode === 401 ||
+        normalizedMessage.includes('bad credentials') ||
+        normalizedMessage.includes('credential') ||
+        normalizedMessage.includes('password') ||
+        normalizedMessage.includes('비밀번호') ||
+        normalizedMessage.includes('자격증명')
+      ) {
+        message = '비밀번호가 틀렸습니다.'
+      } else if (backendMessage) {
+        message = backendMessage
+      }
+
       setErrorMessage(message)
       setStatus('error')
     }
   }
 
   return (
-    <section className="auth-page" role="dialog" aria-modal="true" onClick={handleClose}>
-      <div className="auth-card" onClick={(event) => event.stopPropagation()}>
+    <section className="auth-page" role="dialog" aria-modal="true">
+      <div className="auth-card">
         <button className="auth-close" type="button" onClick={handleClose} aria-label="닫기">
           ×
         </button>
@@ -78,7 +108,7 @@ function Login() {
           </button>
         </form>
         <div className="auth-footer">
-          아직 계정이 없나요? <Link to="/register">회원가입</Link>
+          아직 계정이 없나요? <Link to="/register" state={{ from: returnTo }}>회원가입</Link>
         </div>
       </div>
     </section>
