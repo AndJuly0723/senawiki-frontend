@@ -66,8 +66,10 @@ const toAssetUrl = (source) => {
 }
 
 const normalizeHero = (hero) => {
-  const typeMeta = typeMap[hero?.type] ?? null
-  const gradeMeta = heroGradeMap[hero?.grade] ?? null
+  const normalizedType = String(hero?.type ?? '').toLowerCase()
+  const normalizedGrade = String(hero?.grade ?? '').toLowerCase()
+  const typeMeta = typeMap[normalizedType] ?? null
+  const gradeMeta = heroGradeMap[normalizedGrade] ?? null
   const imageKey = hero?.imageKey ?? hero?.image_key ?? ''
   const basicSkillImageKey = hero?.basicSkillImageKey ?? hero?.basic_skill_image_key ?? ''
   const skill1ImageKey = hero?.skill1ImageKey ?? hero?.skill1_image_key ?? ''
@@ -76,6 +78,8 @@ const normalizeHero = (hero) => {
 
   return {
     ...hero,
+    type: normalizedType || hero?.type || 'unknown',
+    grade: normalizedGrade || hero?.grade || 'unknown',
     imageKey,
     basicSkillImageKey,
     skill1ImageKey,
@@ -98,12 +102,15 @@ const normalizeHero = (hero) => {
 }
 
 const normalizePet = (pet) => {
-  const gradeMeta = petGradeMap[pet?.grade] ?? null
+  const normalizedGrade = String(pet?.grade ?? '').toLowerCase()
+  const gradeMeta = petGradeMap[normalizedGrade] ?? null
   const imageKey = pet?.imageKey ?? pet?.image_key ?? ''
   const skillImageKey = pet?.skillImageKey ?? pet?.skill_image_key ?? ''
-  const imageSource = imageKey || pet?.image || (pet?.id ? `/images/pets/${pet.id}.png` : '')
+  const localImage = pet?.id ? `/images/pets/${pet.id}.png` : ''
+  const imageSource = pet?.image || localImage || imageKey
   return {
     ...pet,
+    grade: normalizedGrade || pet?.grade || 'unknown',
     imageKey,
     skillImageKey,
     image: toAssetUrl(imageSource),
