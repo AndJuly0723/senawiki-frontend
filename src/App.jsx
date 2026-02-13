@@ -30,6 +30,10 @@ function App() {
     }
   }
 
+  const handleMenuToggle = (menu) => {
+    setOpenMenu((prev) => (prev === menu ? null : menu))
+  }
+
   const handleLogout = async () => {
     const refreshToken = getRefreshToken()
     try {
@@ -66,6 +70,10 @@ function App() {
       window.removeEventListener(contentChangeEvent, handleContentChange)
     }
   }, [])
+
+  useEffect(() => {
+    setOpenMenu(null)
+  }, [location.pathname])
 
   return (
     <div className="app">
@@ -169,7 +177,12 @@ function App() {
           onMouseEnter={() => setOpenMenu('community')}
           onMouseLeave={() => setOpenMenu(null)}
         >
-          <button className="nav-link nav-link--dropdown" type="button">
+          <button
+            className="nav-link nav-link--dropdown"
+            type="button"
+            aria-expanded={openMenu === 'community'}
+            onClick={() => handleMenuToggle('community')}
+          >
             커뮤니티
             <span className="nav-caret" aria-hidden="true">▼</span>
           </button>
@@ -183,7 +196,12 @@ function App() {
           onMouseEnter={() => setOpenMenu('guides')}
           onMouseLeave={() => setOpenMenu(null)}
         >
-          <button className="nav-link nav-link--dropdown" type="button">
+          <button
+            className="nav-link nav-link--dropdown"
+            type="button"
+            aria-expanded={openMenu === 'guides'}
+            onClick={() => handleMenuToggle('guides')}
+          >
             공략
             <span className="nav-caret" aria-hidden="true">▼</span>
           </button>
@@ -200,7 +218,12 @@ function App() {
           onMouseEnter={() => setOpenMenu('guild')}
           onMouseLeave={() => setOpenMenu(null)}
         >
-          <button className="nav-link nav-link--dropdown" type="button">
+          <button
+            className="nav-link nav-link--dropdown"
+            type="button"
+            aria-expanded={openMenu === 'guild'}
+            onClick={() => handleMenuToggle('guild')}
+          >
             길드
             <span className="nav-caret" aria-hidden="true">▼</span>
           </button>

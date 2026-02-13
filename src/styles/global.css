@@ -3110,10 +3110,7 @@ body {
 
 @media (max-width: 720px) {
   .site-header {
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 0 12px;
+    padding: 6px 0 10px;
   }
 
   .app {
@@ -3121,20 +3118,23 @@ body {
   }
 
   .brand-logo {
-    width: min(280px, 90vw);
+    width: min(240px, 64vw);
   }
 
   .auth-actions {
-    position: static;
-    right: auto;
-    bottom: auto;
-    justify-content: center;
-    flex-wrap: wrap;
+    position: absolute;
+    right: 10px;
+    top: auto;
+    bottom: 8px;
+    transform: none;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 6px;
   }
 
   .auth-button {
-    padding: 6px 10px;
-    font-size: 11px;
+    padding: 6px 8px;
+    font-size: 10px;
   }
 
   .auth-user {
@@ -3146,10 +3146,17 @@ body {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0;
     padding: 0;
+    position: relative;
+    overflow: visible;
   }
 
   .nav-dropdown {
     width: 100%;
+    justify-content: center;
+  }
+
+  .nav-dropdown.is-open {
+    z-index: 50;
   }
 
   .nav-link {
@@ -3160,9 +3167,15 @@ body {
   }
 
   .nav-dropdown-menu {
-    position: static;
-    width: 100%;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    position: absolute;
+    top: calc(100% - 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    min-width: min(220px, 94vw);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
+    z-index: 60;
   }
 
   .nav-link.is-active::after {
