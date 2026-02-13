@@ -199,7 +199,6 @@ function GuidesGrowthStage() {
       stageCandidates.forEach((stageCandidate) => {
         paramCandidates.push({ category: growthType, type: growthType, stageId: stageCandidate })
         paramCandidates.push({ category: growthType, type: growthType, stage: stageCandidate })
-        paramCandidates.push({ guideType: growthType, stageId: stageCandidate })
         paramCandidates.push({ type: growthType, stageId: stageCandidate })
         // Fallback for legacy backend values.
         paramCandidates.push({ category: 'GROWTH', type: 'GROWTH', stageId: stageCandidate })

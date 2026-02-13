@@ -1,4 +1,4 @@
-import { StrictMode, Suspense, lazy } from 'react'
+import { StrictMode, Suspense, lazy, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import './styles/global.css'
@@ -15,34 +15,88 @@ import InfoDetail from './pages/InfoDetail.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 
-const CommunityWrite = lazy(() => import('./pages/CommunityWrite.jsx'))
-const CommunityEdit = lazy(() => import('./pages/CommunityEdit.jsx'))
-const InfoWrite = lazy(() => import('./pages/InfoWrite.jsx'))
-const InfoEdit = lazy(() => import('./pages/InfoEdit.jsx'))
-const GuidesAdventure = lazy(() => import('./pages/GuidesAdventure.jsx'))
-const GuidesRaid = lazy(() => import('./pages/GuidesRaid.jsx'))
-const GuidesRaidStage = lazy(() => import('./pages/GuidesRaidStage.jsx'))
-const GuidesArena = lazy(() => import('./pages/GuidesArena.jsx'))
-const GuidesTotalWar = lazy(() => import('./pages/GuidesTotalWar.jsx'))
-const GuidesGrowthDungeon = lazy(() => import('./pages/GuidesGrowthDungeon.jsx'))
-const GuidesGrowthStage = lazy(() => import('./pages/GuidesGrowthStage.jsx'))
-const GuidesDeckWrite = lazy(() => import('./pages/GuidesDeckWrite.jsx'))
-const GuildSiege = lazy(() => import('./pages/GuildSiege.jsx'))
-const GuildSiegeDay = lazy(() => import('./pages/GuildSiegeDay.jsx'))
-const GuildWar = lazy(() => import('./pages/GuildWar.jsx'))
-const GuildExpedition = lazy(() => import('./pages/GuildExpedition.jsx'))
-const GuildExpeditionStage = lazy(() => import('./pages/GuildExpeditionStage.jsx'))
-const Admin = lazy(() => import('./pages/Admin.jsx'))
-const AdminHeroCreate = lazy(() => import('./pages/AdminHeroCreate.jsx'))
-const AdminPetCreate = lazy(() => import('./pages/AdminPetCreate.jsx'))
-const AdminStats = lazy(() => import('./pages/AdminStats.jsx'))
-const Terms = lazy(() => import('./pages/Terms.jsx'))
-const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy.jsx'))
-const MyPage = lazy(() => import('./pages/MyPage.jsx'))
+const loadCommunityWrite = () => import('./pages/CommunityWrite.jsx')
+const loadCommunityEdit = () => import('./pages/CommunityEdit.jsx')
+const loadInfoWrite = () => import('./pages/InfoWrite.jsx')
+const loadInfoEdit = () => import('./pages/InfoEdit.jsx')
+const loadGuidesAdventure = () => import('./pages/GuidesAdventure.jsx')
+const loadGuidesRaid = () => import('./pages/GuidesRaid.jsx')
+const loadGuidesRaidStage = () => import('./pages/GuidesRaidStage.jsx')
+const loadGuidesArena = () => import('./pages/GuidesArena.jsx')
+const loadGuidesTotalWar = () => import('./pages/GuidesTotalWar.jsx')
+const loadGuidesGrowthDungeon = () => import('./pages/GuidesGrowthDungeon.jsx')
+const loadGuidesGrowthStage = () => import('./pages/GuidesGrowthStage.jsx')
+const loadGuidesDeckWrite = () => import('./pages/GuidesDeckWrite.jsx')
+const loadGuildSiege = () => import('./pages/GuildSiege.jsx')
+const loadGuildSiegeDay = () => import('./pages/GuildSiegeDay.jsx')
+const loadGuildWar = () => import('./pages/GuildWar.jsx')
+const loadGuildExpedition = () => import('./pages/GuildExpedition.jsx')
+const loadGuildExpeditionStage = () => import('./pages/GuildExpeditionStage.jsx')
+const loadAdmin = () => import('./pages/Admin.jsx')
+const loadAdminHeroCreate = () => import('./pages/AdminHeroCreate.jsx')
+const loadAdminPetCreate = () => import('./pages/AdminPetCreate.jsx')
+const loadAdminStats = () => import('./pages/AdminStats.jsx')
+const loadTerms = () => import('./pages/Terms.jsx')
+const loadPrivacyPolicy = () => import('./pages/PrivacyPolicy.jsx')
+const loadMyPage = () => import('./pages/MyPage.jsx')
+
+const CommunityWrite = lazy(loadCommunityWrite)
+const CommunityEdit = lazy(loadCommunityEdit)
+const InfoWrite = lazy(loadInfoWrite)
+const InfoEdit = lazy(loadInfoEdit)
+const GuidesAdventure = lazy(loadGuidesAdventure)
+const GuidesRaid = lazy(loadGuidesRaid)
+const GuidesRaidStage = lazy(loadGuidesRaidStage)
+const GuidesArena = lazy(loadGuidesArena)
+const GuidesTotalWar = lazy(loadGuidesTotalWar)
+const GuidesGrowthDungeon = lazy(loadGuidesGrowthDungeon)
+const GuidesGrowthStage = lazy(loadGuidesGrowthStage)
+const GuidesDeckWrite = lazy(loadGuidesDeckWrite)
+const GuildSiege = lazy(loadGuildSiege)
+const GuildSiegeDay = lazy(loadGuildSiegeDay)
+const GuildWar = lazy(loadGuildWar)
+const GuildExpedition = lazy(loadGuildExpedition)
+const GuildExpeditionStage = lazy(loadGuildExpeditionStage)
+const Admin = lazy(loadAdmin)
+const AdminHeroCreate = lazy(loadAdminHeroCreate)
+const AdminPetCreate = lazy(loadAdminPetCreate)
+const AdminStats = lazy(loadAdminStats)
+const Terms = lazy(loadTerms)
+const PrivacyPolicy = lazy(loadPrivacyPolicy)
+const MyPage = lazy(loadMyPage)
+
+const preloadGuideAndGuildRoutes = () =>
+  Promise.allSettled([
+    loadGuidesAdventure(),
+    loadGuidesRaid(),
+    loadGuidesRaidStage(),
+    loadGuidesArena(),
+    loadGuidesTotalWar(),
+    loadGuidesGrowthDungeon(),
+    loadGuidesGrowthStage(),
+    loadGuidesDeckWrite(),
+    loadGuildSiege(),
+    loadGuildSiegeDay(),
+    loadGuildWar(),
+    loadGuildExpedition(),
+    loadGuildExpeditionStage(),
+  ])
 
 export function AppRoutes() {
   const location = useLocation()
   const backgroundLocation = location.state?.backgroundLocation
+
+  useEffect(() => {
+    const runPreload = () => {
+      preloadGuideAndGuildRoutes()
+    }
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(runPreload, { timeout: 1200 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const timer = window.setTimeout(runPreload, 300)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   return (
     <>

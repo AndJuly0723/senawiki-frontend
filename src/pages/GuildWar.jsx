@@ -172,7 +172,6 @@ function GuildWar() {
       { category: 'GUILD_WAR', type: 'GUILD_WAR' },
       { category: 'GUILDWAR', type: 'GUILDWAR' },
       { type: 'GUILD_WAR' },
-      { guideType: 'GUILD_WAR' },
     ]
 
     let active = true

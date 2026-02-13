@@ -200,12 +200,10 @@ function GuildSiegeDay() {
     if (routeDay) {
       paramCandidates.push({ category: 'SIEGE', type: 'SIEGE', siegeDay: routeDay })
       paramCandidates.push({ type: 'SIEGE', siegeDay: routeDay })
-      paramCandidates.push({ guideType: 'SIEGE', siegeDay: routeDay })
     }
     dayCandidates.forEach((candidate) => {
       paramCandidates.push({ category: 'SIEGE', type: 'SIEGE', day: candidate })
       paramCandidates.push({ category: 'SIEGE', type: 'SIEGE', siegeDay: candidate })
-      paramCandidates.push({ guideType: 'SIEGE', day: candidate })
       paramCandidates.push({ type: 'SIEGE', day: candidate })
     })
 

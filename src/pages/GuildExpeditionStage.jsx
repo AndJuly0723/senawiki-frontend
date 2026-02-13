@@ -186,7 +186,6 @@ function GuildExpeditionStage() {
     idCandidates.forEach((candidate) => {
       paramCandidates.push({ category: 'EXPEDITION', type: 'EXPEDITION', expeditionId: candidate })
       paramCandidates.push({ category: 'EXPEDITION', type: 'EXPEDITION', bossId: candidate })
-      paramCandidates.push({ guideType: 'EXPEDITION', expeditionId: candidate })
       paramCandidates.push({ type: 'EXPEDITION', expeditionId: candidate })
     })
 
