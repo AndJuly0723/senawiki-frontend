@@ -13,10 +13,10 @@ const DEFAULT_CACHE_TTL = 60;
 const CACHE_TTL_BY_PREFIX = [
   { prefix: "/api/heroes", ttl: 1800, swr: 3600 },
   { prefix: "/api/pets", ttl: 1800, swr: 3600 },
-  { prefix: "/api/guide-decks", ttl: 120, swr: 300 },
-  { prefix: "/api/community", ttl: 90, swr: 240 },
-  { prefix: "/api/tip", ttl: 90, swr: 240 },
-  { prefix: "/api/boards", ttl: 90, swr: 240 },
+  { prefix: "/api/guide-decks", ttl: 300, swr: 900 },
+  { prefix: "/api/community", ttl: 180, swr: 600 },
+  { prefix: "/api/tip", ttl: 180, swr: 600 },
+  { prefix: "/api/boards", ttl: 180, swr: 600 },
 ];
 
 function isPublicCacheable(method, pathname) {
@@ -35,6 +35,18 @@ function resolveCachePolicy(pathname) {
   return { ttl, swr };
 }
 
+function buildCacheKey(url) {
+  const params = Array.from(url.searchParams.entries());
+  if (!params.length) return url.pathname;
+  params.sort((a, b) => {
+    if (a[0] === b[0]) return a[1].localeCompare(b[1]);
+    return a[0].localeCompare(b[0]);
+  });
+  const canonical = new URLSearchParams();
+  for (const [k, v] of params) canonical.append(k, v);
+  return `${url.pathname}?${canonical.toString()}`;
+}
+
 export async function onRequest(context) {
   const url = new URL(context.request.url);
   const method = context.request.method.toUpperCase();
@@ -42,7 +54,7 @@ export async function onRequest(context) {
 
   const cacheable = isPublicCacheable(method, pathname);
   const { ttl, swr } = resolveCachePolicy(pathname);
-  const cacheKey = pathname + url.search;
+  const cacheKey = buildCacheKey(url);
   const cache = caches.default;
 
   if (cacheable) {
