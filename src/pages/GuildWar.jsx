@@ -168,12 +168,6 @@ function GuildWar() {
 
   useEffect(() => {
     if (!contentReady) return
-    const paramCandidates = [
-      { category: 'GUILD_WAR', type: 'GUILD_WAR' },
-      { category: 'GUILDWAR', type: 'GUILDWAR' },
-      { type: 'GUILD_WAR' },
-    ]
-
     let active = true
     setPage(1)
     setIsLoading(true)
@@ -181,17 +175,24 @@ function GuildWar() {
 
     const loadDecks = async () => {
       try {
-        const data = await Promise.any(paramCandidates.map((params) => fetchGuideDecks(params)))
+        const data = await fetchGuideDecks({ category: 'GUILD_WAR', type: 'GUILD_WAR' })
         if (!active) return
         setDecks(normalizeGuideDeckList(data, heroById, heroByName))
       } catch (error) {
-        if (!active) return
-        const firstError = Array.isArray(error?.errors) ? error.errors[0] : error
-        const message =
-          firstError?.response?.data?.message ||
-          firstError?.message ||
-          '덱 목록을 불러오지 못했습니다.'
-        setLoadError(message)
+        try {
+          const fallback = await fetchGuideDecks({ category: 'GUILDWAR', type: 'GUILDWAR' })
+          if (!active) return
+          setDecks(normalizeGuideDeckList(fallback, heroById, heroByName))
+        } catch (fallbackError) {
+          if (!active) return
+          const message =
+            fallbackError?.response?.data?.message ||
+            fallbackError?.message ||
+            error?.response?.data?.message ||
+            error?.message ||
+            '덱 목록을 불러오지 못했습니다.'
+          setLoadError(message)
+        }
       }
     }
 

@@ -89,9 +89,8 @@ export async function onRequest(context) {
           statusText: upstreamRes.statusText,
           headers: rh,
         });
-        // Await put so the next immediate request can become a HIT.
-        await cache.put(cacheReq, cacheRes);
-        storeStatus = "STORED";
+        context.waitUntil(cache.put(cacheReq, cacheRes));
+        storeStatus = "QUEUED";
       } catch {
         storeStatus = "ERROR";
       }

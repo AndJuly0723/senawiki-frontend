@@ -179,15 +179,7 @@ function GuildExpeditionStage() {
 
   useEffect(() => {
     if (!contentReady) return
-    const idCandidates = Array.from(
-      new Set([expeditionId, expeditionId ? String(expeditionId).toUpperCase() : expeditionId].filter(Boolean)),
-    )
-    const paramCandidates = []
-    idCandidates.forEach((candidate) => {
-      paramCandidates.push({ category: 'EXPEDITION', type: 'EXPEDITION', expeditionId: candidate })
-      paramCandidates.push({ category: 'EXPEDITION', type: 'EXPEDITION', bossId: candidate })
-      paramCandidates.push({ type: 'EXPEDITION', expeditionId: candidate })
-    })
+    const resolvedId = expeditionId ? String(expeditionId) : ''
 
     let active = true
     setPage(1)
@@ -202,17 +194,32 @@ function GuildExpeditionStage() {
 
     const loadDecks = async () => {
       try {
-        const data = await Promise.any(paramCandidates.map((params) => fetchGuideDecks(params)))
+        const data = await fetchGuideDecks({
+          category: 'EXPEDITION',
+          type: 'EXPEDITION',
+          expeditionId: resolvedId,
+        })
         if (!active) return
         setDecks(normalizeGuideDeckList(data, heroById, heroByName))
       } catch (error) {
-        if (!active) return
-        const firstError = Array.isArray(error?.errors) ? error.errors[0] : error
-        const message =
-          firstError?.response?.data?.message ||
-          firstError?.message ||
-          '덱 목록을 불러오지 못했습니다.'
-        setLoadError(message)
+        try {
+          const fallback = await fetchGuideDecks({
+            category: 'EXPEDITION',
+            type: 'EXPEDITION',
+            bossId: resolvedId,
+          })
+          if (!active) return
+          setDecks(normalizeGuideDeckList(fallback, heroById, heroByName))
+        } catch (fallbackError) {
+          if (!active) return
+          const message =
+            fallbackError?.response?.data?.message ||
+            fallbackError?.message ||
+            error?.response?.data?.message ||
+            error?.message ||
+            '덱 목록을 불러오지 못했습니다.'
+          setLoadError(message)
+        }
       }
     }
 

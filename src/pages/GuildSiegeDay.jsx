@@ -190,22 +190,8 @@ function GuildSiegeDay() {
 
   useEffect(() => {
     if (!contentReady) return
-    const paramCandidates = []
     const routeDay = siegeDayEnumBySlug[day]
-    const dayCandidates = Array.from(
-      new Set([day, day ? String(day).toUpperCase() : day, routeDay].filter(Boolean)),
-    )
-
-    // Prefer enum-based key first; some backends ignore `day` slug but honor `siegeDay`.
-    if (routeDay) {
-      paramCandidates.push({ category: 'SIEGE', type: 'SIEGE', siegeDay: routeDay })
-      paramCandidates.push({ type: 'SIEGE', siegeDay: routeDay })
-    }
-    dayCandidates.forEach((candidate) => {
-      paramCandidates.push({ category: 'SIEGE', type: 'SIEGE', day: candidate })
-      paramCandidates.push({ category: 'SIEGE', type: 'SIEGE', siegeDay: candidate })
-      paramCandidates.push({ type: 'SIEGE', day: candidate })
-    })
+    const resolvedDay = routeDay ?? (day ? String(day).toUpperCase() : '')
 
     let active = true
     setPage(1)
@@ -214,7 +200,11 @@ function GuildSiegeDay() {
 
     const loadDecks = async () => {
       try {
-        const data = await Promise.any(paramCandidates.map((params) => fetchGuideDecks(params)))
+        const data = await fetchGuideDecks({
+          category: 'SIEGE',
+          type: 'SIEGE',
+          siegeDay: resolvedDay,
+        })
         if (!active) return
         const normalized = normalizeGuideDeckList(data, heroById, heroByName)
         const hasSiegeDayTaggedDeck = normalized.some((deck) => Boolean(deck?.siegeDay))
@@ -226,13 +216,32 @@ function GuildSiegeDay() {
           : normalized
         setDecks(filtered)
       } catch (error) {
-        if (!active) return
-        const firstError = Array.isArray(error?.errors) ? error.errors[0] : error
-        const message =
-          firstError?.response?.data?.message ||
-          firstError?.message ||
-          '덱 목록을 불러오지 못했습니다.'
-        setLoadError(message)
+        try {
+          const fallback = await fetchGuideDecks({
+            category: 'SIEGE',
+            type: 'SIEGE',
+            day: day ?? resolvedDay,
+          })
+          if (!active) return
+          const normalized = normalizeGuideDeckList(fallback, heroById, heroByName)
+          const hasSiegeDayTaggedDeck = normalized.some((deck) => Boolean(deck?.siegeDay))
+          const filtered = routeDay
+            ? normalized.filter((deck) => {
+                if (!hasSiegeDayTaggedDeck) return true
+                return deck?.siegeDay === routeDay
+              })
+            : normalized
+          setDecks(filtered)
+        } catch (fallbackError) {
+          if (!active) return
+          const message =
+            fallbackError?.response?.data?.message ||
+            fallbackError?.message ||
+            error?.response?.data?.message ||
+            error?.message ||
+            '덱 목록을 불러오지 못했습니다.'
+          setLoadError(message)
+        }
       }
     }
 
