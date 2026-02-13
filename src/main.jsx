@@ -15,6 +15,7 @@ import InfoDetail from './pages/InfoDetail.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import GuidesRaid from './pages/GuidesRaid.jsx'
+import GuidesGrowthDungeon from './pages/GuidesGrowthDungeon.jsx'
 import GuildSiege from './pages/GuildSiege.jsx'
 import GuildExpedition from './pages/GuildExpedition.jsx'
 
@@ -26,7 +27,6 @@ const loadGuidesAdventure = () => import('./pages/GuidesAdventure.jsx')
 const loadGuidesRaidStage = () => import('./pages/GuidesRaidStage.jsx')
 const loadGuidesArena = () => import('./pages/GuidesArena.jsx')
 const loadGuidesTotalWar = () => import('./pages/GuidesTotalWar.jsx')
-const loadGuidesGrowthDungeon = () => import('./pages/GuidesGrowthDungeon.jsx')
 const loadGuidesGrowthStage = () => import('./pages/GuidesGrowthStage.jsx')
 const loadGuidesDeckWrite = () => import('./pages/GuidesDeckWrite.jsx')
 const loadGuildSiegeDay = () => import('./pages/GuildSiegeDay.jsx')
@@ -48,7 +48,6 @@ const GuidesAdventure = lazy(loadGuidesAdventure)
 const GuidesRaidStage = lazy(loadGuidesRaidStage)
 const GuidesArena = lazy(loadGuidesArena)
 const GuidesTotalWar = lazy(loadGuidesTotalWar)
-const GuidesGrowthDungeon = lazy(loadGuidesGrowthDungeon)
 const GuidesGrowthStage = lazy(loadGuidesGrowthStage)
 const GuidesDeckWrite = lazy(loadGuidesDeckWrite)
 const GuildSiegeDay = lazy(loadGuildSiegeDay)
