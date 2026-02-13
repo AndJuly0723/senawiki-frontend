@@ -201,6 +201,12 @@ function CommunityDetail() {
       if (!currentUser) {
         return normalizeString(comment.authorType) === 'guest'
       }
+      // Some API responses omit stable author identifiers for member comments.
+      // In that case, keep actions visible for logged-in users and rely on server-side permission checks.
+      const normalizedAuthorType = normalizeString(comment.authorType)
+      if (normalizedAuthorType && normalizedAuthorType !== 'guest') {
+        return true
+      }
       const commentTokens = [
         comment?.raw?.authorId,
         comment?.raw?.userId,
@@ -216,7 +222,10 @@ function CommunityDetail() {
       ]
         .map(normalizeString)
         .filter(Boolean)
-      return commentTokens.length > 0 && userTokens.some((token) => commentTokens.includes(token))
+      if (commentTokens.length === 0) {
+        return true
+      }
+      return userTokens.some((token) => commentTokens.includes(token))
     },
     [currentUser, isAdmin, userTokens],
   )
