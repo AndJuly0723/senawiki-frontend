@@ -3153,6 +3153,52 @@ body {
     display: none;
   }
 
+  .auth-page {
+    padding: 12px;
+  }
+
+  .auth-card {
+    width: min(380px, 94vw);
+    padding: 16px;
+    gap: 12px;
+    max-height: 90vh;
+  }
+
+  .auth-card h1 {
+    font-size: 20px;
+  }
+
+  .auth-card form {
+    gap: 10px;
+  }
+
+  .auth-inline {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .auth-inline input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .auth-inline-button {
+    width: auto;
+    max-width: 100%;
+    padding: 10px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .auth-close {
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+  }
+
   .site-nav {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
