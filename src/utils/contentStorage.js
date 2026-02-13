@@ -10,6 +10,11 @@ import {
 
 const CONTENT_CHANGE_EVENT = 'sena-content-change'
 const CDN_BASE_URL = String(import.meta.env.VITE_CDN_BASE_URL ?? '').replace(/\/+$/, '')
+const MEMORY_CACHE_TTL_MS = 5 * 60 * 1000
+const listCache = {
+  heroes: { expiresAt: 0, value: null, pending: null },
+  pets: { expiresAt: 0, value: null, pending: null },
+}
 
 const HERO_TYPE_OPTIONS = [
   { key: 'attack', label: '공격형', icon: '/images/types/attack.png' },
@@ -143,16 +148,79 @@ const sortPets = (items) => {
 const getUploadKey = (uploadResult) =>
   uploadResult?.imageKey ?? uploadResult?.key ?? ''
 
-export const getAllHeroes = async () => {
+const now = () => Date.now()
+
+const clearListCache = (key) => {
+  if (!listCache[key]) return
+  listCache[key].expiresAt = 0
+  listCache[key].value = null
+  listCache[key].pending = null
+}
+
+const readListCache = (key) => {
+  const entry = listCache[key]
+  if (!entry) return null
+  if (entry.value && entry.expiresAt > now()) return entry.value
+  return null
+}
+
+const writeListCache = (key, value) => {
+  const entry = listCache[key]
+  if (!entry) return value
+  entry.value = value
+  entry.expiresAt = now() + MEMORY_CACHE_TTL_MS
+  return value
+}
+
+const readPending = (key) => listCache[key]?.pending ?? null
+
+const writePending = (key, promise) => {
+  if (!listCache[key]) return promise
+  listCache[key].pending = promise
+  return promise
+}
+
+const clearPending = (key) => {
+  if (!listCache[key]) return
+  listCache[key].pending = null
+}
+
+const loadHeroesFresh = async () => {
   const result = await fetchHeroes()
   const items = Array.isArray(result) ? result : result?.content ?? result?.items ?? []
   return sortHeroes(items.map(normalizeHero))
 }
 
-export const getAllPets = async () => {
+const loadPetsFresh = async () => {
   const result = await fetchPets()
   const items = Array.isArray(result) ? result : result?.content ?? result?.items ?? []
   return sortPets(items.map(normalizePet))
+}
+
+export const getAllHeroes = async () => {
+  const cached = readListCache('heroes')
+  if (cached) return cached
+
+  const pending = readPending('heroes')
+  if (pending) return pending
+
+  const request = loadHeroesFresh()
+    .then((items) => writeListCache('heroes', items))
+    .finally(() => clearPending('heroes'))
+  return writePending('heroes', request)
+}
+
+export const getAllPets = async () => {
+  const cached = readListCache('pets')
+  if (cached) return cached
+
+  const pending = readPending('pets')
+  if (pending) return pending
+
+  const request = loadPetsFresh()
+    .then((items) => writeListCache('pets', items))
+    .finally(() => clearPending('pets'))
+  return writePending('pets', request)
 }
 
 export const getHeroById = async (id) => {
@@ -165,6 +233,7 @@ export const getPetById = async (id) => {
 
 export const addCustomHero = async (payload) => {
   const result = await createHero(payload)
+  clearListCache('heroes')
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event(CONTENT_CHANGE_EVENT))
   }
@@ -173,6 +242,7 @@ export const addCustomHero = async (payload) => {
 
 export const addCustomPet = async (payload) => {
   const result = await createPet(payload)
+  clearListCache('pets')
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event(CONTENT_CHANGE_EVENT))
   }
@@ -197,3 +267,10 @@ export const contentChangeEvent = CONTENT_CHANGE_EVENT
 export const heroTypeOptions = HERO_TYPE_OPTIONS
 export const heroGradeOptions = HERO_GRADE_OPTIONS
 export const petGradeOptions = PET_GRADE_OPTIONS
+
+if (typeof window !== 'undefined') {
+  window.addEventListener(CONTENT_CHANGE_EVENT, () => {
+    clearListCache('heroes')
+    clearListCache('pets')
+  })
+}

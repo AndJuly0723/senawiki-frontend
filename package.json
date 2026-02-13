@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "prewarm:cache": "node scripts/prewarm-cache.mjs",
     "plan:image-migration": "node scripts/generate-image-migration-plan.mjs",
     "plan:hero-skill-migration": "node scripts/generate-hero-skill-migration-plan.mjs",
     "plan:pet-skill-migration": "node scripts/generate-pet-skill-migration-plan.mjs"

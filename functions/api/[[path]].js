@@ -9,11 +9,30 @@ const PUBLIC_CACHE_PREFIXES = [
   "/api/boards",
 ];
 
+const DEFAULT_CACHE_TTL = 60;
+const CACHE_TTL_BY_PREFIX = [
+  { prefix: "/api/heroes", ttl: 1800, swr: 3600 },
+  { prefix: "/api/pets", ttl: 1800, swr: 3600 },
+  { prefix: "/api/guide-decks", ttl: 120, swr: 300 },
+  { prefix: "/api/community", ttl: 90, swr: 240 },
+  { prefix: "/api/tip", ttl: 90, swr: 240 },
+  { prefix: "/api/boards", ttl: 90, swr: 240 },
+];
+
 function isPublicCacheable(method, pathname) {
   if (method !== "GET") return false;
   return PUBLIC_CACHE_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(p + "/")
   );
+}
+
+function resolveCachePolicy(pathname) {
+  const matched = CACHE_TTL_BY_PREFIX.find(
+    ({ prefix }) => pathname === prefix || pathname.startsWith(prefix + "/")
+  );
+  const ttl = matched?.ttl ?? DEFAULT_CACHE_TTL;
+  const swr = matched?.swr ?? Math.max(ttl * 2, 120);
+  return { ttl, swr };
 }
 
 export async function onRequest(context) {
@@ -22,42 +41,39 @@ export async function onRequest(context) {
   const pathname = url.pathname;
 
   const cacheable = isPublicCacheable(method, pathname);
-  const cacheKey = pathname + url.search; // ✅ query 포함
+  const { ttl, swr } = resolveCachePolicy(pathname);
+  const cacheKey = pathname + url.search;
   const cache = caches.default;
 
-  // 1) 캐시 먼저 확인 (공개 GET만)
   if (cacheable) {
     const cacheReq = new Request("https://cache.senawiki.internal" + cacheKey);
     const cached = await cache.match(cacheReq);
     if (cached) {
-      // 디버깅용 표시(원하면 삭제 가능)
       const h = new Headers(cached.headers);
       h.set("x-sena-cache", "HIT");
+      h.set("x-sena-cache-ttl", String(ttl));
       return new Response(cached.body, { status: cached.status, headers: h });
     }
   }
 
-  // 2) 업스트림 요청 만들기 (스트림 안전하게)
   const upstreamUrl = API_ORIGIN + pathname + url.search;
   const upstreamReq = new Request(upstreamUrl, context.request);
 
-  // 공개 캐시 대상은 인증/쿠키 제거(캐시 오염 방지)
   if (cacheable) {
     const h = new Headers(upstreamReq.headers);
     h.delete("authorization");
     h.delete("cookie");
-    // 새 Request로 헤더만 교체 (body는 GET이라 없음)
-    // GET 아닌건 cacheable=false라 여기 안옴
+
     const req2 = new Request(upstreamUrl, { method: "GET", headers: h });
     const upstreamRes = await fetch(req2);
 
-    // 3) 응답을 캐시 친화로 “강제” (백엔드 no-store 무시)
     const rh = new Headers(upstreamRes.headers);
     rh.set(
       "cache-control",
-      "public, max-age=60, s-maxage=60, stale-while-revalidate=120"
+      `public, max-age=${ttl}, s-maxage=${ttl}, stale-while-revalidate=${swr}`
     );
     rh.set("x-sena-cache", "MISS");
+    rh.set("x-sena-cache-ttl", String(ttl));
 
     const res = new Response(upstreamRes.body, {
       status: upstreamRes.status,
@@ -65,7 +81,6 @@ export async function onRequest(context) {
       headers: rh,
     });
 
-    // 200만 캐시 저장
     if (upstreamRes.status === 200) {
       const cacheReq = new Request("https://cache.senawiki.internal" + cacheKey);
       context.waitUntil(cache.put(cacheReq, res.clone()));
@@ -74,6 +89,5 @@ export async function onRequest(context) {
     return res;
   }
 
-  // 공개 캐시 대상 아니면 그냥 프록시만 (로그인/변경 API는 캐시 X)
   return fetch(upstreamReq);
 }
