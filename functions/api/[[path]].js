@@ -3,8 +3,6 @@ const API_ORIGIN = "https://api.senawiki.com";
 const PUBLIC_CACHE_PREFIXES = [
   "/api/heroes",
   "/api/pets",
-  "/api/community",
-  "/api/tip",
   "/api/guide-decks",
 ];
 
@@ -13,8 +11,6 @@ const CACHE_TTL_BY_PREFIX = [
   { prefix: "/api/heroes", ttl: 1800, swr: 3600 },
   { prefix: "/api/pets", ttl: 1800, swr: 3600 },
   { prefix: "/api/guide-decks", ttl: 300, swr: 900 },
-  { prefix: "/api/community", ttl: 180, swr: 600 },
-  { prefix: "/api/tip", ttl: 180, swr: 600 },
 ];
 
 function isPublicCacheable(method, pathname) {

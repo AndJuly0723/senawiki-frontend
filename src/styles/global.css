@@ -3367,6 +3367,120 @@ body {
     align-items: flex-start;
   }
 
+  .total-war-page .community-toolbar,
+  .adventure-page .community-toolbar,
+  .raid-stage .community-toolbar,
+  .growth-stage .community-toolbar,
+  .arena-page .community-toolbar,
+  .expedition-stage .community-toolbar,
+  .guild-war-page .community-toolbar,
+  .siege-day-page .community-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .total-war-page .community-actions,
+  .adventure-page .community-actions,
+  .raid-stage .community-actions,
+  .growth-stage .community-actions,
+  .arena-page .community-actions,
+  .expedition-stage .community-actions,
+  .guild-war-page .community-actions,
+  .siege-day-page .community-actions {
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .total-war-page .community-title-note,
+  .adventure-page .community-title-note,
+  .raid-stage .community-title-note,
+  .growth-stage .community-title-note,
+  .arena-page .community-title-note,
+  .expedition-stage .community-title-note,
+  .guild-war-page .community-title-note,
+  .siege-day-page .community-title-note {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.45;
+    max-width: 40ch;
+  }
+
+  .deck-sort select {
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .deck-card {
+    padding: 42px 12px 12px;
+  }
+
+  .deck-card > .deck-team-tabs {
+    left: 12px;
+  }
+
+  .deck-card-actions {
+    right: 8px;
+  }
+
+  .deck-layout {
+    margin-top: 14px;
+  }
+
+  .deck-card .deck-units {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 12px;
+  }
+
+  .deck-card .deck-unit {
+    width: 56px;
+    gap: 4px;
+  }
+
+  .deck-card .deck-unit img {
+    width: 50px;
+    height: 50px;
+    border-radius: 9px;
+  }
+
+  .deck-card .deck-unit span {
+    width: 56px;
+    font-size: 11px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .deck-card .deck-unit.is-back {
+    transform: none;
+  }
+
+  .deck-card .deck-meta-row {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    align-items: start;
+    column-gap: 8px;
+    row-gap: 4px;
+  }
+
+  .deck-card .deck-meta-label {
+    min-width: 0;
+  }
+
+  .deck-card .deck-reactions {
+    gap: 8px;
+  }
+
+  .deck-card .deck-reaction-button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
   .community-form-grid {
     grid-template-columns: 1fr;
   }
