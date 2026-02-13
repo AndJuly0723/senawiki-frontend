@@ -364,6 +364,7 @@ body {
   color: #f5f5f5;
   font-weight: 700;
   font-size: 14px;
+  white-space: pre-line;
 }
 
 .community-title p.community-title-note {
@@ -3451,13 +3452,17 @@ body {
   }
 
   .deck-card .deck-units {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px 12px;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    width: 100%;
+    gap: 6px;
+    justify-items: center;
+    align-items: end;
   }
 
   .deck-card .deck-unit {
-    width: 56px;
+    width: 100%;
+    min-width: 0;
     gap: 4px;
   }
 
@@ -3468,7 +3473,7 @@ body {
   }
 
   .deck-card .deck-unit span {
-    width: 56px;
+    width: 100%;
     font-size: 11px;
     line-height: 1.2;
     white-space: nowrap;
@@ -3477,7 +3482,7 @@ body {
   }
 
   .deck-card .deck-unit.is-back {
-    transform: none;
+    transform: translateY(-12px);
   }
 
   .deck-card .deck-meta-row {

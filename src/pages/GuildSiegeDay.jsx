@@ -325,7 +325,7 @@ function GuildSiegeDay() {
       <div className="community-toolbar">
         <div className="community-title">
           <h1>{label}</h1>
-          <p className="community-title-note">공성전 공략덱 추가는 회원만 가능합니다. 덱 장비는 각 영웅을 클릭하여 확인하세요.</p>
+          <p className="community-title-note">{'공성전 공략덱 추가는 회원만 가능합니다.\n덱 장비는 각 영웅을 클릭하여 확인하세요.'}</p>
         </div>
         <div className="community-actions">
           <div className="deck-sort">
