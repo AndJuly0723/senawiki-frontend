@@ -9,6 +9,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('')
   const trimmedSearch = searchTerm.trim()
   const [openMenu, setOpenMenu] = useState(null)
+  const [canHover, setCanHover] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const [currentUser, setCurrentUser] = useState(getStoredUser())
@@ -47,6 +48,23 @@ function App() {
       navigate('/')
     }
   }
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return undefined
+    }
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)')
+    const updateCanHover = () => {
+      setCanHover(mediaQuery.matches)
+    }
+    updateCanHover()
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateCanHover)
+      return () => mediaQuery.removeEventListener('change', updateCanHover)
+    }
+    mediaQuery.addListener(updateCanHover)
+    return () => mediaQuery.removeListener(updateCanHover)
+  }, [])
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -173,9 +191,9 @@ function App() {
           펫
         </NavLink>
         <div
-          className={`nav-dropdown${openMenu === 'community' ? ' is-open' : ''}`}
-          onMouseEnter={() => setOpenMenu('community')}
-          onMouseLeave={() => setOpenMenu(null)}
+          className={`nav-dropdown nav-dropdown--community${openMenu === 'community' ? ' is-open' : ''}`}
+          onMouseEnter={canHover ? () => setOpenMenu('community') : undefined}
+          onMouseLeave={canHover ? () => setOpenMenu(null) : undefined}
         >
           <button
             className="nav-link nav-link--dropdown"
@@ -192,9 +210,9 @@ function App() {
           </div>
         </div>
         <div
-          className={`nav-dropdown${openMenu === 'guides' ? ' is-open' : ''}`}
-          onMouseEnter={() => setOpenMenu('guides')}
-          onMouseLeave={() => setOpenMenu(null)}
+          className={`nav-dropdown nav-dropdown--guides${openMenu === 'guides' ? ' is-open' : ''}`}
+          onMouseEnter={canHover ? () => setOpenMenu('guides') : undefined}
+          onMouseLeave={canHover ? () => setOpenMenu(null) : undefined}
         >
           <button
             className="nav-link nav-link--dropdown"
@@ -214,9 +232,9 @@ function App() {
           </div>
         </div>
         <div
-          className={`nav-dropdown${openMenu === 'guild' ? ' is-open' : ''}`}
-          onMouseEnter={() => setOpenMenu('guild')}
-          onMouseLeave={() => setOpenMenu(null)}
+          className={`nav-dropdown nav-dropdown--guild${openMenu === 'guild' ? ' is-open' : ''}`}
+          onMouseEnter={canHover ? () => setOpenMenu('guild') : undefined}
+          onMouseLeave={canHover ? () => setOpenMenu(null) : undefined}
         >
           <button
             className="nav-link nav-link--dropdown"
