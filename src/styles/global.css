@@ -3118,7 +3118,7 @@ body {
   }
 
   .brand-logo {
-    width: min(190px, 52vw);
+    width: min(100px, 28vw);
   }
 
   .auth-actions {
@@ -3129,13 +3129,13 @@ body {
     transform: none;
     justify-content: flex-end;
     flex-wrap: nowrap;
-    gap: 4px;
+    gap: 6px;
   }
 
   .auth-button {
-    padding: 5px 7px;
+    padding: 5px 8px;
     font-size: 10px;
-    line-height: 1.1;
+    line-height: 1.2;
   }
 
   .auth-user {
@@ -3172,21 +3172,21 @@ body {
     top: calc(100% - 1px);
     left: 50%;
     transform: translateX(-50%);
-    width: min(170px, calc(100vw - 20px));
+    width: min(96px, calc(100vw - 20px));
     min-width: 0;
     max-width: calc(100vw - 20px);
     max-height: 260px;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 4px 0;
+    padding: 2px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
     z-index: 60;
   }
 
   .nav-dropdown-item {
-    padding: 9px 12px;
-    font-size: 13px;
+    padding: 8px 10px;
+    font-size: 12px;
   }
 
   .nav-dropdown--community .nav-dropdown-menu {
