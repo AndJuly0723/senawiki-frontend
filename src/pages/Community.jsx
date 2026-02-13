@@ -64,11 +64,23 @@ const resolveHasFile = (post) => {
   return { known: false, value: false }
 }
 
+const TITLE_TRUNCATE_LENGTH = 20
+
+const truncateTitle = (value, maxLength = TITLE_TRUNCATE_LENGTH) => {
+  const raw = String(value ?? '').trim()
+  if (!raw) return ''
+  const chars = Array.from(raw)
+  if (chars.length <= maxLength) return raw
+  return `${chars.slice(0, maxLength).join('')}...`
+}
+
 const normalizePost = (post, index) => {
   const hasFile = resolveHasFile(post)
+  const rawTitle = post.title ?? post.subject ?? ''
   return {
     id: post.id ?? post.postId ?? post.communityId ?? post._id ?? `post-${index}`,
-    title: post.title ?? post.subject ?? '',
+    title: truncateTitle(rawTitle),
+    fullTitle: rawTitle,
     author:
       post.authorNickname ??
       post.nickname ??
@@ -354,7 +366,7 @@ function Community() {
                   <span className="post-icon post-icon--file" aria-hidden="true">🖼️</span>
                 ) : null}
                 <Link className="post-title-link" to={`/community/${post.id}`}>
-                  <span className="post-title">{post.title}</span>
+                  <span className="post-title" title={post.fullTitle}>{post.title}</span>
                 </Link>
                 {post.commentCount > 0 ? (
                   <span className="post-comment-count" aria-label={`댓글 ${post.commentCount}개`}>
