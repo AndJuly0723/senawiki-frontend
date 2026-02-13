@@ -1,4 +1,4 @@
-import { StrictMode, Suspense, lazy } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import './styles/global.css'
@@ -14,52 +14,30 @@ import Info from './pages/Info.jsx'
 import InfoDetail from './pages/InfoDetail.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
+import CommunityWrite from './pages/CommunityWrite.jsx'
+import CommunityEdit from './pages/CommunityEdit.jsx'
+import InfoWrite from './pages/InfoWrite.jsx'
+import InfoEdit from './pages/InfoEdit.jsx'
+import GuidesAdventure from './pages/GuidesAdventure.jsx'
 import GuidesRaid from './pages/GuidesRaid.jsx'
+import GuidesRaidStage from './pages/GuidesRaidStage.jsx'
+import GuidesArena from './pages/GuidesArena.jsx'
+import GuidesTotalWar from './pages/GuidesTotalWar.jsx'
 import GuidesGrowthDungeon from './pages/GuidesGrowthDungeon.jsx'
+import GuidesGrowthStage from './pages/GuidesGrowthStage.jsx'
+import GuidesDeckWrite from './pages/GuidesDeckWrite.jsx'
 import GuildSiege from './pages/GuildSiege.jsx'
+import GuildSiegeDay from './pages/GuildSiegeDay.jsx'
+import GuildWar from './pages/GuildWar.jsx'
 import GuildExpedition from './pages/GuildExpedition.jsx'
-
-const loadCommunityWrite = () => import('./pages/CommunityWrite.jsx')
-const loadCommunityEdit = () => import('./pages/CommunityEdit.jsx')
-const loadInfoWrite = () => import('./pages/InfoWrite.jsx')
-const loadInfoEdit = () => import('./pages/InfoEdit.jsx')
-const loadGuidesAdventure = () => import('./pages/GuidesAdventure.jsx')
-const loadGuidesRaidStage = () => import('./pages/GuidesRaidStage.jsx')
-const loadGuidesArena = () => import('./pages/GuidesArena.jsx')
-const loadGuidesTotalWar = () => import('./pages/GuidesTotalWar.jsx')
-const loadGuidesGrowthStage = () => import('./pages/GuidesGrowthStage.jsx')
-const loadGuidesDeckWrite = () => import('./pages/GuidesDeckWrite.jsx')
-const loadGuildSiegeDay = () => import('./pages/GuildSiegeDay.jsx')
-const loadGuildWar = () => import('./pages/GuildWar.jsx')
-const loadGuildExpeditionStage = () => import('./pages/GuildExpeditionStage.jsx')
-const loadAdmin = () => import('./pages/Admin.jsx')
-const loadAdminHeroCreate = () => import('./pages/AdminHeroCreate.jsx')
-const loadAdminPetCreate = () => import('./pages/AdminPetCreate.jsx')
-const loadAdminStats = () => import('./pages/AdminStats.jsx')
-const loadTerms = () => import('./pages/Terms.jsx')
-const loadPrivacyPolicy = () => import('./pages/PrivacyPolicy.jsx')
-const loadMyPage = () => import('./pages/MyPage.jsx')
-
-const CommunityWrite = lazy(loadCommunityWrite)
-const CommunityEdit = lazy(loadCommunityEdit)
-const InfoWrite = lazy(loadInfoWrite)
-const InfoEdit = lazy(loadInfoEdit)
-const GuidesAdventure = lazy(loadGuidesAdventure)
-const GuidesRaidStage = lazy(loadGuidesRaidStage)
-const GuidesArena = lazy(loadGuidesArena)
-const GuidesTotalWar = lazy(loadGuidesTotalWar)
-const GuidesGrowthStage = lazy(loadGuidesGrowthStage)
-const GuidesDeckWrite = lazy(loadGuidesDeckWrite)
-const GuildSiegeDay = lazy(loadGuildSiegeDay)
-const GuildWar = lazy(loadGuildWar)
-const GuildExpeditionStage = lazy(loadGuildExpeditionStage)
-const Admin = lazy(loadAdmin)
-const AdminHeroCreate = lazy(loadAdminHeroCreate)
-const AdminPetCreate = lazy(loadAdminPetCreate)
-const AdminStats = lazy(loadAdminStats)
-const Terms = lazy(loadTerms)
-const PrivacyPolicy = lazy(loadPrivacyPolicy)
-const MyPage = lazy(loadMyPage)
+import GuildExpeditionStage from './pages/GuildExpeditionStage.jsx'
+import Admin from './pages/Admin.jsx'
+import AdminHeroCreate from './pages/AdminHeroCreate.jsx'
+import AdminPetCreate from './pages/AdminPetCreate.jsx'
+import AdminStats from './pages/AdminStats.jsx'
+import Terms from './pages/Terms.jsx'
+import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
+import MyPage from './pages/MyPage.jsx'
 
 export function AppRoutes() {
   const location = useLocation()
@@ -126,9 +104,7 @@ export function AppRoutes() {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <Suspense fallback={<div className="page-loading">Loading...</div>}>
-        <AppRoutes />
-      </Suspense>
+      <AppRoutes />
     </BrowserRouter>
   </StrictMode>,
 )
