@@ -1,13 +1,25 @@
 import axios from 'axios'
 import { getAccessToken, getRefreshToken, setAuthTokens } from '../utils/authStorage'
 
-const apiBaseURL = String(import.meta.env.VITE_API_BASE_URL ?? '').trim()
+const envApiBaseURL = String(import.meta.env.VITE_API_BASE_URL ?? '').trim()
+const shouldForceSameOriginApi = (() => {
+  if (!import.meta.env.PROD) return false
+  if (typeof window === 'undefined') return false
+  const host = String(window.location.hostname ?? '').toLowerCase()
+  const isSenaHost = host === 'senawiki.com' || host.endsWith('.senawiki.com')
+  if (!isSenaHost) return false
+  return /^https?:\/\/api\.senawiki\.com\/?$/i.test(envApiBaseURL)
+})()
+const apiBaseURL = shouldForceSameOriginApi ? '/' : envApiBaseURL || '/'
 const timeoutFromEnv = Number(import.meta.env.VITE_API_TIMEOUT_MS ?? 10000)
 const requestTimeout = Number.isFinite(timeoutFromEnv) && timeoutFromEnv > 0 ? timeoutFromEnv : 10000
 
 if (import.meta.env.PROD && /(localhost|127\.0\.0\.1)/i.test(apiBaseURL)) {
   // Surface unsafe production API target early in browser logs.
   console.error('[API] VITE_API_BASE_URL points to localhost in production build.')
+}
+if (shouldForceSameOriginApi) {
+  console.warn('[API] Forcing same-origin API base URL (/) for senawiki.com production host.')
 }
 
 const apiClient = axios.create({
