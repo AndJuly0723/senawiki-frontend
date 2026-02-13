@@ -122,6 +122,7 @@ function Home() {
           page: 0,
           size: 7,
           sort: 'createdAt,desc',
+          _ts: Date.now(),
         })
         const list = Array.isArray(data)
           ? data
@@ -189,6 +190,7 @@ function Home() {
           page: 0,
           size: 7,
           sort: 'createdAt,desc',
+          _ts: Date.now(),
         })
         const list = Array.isArray(data)
           ? data
