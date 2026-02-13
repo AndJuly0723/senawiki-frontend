@@ -35,6 +35,10 @@ function resolveCachePolicy(pathname) {
   return { ttl, swr };
 }
 
+function shouldAwaitStore(pathname) {
+  return pathname === "/api/guide-decks" || pathname.startsWith("/api/guide-decks/");
+}
+
 function buildCacheKey(url) {
   const params = Array.from(url.searchParams.entries());
   if (!params.length) return url.pathname;
@@ -101,8 +105,13 @@ export async function onRequest(context) {
           statusText: upstreamRes.statusText,
           headers: rh,
         });
-        context.waitUntil(cache.put(cacheReq, cacheRes));
-        storeStatus = "QUEUED";
+        if (shouldAwaitStore(pathname)) {
+          await cache.put(cacheReq, cacheRes);
+          storeStatus = "STORED";
+        } else {
+          context.waitUntil(cache.put(cacheReq, cacheRes));
+          storeStatus = "QUEUED";
+        }
       } catch {
         storeStatus = "ERROR";
       }
