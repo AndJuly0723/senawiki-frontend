@@ -834,12 +834,15 @@ body {
 }
 
 .post-badge {
+  display: inline-flex;
+  align-items: center;
   background: #ffffff;
   color: #1a1a1a;
   font-size: 11px;
   font-weight: 700;
   border-radius: 6px;
   padding: 2px 6px;
+  white-space: nowrap;
 }
 
 .post-comment-count {
@@ -3275,36 +3278,83 @@ body {
 
   .community-header,
   .community-row {
-    grid-template-columns: minmax(0, 1fr) 72px 56px 42px;
+    grid-template-columns: minmax(0, 1fr);
     font-size: 12px;
-    gap: 8px;
-    padding: 10px 12px;
-    align-items: center;
+    gap: 8px 10px;
+    padding: 12px 14px;
   }
 
   .community-header {
-    display: grid;
+    display: none;
+  }
+
+  .community-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas:
+      "title title title"
+      "author date views";
+    align-items: start;
   }
 
   .community-row .col-title {
+    grid-area: title;
     flex-wrap: nowrap;
-    row-gap: 0;
+    gap: 8px;
+    min-width: 0;
   }
 
   .community-row .col-author,
   .community-row .col-date,
   .community-row .col-views {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
     text-align: center;
     max-width: none;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    text-overflow: clip;
+    font-size: 13px;
+  }
+
+  .community-row .col-author {
+    grid-area: author;
+  }
+
+  .community-row .col-date {
+    grid-area: date;
+  }
+
+  .community-row .col-views {
+    grid-area: views;
+  }
+
+  .community-row .col-author::before,
+  .community-row .col-date::before,
+  .community-row .col-views::before {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.58);
+    line-height: 1;
+  }
+
+  .community-row .col-author::before {
+    content: "작성자";
+  }
+
+  .community-row .col-date::before {
+    content: "작성일";
+  }
+
+  .community-row .col-views::before {
+    content: "조회";
   }
 
   .community-row .post-title {
-    white-space: normal;
-    word-break: break-word;
-    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
   }
 
   .community-row--empty {
