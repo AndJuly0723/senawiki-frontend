@@ -36,6 +36,19 @@ function HeroDetail() {
   const skill2Image = hero?.skill2Image || `/images/heroskill/${hero?.id}/skill2.png`
   const passiveSkillImage = hero?.passiveSkillImage || `/images/heroskill/${hero?.id}/passive.png`
 
+  useEffect(() => {
+    if (!hero?.id) return
+    const skillImages = [basicSkillImage, skill1Image, passiveSkillImage]
+    if (hero.hasSkill2) skillImages.push(skill2Image)
+    skillImages
+      .filter(Boolean)
+      .forEach((src) => {
+        const img = new Image()
+        img.src = src
+        img.decoding = 'async'
+      })
+  }, [hero?.id, hero?.hasSkill2, basicSkillImage, skill1Image, skill2Image, passiveSkillImage])
+
   if (isLoading) {
     return (
       <section className="hero-detail">
@@ -101,7 +114,7 @@ function HeroDetail() {
             <div className="hero-skills-header">스킬</div>
             <div className="hero-skill-row">
               <div className="hero-skill-icon">
-                <img src={basicSkillImage} alt="" aria-hidden="true" />
+                <img src={basicSkillImage} alt="" aria-hidden="true" loading="eager" fetchPriority="high" decoding="async" />
               </div>
               <div className="hero-skill-body">
                 <h3>기본 공격</h3>
@@ -109,7 +122,7 @@ function HeroDetail() {
             </div>
             <div className="hero-skill-row">
               <div className="hero-skill-icon">
-                <img src={skill1Image} alt="" aria-hidden="true" />
+                <img src={skill1Image} alt="" aria-hidden="true" loading="eager" fetchPriority="high" decoding="async" />
               </div>
               <div className="hero-skill-body">
                 <h3>스킬 1</h3>
@@ -118,7 +131,7 @@ function HeroDetail() {
             {hero.hasSkill2 && (
               <div className="hero-skill-row">
                 <div className="hero-skill-icon">
-                  <img src={skill2Image} alt="" aria-hidden="true" />
+                  <img src={skill2Image} alt="" aria-hidden="true" loading="eager" fetchPriority="high" decoding="async" />
                 </div>
                 <div className="hero-skill-body">
                   <h3>스킬 2</h3>
@@ -127,7 +140,7 @@ function HeroDetail() {
             )}
             <div className="hero-skill-row">
               <div className="hero-skill-icon">
-                <img src={passiveSkillImage} alt="" aria-hidden="true" />
+                <img src={passiveSkillImage} alt="" aria-hidden="true" loading="eager" fetchPriority="high" decoding="async" />
               </div>
               <div className="hero-skill-body">
                 <h3>패시브</h3>

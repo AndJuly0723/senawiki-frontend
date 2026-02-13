@@ -33,6 +33,13 @@ function PetDetail() {
 
   const skillImage = pet?.skillImage || `/images/petskill/${pet?.id}/skill.png`
 
+  useEffect(() => {
+    if (!pet?.id || !skillImage) return
+    const img = new Image()
+    img.src = skillImage
+    img.decoding = 'async'
+  }, [pet?.id, skillImage])
+
   const resolvePetTargets = () => {
     if (pet?.skill?.targets) {
       return pet.skill.targets
@@ -114,7 +121,7 @@ function PetDetail() {
             <div className="hero-skills-header">스킬</div>
             <div className="hero-skill-row">
               <div className="hero-skill-icon">
-                <img src={skillImage} alt="" aria-hidden="true" />
+                <img src={skillImage} alt="" aria-hidden="true" loading="eager" fetchPriority="high" decoding="async" />
               </div>
               <div className="hero-skill-body">
                 <h3>

@@ -16,6 +16,9 @@ function DeckSkillOrder({ items, text }) {
                 src={item.image}
                 alt={item.label}
                 title={item.label}
+                loading="eager"
+                fetchPriority={index < 2 ? 'high' : 'auto'}
+                decoding="async"
               />
             ) : (
               <span className="deck-skill-order-text" title={item.label}>{item.label}</span>
