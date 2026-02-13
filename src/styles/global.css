@@ -3199,6 +3199,21 @@ body {
     height: 30px;
   }
 
+  .raid-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .raid-item {
+    aspect-ratio: 3 / 5;
+  }
+
+  .siege-map {
+    aspect-ratio: 16 / 9;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
   .site-nav {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
