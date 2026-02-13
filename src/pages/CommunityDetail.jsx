@@ -132,6 +132,8 @@ function CommunityDetail() {
           '익명',
         content: comment.content ?? comment.comment ?? comment.body ?? '',
         createdAt: comment.createdAt ?? comment.created_at ?? comment.date,
+        authorType: comment.authorType ?? comment.writerType ?? comment.userType,
+        raw: comment,
       }))
       if (!isActiveRef || isActiveRef.current) {
         setComments(normalized)
@@ -189,6 +191,35 @@ function CommunityDetail() {
     Boolean(currentUser) &&
     userTokens.some((token) => postTokens.includes(token)) &&
     postTokens.length > 0
+  const canManageComment = useCallback(
+    (comment) => {
+      if (!comment) return false
+      if (isAdmin) return true
+      if (comment?.raw?.canEdit === true || comment?.raw?.editable === true || comment?.raw?.isOwner === true) {
+        return true
+      }
+      if (!currentUser) {
+        return normalizeString(comment.authorType) === 'guest'
+      }
+      const commentTokens = [
+        comment?.raw?.authorId,
+        comment?.raw?.userId,
+        comment?.raw?.memberId,
+        comment?.raw?.authorName,
+        comment?.raw?.authorNickname,
+        comment?.raw?.nickname,
+        comment?.raw?.writer,
+        comment?.raw?.name,
+        comment?.raw?.email,
+        comment?.raw?.author,
+        comment?.author,
+      ]
+        .map(normalizeString)
+        .filter(Boolean)
+      return commentTokens.length > 0 && userTokens.some((token) => commentTokens.includes(token))
+    },
+    [currentUser, isAdmin, userTokens],
+  )
   const canManagePost = isAdmin || isGuest || isPostOwner
   const canShowPostActionMenu = isNotice ? isAdmin : canManagePost
   const createdAt = useMemo(() => formatDateTime(post?.createdAt), [post?.createdAt])
@@ -381,6 +412,10 @@ function CommunityDetail() {
 
   const handleCommentAction = async () => {
     if (!commentActionTarget) return
+    if (!canManageComment(commentActionTarget)) {
+      setCommentActionError('권한이 없습니다.')
+      return
+    }
     if (isCommentGuest && !commentActionPassword) {
       setCommentActionError('비밀번호를 입력해주세요.')
       return
@@ -492,44 +527,46 @@ function CommunityDetail() {
                       {formatDateTime(comment.createdAt)}
                     </span>
                   </div>
-                  <div className="community-comment-actions-menu">
-                    <button
-                      className="community-comment-action-button"
-                      type="button"
-                      aria-label="댓글 작업"
-                      onClick={() =>
-                        setCommentMenuOpenId((prev) => (prev === comment.id ? null : comment.id))
-                      }
-                    >
-                      <span className="community-comment-action-dot" />
-                      <span className="community-comment-action-dot" />
-                      <span className="community-comment-action-dot" />
-                    </button>
-                    {commentMenuOpenId === comment.id ? (
-                      <div className="community-comment-action-menu" role="menu">
-                        <button
-                          className="community-comment-action-item"
-                          type="button"
-                          onClick={() => {
-                            setCommentMenuOpenId(null)
-                            openCommentModal('edit', comment)
-                          }}
-                        >
-                          수정
-                        </button>
-                        <button
-                          className="community-comment-action-item community-comment-action-item--danger"
-                          type="button"
-                          onClick={() => {
-                            setCommentMenuOpenId(null)
-                            openCommentModal('delete', comment)
-                          }}
-                        >
-                          삭제
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
+                  {canManageComment(comment) ? (
+                    <div className="community-comment-actions-menu">
+                      <button
+                        className="community-comment-action-button"
+                        type="button"
+                        aria-label="댓글 작업"
+                        onClick={() =>
+                          setCommentMenuOpenId((prev) => (prev === comment.id ? null : comment.id))
+                        }
+                      >
+                        <span className="community-comment-action-dot" />
+                        <span className="community-comment-action-dot" />
+                        <span className="community-comment-action-dot" />
+                      </button>
+                      {commentMenuOpenId === comment.id ? (
+                        <div className="community-comment-action-menu" role="menu">
+                          <button
+                            className="community-comment-action-item"
+                            type="button"
+                            onClick={() => {
+                              setCommentMenuOpenId(null)
+                              openCommentModal('edit', comment)
+                            }}
+                          >
+                            수정
+                          </button>
+                          <button
+                            className="community-comment-action-item community-comment-action-item--danger"
+                            type="button"
+                            onClick={() => {
+                              setCommentMenuOpenId(null)
+                              openCommentModal('delete', comment)
+                            }}
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
                 <p className="community-comment-body">{comment.content}</p>
               </div>

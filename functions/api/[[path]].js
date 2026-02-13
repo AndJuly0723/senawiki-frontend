@@ -6,7 +6,6 @@ const PUBLIC_CACHE_PREFIXES = [
   "/api/community",
   "/api/tip",
   "/api/guide-decks",
-  "/api/boards",
 ];
 
 const DEFAULT_CACHE_TTL = 60;
@@ -16,7 +15,6 @@ const CACHE_TTL_BY_PREFIX = [
   { prefix: "/api/guide-decks", ttl: 300, swr: 900 },
   { prefix: "/api/community", ttl: 180, swr: 600 },
   { prefix: "/api/tip", ttl: 180, swr: 600 },
-  { prefix: "/api/boards", ttl: 180, swr: 600 },
 ];
 
 function isPublicCacheable(method, pathname) {
