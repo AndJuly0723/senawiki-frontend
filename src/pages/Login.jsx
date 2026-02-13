@@ -10,6 +10,7 @@ function Login() {
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const backgroundLocation = location.state?.backgroundLocation
   const returnTo =
     typeof location.state?.from === 'string' && location.state.from
       ? location.state.from
@@ -108,7 +109,7 @@ function Login() {
           </button>
         </form>
         <div className="auth-footer">
-          아직 계정이 없나요? <Link to="/register" state={{ from: returnTo }}>회원가입</Link>
+          아직 계정이 없나요? <Link to="/register" state={{ from: returnTo, backgroundLocation }}>회원가입</Link>
         </div>
       </div>
     </section>

@@ -15,6 +15,7 @@ function App() {
   const [allHeroes, setAllHeroes] = useState([])
   const isAdmin = useMemo(() => isAdminUser(currentUser), [currentUser])
   const returnTo = `${location.pathname}${location.search}${location.hash}`
+  const authModalState = { from: returnTo, backgroundLocation: location }
 
   const searchResults = useMemo(() => {
     if (!trimmedSearch) return []
@@ -143,10 +144,10 @@ function App() {
             </>
           ) : (
             <>
-              <Link className="auth-button auth-button--ghost" to="/login" state={{ from: returnTo }}>
+              <Link className="auth-button auth-button--ghost" to="/login" state={authModalState}>
                 로그인
               </Link>
-              <Link className="auth-button" to="/register" state={{ from: returnTo }}>
+              <Link className="auth-button" to="/register" state={authModalState}>
                 회원가입
               </Link>
             </>

@@ -18,6 +18,7 @@ function Register() {
   const [timerSeconds, setTimerSeconds] = useState(0)
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const backgroundLocation = location.state?.backgroundLocation
   const returnTo =
     typeof location.state?.from === 'string' && location.state.from
       ? location.state.from
@@ -239,7 +240,7 @@ function Register() {
           </button>
         </form>
         <div className="auth-footer">
-          이미 계정이 있나요? <Link to="/login" state={{ from: returnTo }}>로그인</Link>
+          이미 계정이 있나요? <Link to="/login" state={{ from: returnTo, backgroundLocation }}>로그인</Link>
         </div>
       </div>
     </section>
