@@ -3200,8 +3200,8 @@ body {
   }
 
   .raid-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .raid-item {
@@ -3212,6 +3212,16 @@ body {
     aspect-ratio: 16 / 9;
     max-width: 100%;
     margin: 0 auto;
+  }
+
+  .siege-site-day {
+    font-size: 9px;
+    padding: 2px 5px;
+  }
+
+  .siege-site-castle {
+    font-size: 10px;
+    padding: 3px 6px;
   }
 
   .site-nav {
