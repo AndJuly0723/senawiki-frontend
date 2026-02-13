@@ -1,4 +1,4 @@
-import { StrictMode, Suspense, lazy, useEffect } from 'react'
+import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import './styles/global.css'
@@ -65,38 +65,9 @@ const Terms = lazy(loadTerms)
 const PrivacyPolicy = lazy(loadPrivacyPolicy)
 const MyPage = lazy(loadMyPage)
 
-const preloadGuideAndGuildRoutes = () =>
-  Promise.allSettled([
-    loadGuidesAdventure(),
-    loadGuidesRaid(),
-    loadGuidesRaidStage(),
-    loadGuidesArena(),
-    loadGuidesTotalWar(),
-    loadGuidesGrowthDungeon(),
-    loadGuidesGrowthStage(),
-    loadGuidesDeckWrite(),
-    loadGuildSiege(),
-    loadGuildSiegeDay(),
-    loadGuildWar(),
-    loadGuildExpedition(),
-    loadGuildExpeditionStage(),
-  ])
-
 export function AppRoutes() {
   const location = useLocation()
   const backgroundLocation = location.state?.backgroundLocation
-
-  useEffect(() => {
-    const runPreload = () => {
-      preloadGuideAndGuildRoutes()
-    }
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(runPreload, { timeout: 1200 })
-      return () => window.cancelIdleCallback(id)
-    }
-    const timer = window.setTimeout(runPreload, 300)
-    return () => window.clearTimeout(timer)
-  }, [])
 
   return (
     <>
