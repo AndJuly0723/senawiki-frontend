@@ -14,9 +14,9 @@
     </linearGradient>
   </defs>
 
-  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#bg)" />
-  <rect x="4" y="4" width="56" height="56" rx="12" fill="none" stroke="url(#gold)" stroke-width="2.4" />
+  <rect x="1.5" y="1.5" width="61" height="61" rx="14" fill="url(#bg)" />
+  <rect x="3" y="3" width="58" height="58" rx="12" fill="none" stroke="url(#gold)" stroke-width="2.2" />
 
-  <path d="M14 18H50L30 50H23L39 23H14Z" fill="url(#gold)" />
-  <path d="M33 9L40 20L33 31L26 20Z" fill="url(#ruby)" stroke="#f5c17f" stroke-width="1.2" />
+  <path d="M10 14H54L31 53H22L41 20H10Z" fill="url(#gold)" />
+  <path d="M33 6L42 20L33 34L24 20Z" fill="url(#ruby)" stroke="#f5c17f" stroke-width="1.1" />
 </svg>

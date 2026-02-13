@@ -201,7 +201,7 @@ function GuidesArena() {
     setPage(1)
   }, [sortBy])
 
-  const pageSize = 6
+  const pageSize = typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches ? 6 : 8
   const sortedDecks = useMemo(() => {
     const list = [...decks]
     if (sortBy === 'likes') {
@@ -216,7 +216,7 @@ function GuidesArena() {
   const pagedDecks = useMemo(() => {
     const start = (currentPage - 1) * pageSize
     return sortedDecks.slice(start, start + pageSize)
-  }, [sortedDecks, currentPage])
+  }, [sortedDecks, currentPage, pageSize])
 
   const handleCloseEquipmentModal = () => {
     setEquipmentState({

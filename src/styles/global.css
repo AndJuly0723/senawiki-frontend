@@ -3482,7 +3482,7 @@ body {
   }
 
   .deck-card .deck-unit.is-back {
-    transform: translateY(-12px);
+    transform: translateY(-22px);
   }
 
   .deck-card .deck-meta-row {
