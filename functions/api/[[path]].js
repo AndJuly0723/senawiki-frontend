@@ -52,6 +52,7 @@ export async function onRequest(context) {
       const h = new Headers(cached.headers);
       h.set("x-sena-cache", "HIT");
       h.set("x-sena-cache-ttl", String(ttl));
+      h.set("x-sena-cache-store", "HIT");
       return new Response(cached.body, { status: cached.status, headers: h });
     }
   }
@@ -74,19 +75,35 @@ export async function onRequest(context) {
     );
     rh.set("x-sena-cache", "MISS");
     rh.set("x-sena-cache-ttl", String(ttl));
-
-    const res = new Response(upstreamRes.body, {
-      status: upstreamRes.status,
-      statusText: upstreamRes.statusText,
-      headers: rh,
-    });
+    // Prevent cache-store rejections for personalized responses.
+    rh.delete("set-cookie");
+    // Normalize Vary to reduce cache fragmentation for internal cache keys.
+    rh.set("vary", "accept-encoding");
+    let storeStatus = "BYPASS";
 
     if (upstreamRes.status === 200) {
       const cacheReq = new Request("https://cache.senawiki.internal" + cacheKey);
-      context.waitUntil(cache.put(cacheReq, res.clone()));
+      try {
+        const cacheRes = new Response(upstreamRes.clone().body, {
+          status: upstreamRes.status,
+          statusText: upstreamRes.statusText,
+          headers: rh,
+        });
+        // Await put so the next immediate request can become a HIT.
+        await cache.put(cacheReq, cacheRes);
+        storeStatus = "STORED";
+      } catch {
+        storeStatus = "ERROR";
+      }
     }
 
-    return res;
+    const clientHeaders = new Headers(rh);
+    clientHeaders.set("x-sena-cache-store", storeStatus);
+    return new Response(upstreamRes.body, {
+      status: upstreamRes.status,
+      statusText: upstreamRes.statusText,
+      headers: clientHeaders,
+    });
   }
 
   return fetch(upstreamReq);
