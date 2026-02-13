@@ -45,6 +45,7 @@ function GuidesRaidStage() {
   const [sortBy, setSortBy] = useState('likes')
   const [heroes, setHeroes] = useState([])
   const [pets, setPets] = useState([])
+  const [contentReady, setContentReady] = useState(false)
   const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [heroes])
   const heroByName = useMemo(() => new Map(heroes.map((hero) => [hero.name, hero])), [heroes])
   const petById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet])), [pets])
@@ -62,6 +63,10 @@ function GuidesRaidStage() {
         if (!active) return
         setHeroes([])
         setPets([])
+      })
+      .finally(() => {
+        if (!active) return
+        setContentReady(true)
       })
     return () => {
       active = false
@@ -171,6 +176,7 @@ function GuidesRaidStage() {
   }
 
   useEffect(() => {
+    if (!contentReady) return
     setPage(1)
     let active = true
     setEquipmentState({
@@ -201,7 +207,9 @@ function GuidesRaidStage() {
     return () => {
       active = false
     }
-  }, [raidId, heroById, heroByName])
+  // Intentional: load once after shared content is ready and when route target changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contentReady, raidId])
 
   useEffect(() => {
     setPage(1)

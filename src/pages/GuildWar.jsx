@@ -36,6 +36,7 @@ function GuildWar() {
   const [sortBy, setSortBy] = useState('likes')
   const [heroes, setHeroes] = useState([])
   const [pets, setPets] = useState([])
+  const [contentReady, setContentReady] = useState(false)
   const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [heroes])
   const heroByName = useMemo(() => new Map(heroes.map((hero) => [hero.name, hero])), [heroes])
   const petById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet])), [pets])
@@ -53,6 +54,10 @@ function GuildWar() {
         if (!active) return
         setHeroes([])
         setPets([])
+      })
+      .finally(() => {
+        if (!active) return
+        setContentReady(true)
       })
     return () => {
       active = false
@@ -162,6 +167,7 @@ function GuildWar() {
   }
 
   useEffect(() => {
+    if (!contentReady) return
     const paramCandidates = [
       { category: 'GUILD_WAR', type: 'GUILD_WAR' },
       { category: 'GUILDWAR', type: 'GUILDWAR' },
@@ -175,24 +181,19 @@ function GuildWar() {
     setLoadError('')
 
     const loadDecks = async () => {
-      let lastError = null
-      for (const params of paramCandidates) {
-        try {
-          const data = await fetchGuideDecks(params)
-          if (!active) return
-          setDecks(normalizeGuideDeckList(data, heroById, heroByName))
-          return
-        } catch (error) {
-          lastError = error
-        }
+      try {
+        const data = await Promise.any(paramCandidates.map((params) => fetchGuideDecks(params)))
+        if (!active) return
+        setDecks(normalizeGuideDeckList(data, heroById, heroByName))
+      } catch (error) {
+        if (!active) return
+        const firstError = Array.isArray(error?.errors) ? error.errors[0] : error
+        const message =
+          firstError?.response?.data?.message ||
+          firstError?.message ||
+          '덱 목록을 불러오지 못했습니다.'
+        setLoadError(message)
       }
-
-      if (!active) return
-      const message =
-        lastError?.response?.data?.message ||
-        lastError?.message ||
-        '덱 목록을 불러오지 못했습니다.'
-      setLoadError(message)
     }
 
     loadDecks()
@@ -204,7 +205,9 @@ function GuildWar() {
     return () => {
       active = false
     }
-  }, [heroById, heroByName])
+  // Intentional: load once after shared content is ready.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contentReady])
 
   useEffect(() => {
     setPage(1)
