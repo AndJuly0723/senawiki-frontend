@@ -64,11 +64,21 @@ const resolveHasFile = (post) => {
   return { known: false, value: false }
 }
 
-const TITLE_TRUNCATE_LENGTH = 20
+const MOBILE_TITLE_TRUNCATE_LENGTH = 19
+const DESKTOP_TITLE_TRUNCATE_LENGTH = 34
 
-const truncateTitle = (value, maxLength = TITLE_TRUNCATE_LENGTH) => {
+const getTitleTruncateLength = () => {
+  if (typeof window === 'undefined') return DESKTOP_TITLE_TRUNCATE_LENGTH
+  if (typeof window.matchMedia !== 'function') return DESKTOP_TITLE_TRUNCATE_LENGTH
+  return window.matchMedia('(max-width: 720px)').matches
+    ? MOBILE_TITLE_TRUNCATE_LENGTH
+    : DESKTOP_TITLE_TRUNCATE_LENGTH
+}
+
+const truncateTitle = (value) => {
   const raw = String(value ?? '').trim()
   if (!raw) return ''
+  const maxLength = getTitleTruncateLength()
   const chars = Array.from(raw)
   if (chars.length <= maxLength) return raw
   return `${chars.slice(0, maxLength).join('')}...`
