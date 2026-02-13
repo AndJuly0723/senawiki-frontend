@@ -67,6 +67,13 @@ const resolveHasFile = (post) => {
 
 const normalizePost = (post, index) => {
   const hasFile = resolveHasFile(post)
+  const parsedCommentCount = Number(
+    post.commentCount ??
+      post.commentsCount ??
+      post.comment_count ??
+      post.comments ??
+      0,
+  )
   const parsedViews = Number(
     post.viewCount ??
       post.views ??
@@ -89,7 +96,7 @@ const normalizePost = (post, index) => {
       '익명',
     date: formatDate(post.createdAt ?? post.created_at ?? post.date),
     pinned: post.pinned ?? post.notice ?? false,
-    commentCount: Number.isFinite(post.commentCount) ? post.commentCount : 0,
+    commentCount: Number.isFinite(parsedCommentCount) ? parsedCommentCount : 0,
     views: Number.isFinite(parsedViews) ? parsedViews : 0,
     hasFile: hasFile.value,
     hasFileKnown: hasFile.known,
@@ -278,6 +285,7 @@ function Home() {
             {posts.map((post) => (
               <div key={post.id} className={`community-row${post.pinned ? ' is-pinned' : ''}`}>
                 <div className="col-title">
+                  {post.pinned ? <span className="post-badge">공지</span> : null}
                   <span className="post-icon" aria-hidden="true">💬</span>
                   {post.hasFile ? (
                     <span className="post-icon post-icon--file" aria-hidden="true">🖼️</span>
@@ -285,7 +293,6 @@ function Home() {
                   <Link className="post-title-link" to={`/community/${post.id}`}>
                     <span className="post-title">{post.title}</span>
                   </Link>
-                  {post.pinned ? <span className="post-badge">공지</span> : null}
                   {post.commentCount > 0 ? (
                     <span className="post-comment-count" aria-label={`댓글 ${post.commentCount}개`}>
                       💭 {post.commentCount}
@@ -339,6 +346,7 @@ function Home() {
             {tipPosts.map((post) => (
               <div key={post.id} className={`community-row${post.pinned ? ' is-pinned' : ''}`}>
                 <div className="col-title">
+                  {post.pinned ? <span className="post-badge">공지</span> : null}
                   <span className="post-icon" aria-hidden="true">💬</span>
                   {post.hasFile ? (
                     <span className="post-icon post-icon--file" aria-hidden="true">🖼️</span>
@@ -346,7 +354,6 @@ function Home() {
                   <Link className="post-title-link" to={`/info/${post.id}`}>
                     <span className="post-title">{post.title}</span>
                   </Link>
-                  {post.pinned ? <span className="post-badge">공지</span> : null}
                   {post.commentCount > 0 ? (
                     <span className="post-comment-count" aria-label={`댓글 ${post.commentCount}개`}>
                       💭 {post.commentCount}

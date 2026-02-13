@@ -348,6 +348,7 @@ function Community() {
           {posts.map((post) => (
             <div key={post.id} className={`community-row${post.pinned ? ' is-pinned' : ''}`}>
               <div className="col-title">
+                {post.pinned ? <span className="post-badge">공지</span> : null}
                 <span className="post-icon" aria-hidden="true">💬</span>
                 {post.hasFile ? (
                   <span className="post-icon post-icon--file" aria-hidden="true">🖼️</span>
@@ -355,7 +356,6 @@ function Community() {
                 <Link className="post-title-link" to={`/community/${post.id}`}>
                   <span className="post-title">{post.title}</span>
                 </Link>
-                {post.pinned ? <span className="post-badge">공지</span> : null}
                 {post.commentCount > 0 ? (
                   <span className="post-comment-count" aria-label={`댓글 ${post.commentCount}개`}>
                     💭 {post.commentCount}

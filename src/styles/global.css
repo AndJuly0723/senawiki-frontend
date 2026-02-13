@@ -3275,42 +3275,30 @@ body {
 
   .community-header,
   .community-row {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 72px 56px 42px;
     font-size: 12px;
+    gap: 8px;
+    padding: 10px 12px;
+    align-items: center;
   }
 
   .community-header {
-    display: none;
-  }
-
-  .community-row {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas:
-      "title title title"
-      "author date views";
-    gap: 8px 10px;
-    padding: 12px 14px;
-    align-items: start;
+    display: grid;
   }
 
   .community-row .col-title {
-    grid-area: title;
-    flex-wrap: wrap;
-    row-gap: 6px;
+    flex-wrap: nowrap;
+    row-gap: 0;
   }
 
-  .community-row .col-author {
-    grid-area: author;
-    text-align: left;
-    max-width: 120px;
-  }
-
-  .community-row .col-date {
-    grid-area: date;
-  }
-
+  .community-row .col-author,
+  .community-row .col-date,
   .community-row .col-views {
-    grid-area: views;
+    text-align: center;
+    max-width: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .community-row .post-title {
