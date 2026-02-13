@@ -3352,7 +3352,7 @@ body {
 
   .community-row .post-title {
     display: inline-block;
-    max-width: min(52vw, 22ch);
+    max-width: min(70vw, 30ch);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
