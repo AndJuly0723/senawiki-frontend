@@ -42,7 +42,7 @@ function GuidesGrowthStage() {
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
   const [votePendingDeckId, setVotePendingDeckId] = useState(null)
-  const [sortBy, setSortBy] = useState('likes')
+  const [sortBy, setSortBy] = useState('createdAt')
   const [page, setPage] = useState(1)
   const label = stageMeta[stageId] ?? '성장던전'
   const [heroes, setHeroes] = useState([])

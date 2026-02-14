@@ -34,7 +34,7 @@ function GuidesArena() {
   const [loadError, setLoadError] = useState('')
   const [votePendingDeckId, setVotePendingDeckId] = useState(null)
   const [page, setPage] = useState(1)
-  const [sortBy, setSortBy] = useState('likes')
+  const [sortBy, setSortBy] = useState('createdAt')
   const [heroes, setHeroes] = useState([])
   const [pets, setPets] = useState([])
   const [contentReady, setContentReady] = useState(false)
