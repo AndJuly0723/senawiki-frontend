@@ -3570,6 +3570,81 @@ body {
     font-size: 12px;
   }
 
+  .deck-write-card {
+    padding: 14px;
+    gap: 14px;
+  }
+
+  .deck-write-section {
+    gap: 8px;
+  }
+
+  .deck-formation-note {
+    margin-bottom: 8px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .deck-units--write {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    width: 100%;
+    gap: 6px;
+    align-items: end;
+    justify-items: center;
+    padding: 8px 0;
+  }
+
+  .deck-units--write .deck-unit {
+    width: 100%;
+    min-width: 0;
+    flex: initial;
+    height: 72px;
+    gap: 4px;
+  }
+
+  .deck-units--write .deck-unit img,
+  .deck-units--write .deck-slot {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+  }
+
+  .deck-units--write .deck-unit span {
+    font-size: 10px;
+    line-height: 1.15;
+    white-space: normal;
+    word-break: keep-all;
+  }
+
+  .deck-units--write .deck-unit.is-back {
+    transform: translateY(-12px);
+  }
+
+  .deck-unit--placeholder .deck-slot {
+    font-size: 10px;
+  }
+
+  .deck-write-picker {
+    margin-top: 10px;
+    gap: 10px;
+  }
+
+  .deck-write-picker .hero-search-inner {
+    gap: 8px;
+  }
+
+  .deck-write-picker .hero-search-input {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .deck-write-picker .hero-search-button {
+    min-width: 76px;
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
   .deck-card {
     padding: 42px 12px 12px;
   }
@@ -3932,6 +4007,74 @@ body {
   margin: 0;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.6);
+}
+
+@media (max-width: 720px) {
+  .skill-order-help {
+    font-size: 11px;
+  }
+
+  .skill-order-panel {
+    gap: 8px;
+  }
+
+  .skill-order-choices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .skill-order-hero {
+    width: 100%;
+    min-width: 0;
+    padding: 6px;
+    gap: 5px;
+    border-radius: 10px;
+  }
+
+  .skill-order-hero-name {
+    font-size: 12px;
+  }
+
+  .skill-order-buttons {
+    gap: 6px;
+  }
+
+  .skill-order-button {
+    flex: 0 0 36px;
+    min-height: 36px;
+    padding: 4px;
+    border-radius: 7px;
+  }
+
+  .skill-order-buttons.is-single .skill-order-button {
+    flex: 0 0 36px;
+  }
+
+  .skill-order-button img {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+  }
+
+  .skill-order-selected {
+    padding: 8px;
+  }
+
+  .skill-order-list {
+    gap: 6px;
+  }
+
+  .skill-order-chip {
+    width: 30px;
+    height: 30px;
+  }
+
+  .skill-order-chip img {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+  }
 }
 
 
