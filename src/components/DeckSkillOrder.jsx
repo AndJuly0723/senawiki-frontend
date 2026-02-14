@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 function DeckSkillOrder({ items, text }) {
   const safeItems = Array.isArray(items) ? items.filter(Boolean) : []
 
@@ -16,8 +18,8 @@ function DeckSkillOrder({ items, text }) {
                 src={item.image}
                 alt={item.label}
                 title={item.label}
-                loading="eager"
-                fetchPriority={index < 2 ? 'high' : 'auto'}
+                loading="lazy"
+                fetchPriority="low"
                 decoding="async"
               />
             ) : (
@@ -33,4 +35,4 @@ function DeckSkillOrder({ items, text }) {
   )
 }
 
-export default DeckSkillOrder
+export default memo(DeckSkillOrder)

@@ -440,7 +440,7 @@ function GuildExpeditionStage() {
                             onClick={() => handleOpenEquipmentModal(deck.id, hero.id)}
                             aria-label={`${hero.name} 장비 보기`}
                           >
-                            <img src={hero.image} alt={hero.name} />
+                            <img src={hero.image} alt={hero.name} loading="lazy" decoding="async" />
                             <span>{hero.name}</span>
                           </button>
                         ) : null
@@ -450,7 +450,7 @@ function GuildExpeditionStage() {
                         const pet = petById.get(petKey) || petByName.get(petKey)
                         return pet ? (
                           <div className="deck-unit deck-unit--pet">
-                            <img src={pet.image} alt={pet.name} />
+                            <img src={pet.image} alt={pet.name} loading="lazy" decoding="async" />
                             <span>{pet.name}</span>
                           </div>
                         ) : null
