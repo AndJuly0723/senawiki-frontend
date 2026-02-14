@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchCommunityPost, fetchCommunityPosts } from '../api/endpoints/community'
+import { fetchCommunityPosts } from '../api/endpoints/community'
 
 const formatDate = (value) => {
   if (!value) return '-'
@@ -75,21 +75,20 @@ const getTitleTruncateLength = () => {
     : DESKTOP_TITLE_TRUNCATE_LENGTH
 }
 
-const truncateTitle = (value) => {
+const truncateTitle = (value, maxLength = getTitleTruncateLength()) => {
   const raw = String(value ?? '').trim()
   if (!raw) return ''
-  const maxLength = getTitleTruncateLength()
   const chars = Array.from(raw)
   if (chars.length <= maxLength) return raw
   return `${chars.slice(0, maxLength).join('')}...`
 }
 
-const normalizePost = (post, index) => {
+const normalizePost = (post, index, titleMaxLength) => {
   const hasFile = resolveHasFile(post)
   const rawTitle = post.title ?? post.subject ?? ''
   return {
     id: post.id ?? post.postId ?? post.communityId ?? post._id ?? `post-${index}`,
-    title: truncateTitle(rawTitle),
+    title: truncateTitle(rawTitle, titleMaxLength),
     fullTitle: rawTitle,
     author:
       post.authorNickname ??
@@ -154,7 +153,8 @@ function Community() {
             ...baseParams,
           })
           const list = extractList(data)
-          normalized = list.map((post, index) => normalizePost(post, index))
+          const titleMaxLength = getTitleTruncateLength()
+          normalized = list.map((post, index) => normalizePost(post, index, titleMaxLength))
           resolvedTotalPages = Number.isFinite(data?.totalPages)
             ? data.totalPages
             : Math.ceil(normalized.length / pageSize)
@@ -177,7 +177,7 @@ function Community() {
           }
 
           const allNormalized = merged
-            .map((post, index) => normalizePost(post, index))
+            .map((post, index) => normalizePost(post, index, DESKTOP_TITLE_TRUNCATE_LENGTH))
             .filter((post) => String(post.title ?? '').toLowerCase().includes(trimmedKeyword.toLowerCase()))
           resolvedTotalPages = Math.ceil(allNormalized.length / pageSize)
           const start = page * pageSize
@@ -188,35 +188,6 @@ function Community() {
           setPosts(normalized)
           setTotalPages(resolvedTotalPages)
           setStatus('success')
-        }
-
-        const unresolved = normalized.filter((post) => !post.hasFileKnown && post.id != null)
-        if (unresolved.length) {
-          const results = await Promise.allSettled(
-            unresolved.map(async (post) => {
-              const detail = await fetchCommunityPost(post.id)
-              return {
-                id: post.id,
-                hasFile: resolveHasFile(detail).value,
-              }
-            }),
-          )
-          if (isActive) {
-            const hasFileById = new Map()
-            results.forEach((entry) => {
-              if (entry.status !== 'fulfilled') return
-              hasFileById.set(entry.value.id, entry.value.hasFile)
-            })
-            if (hasFileById.size) {
-              setPosts((prev) =>
-                prev.map((post) =>
-                  hasFileById.has(post.id)
-                    ? { ...post, hasFile: hasFileById.get(post.id), hasFileKnown: true }
-                    : post,
-                ),
-              )
-            }
-          }
         }
       } catch (error) {
         if (isActive) {
