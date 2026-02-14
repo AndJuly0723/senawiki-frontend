@@ -2095,6 +2095,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 24px;
+  overscroll-behavior: contain;
 }
 
 .equipment-modal-backdrop {
@@ -2117,6 +2118,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .equipment-modal-header {
