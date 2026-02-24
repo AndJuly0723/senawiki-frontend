@@ -642,7 +642,7 @@ function GuildWar() {
         </div>
       ) : null}
       {writeNoticeOpen ? (
-        <div className="community-modal" role="dialog" aria-modal="true">
+        <div className="community-modal" role="dialog" aria-modal="true" style={{ zIndex: 6000 }}>
           <button
             className="community-modal-backdrop"
             type="button"
