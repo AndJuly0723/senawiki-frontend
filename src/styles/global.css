@@ -1544,6 +1544,15 @@ body {
   .community-modal-card--counter {
     width: min(96vw, 680px);
   }
+
+  .counter-modal-list .deck-card .deck-units {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .counter-modal-list .deck-card .deck-unit--view-placeholder {
+    display: none;
+  }
 }
 
 .community-modal-error {
