@@ -1456,7 +1456,7 @@ body {
 }
 
 .community-modal-card--counter {
-  width: min(1100px, 95vw);
+  width: min(980px, 92vw);
 }
 
 .community-modal-header h2 {
@@ -1525,67 +1525,12 @@ body {
 }
 
 .counter-modal-list {
-  margin-top: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.counter-modal-list .deck-card {
-  padding: 42px 12px 12px;
-  border-radius: 12px;
-}
-
-.counter-modal-list .deck-layout {
-  margin-top: 20px;
-}
-
-.counter-modal-list .deck-unit {
-  gap: 4px;
-  font-size: 11px;
-}
-
-.counter-modal-list .deck-unit img {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-}
-
-.counter-modal-list .deck-unit span {
-  max-width: 62px;
-  font-size: 11px;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.counter-modal-list .deck-unit.is-back {
-  transform: translateY(-16px);
-}
-
-.counter-modal-list .deck-meta {
-  margin-top: 10px;
-  padding-top: 10px;
-  gap: 4px;
-  font-size: 12px;
-}
-
-.counter-modal-list .deck-meta-label {
-  min-width: 46px;
-}
-
-.counter-modal-list .deck-reaction-button {
-  padding: 7px 10px;
-  font-size: 12px;
+  margin-top: 16px;
 }
 
 @media (max-width: 900px) {
   .community-modal-card--counter {
     width: min(96vw, 680px);
-  }
-
-  .counter-modal-list {
-    grid-template-columns: 1fr;
   }
 }
 
