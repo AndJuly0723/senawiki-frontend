@@ -201,6 +201,7 @@ function GuidesDeckWrite({ mode }) {
   const [equipmentModalState, setEquipmentModalState] = useState(null)
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const [detail, setDetail] = useState('')
   const [heroes, setHeroes] = useState([])
   const [pets, setPets] = useState([])
   const [initializedFromEdit, setInitializedFromEdit] = useState(false)
@@ -330,6 +331,7 @@ function GuidesDeckWrite({ mode }) {
     const timerId = setTimeout(() => {
       setTeamStates(normalizedTeams)
       setActiveTeamIndex(0)
+      setDetail(typeof editDeck?.detail === 'string' ? editDeck.detail : '')
       setInitializedFromEdit(true)
     }, 0)
     return () => {
@@ -849,6 +851,10 @@ function GuidesDeckWrite({ mode }) {
           : undefined,
         skillOrders: !isMultiTeamMode ? mergedSkillOrders : undefined,
         heroEquipments: !isMultiTeamMode ? mergedHeroEquipments : undefined,
+        detail: (() => {
+          const trimmed = String(detail ?? '').trim()
+          return trimmed ? trimmed : null
+        })(),
         counterParentDeckId: isGuildWarMode && counterParentDeckId ? counterParentDeckId : undefined,
         parentDeckId: isGuildWarMode && counterParentDeckId ? counterParentDeckId : undefined,
         counterOfDeckId: isGuildWarMode && counterParentDeckId ? counterParentDeckId : undefined,
@@ -1147,6 +1153,16 @@ function GuidesDeckWrite({ mode }) {
               )}
             </div>
           </div>
+        </div>
+        <div className="deck-write-section">
+          <div className="deck-write-label">비고 (선택)</div>
+          <textarea
+            className="community-textarea"
+            value={detail}
+            onChange={(event) => setDetail(event.target.value)}
+            placeholder="예: 상대 탱커 강타 대응, 특정 턴 주의사항"
+            rows={3}
+          />
         </div>
 
         {status === 'error' ? (

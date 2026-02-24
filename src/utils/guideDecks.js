@@ -237,6 +237,15 @@ export const normalizeGuideDeckList = (data, heroById, heroByName) => {
 
 export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
   if (!raw) return null
+  const detailRaw =
+    raw.detail ??
+    raw.deck?.detail ??
+    raw.memo ??
+    raw.note ??
+    raw.description ??
+    raw.comment ??
+    raw.remark
+  const detail = typeof detailRaw === 'string' ? detailRaw.trim() : ''
   const counterParentDeckId = normalizeDeckId(
     raw.counterParentDeckId ??
     raw.counterParentId ??
@@ -377,6 +386,7 @@ export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
     createdAtTs: toTimestamp(createdAt),
     likes,
     dislikes,
+    detail,
     counterParentDeckId,
     isCounterDeck,
     raidId: normalizeRaidKey(

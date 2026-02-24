@@ -1532,6 +1532,27 @@ body {
   .community-modal-card--counter {
     width: min(96vw, 680px);
   }
+
+  .counter-modal-list .deck-card .deck-units {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 12px;
+  }
+
+  .counter-modal-list .deck-card .deck-unit {
+    width: 56px;
+    min-width: 56px;
+  }
+
+  .counter-modal-list .deck-card .deck-unit img {
+    width: 56px;
+    height: 56px;
+  }
+
+  .counter-modal-list .deck-card .deck-unit.is-back {
+    transform: translateY(-12px);
+  }
 }
 
 .community-modal-error {
