@@ -134,8 +134,8 @@ function GuidesDeckWrite({ mode }) {
   const isExpeditionMode = mode === 'expedition'
   const isMultiTeamMode = isAdventureMode || isTotalWarMode || isExpeditionMode
   const teamCount = isAdventureMode || isExpeditionMode ? 2 : isTotalWarMode ? 5 : 1
-  const heroSlotCount = isGuildWarMode ? 3 : 5
-  const requiredHeroCount = heroSlotCount
+  const heroSlotCount = 5
+  const requiredHeroCount = isGuildWarMode ? 3 : heroSlotCount
 
   let label = '공략'
   let backTo = '/'

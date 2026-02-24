@@ -703,7 +703,7 @@ function GuildWar() {
             onClick={() => setCounterModalDeck(null)}
             aria-label="닫기"
           />
-          <div className="community-modal-card">
+          <div className="community-modal-card community-modal-card--counter">
             <div className="community-modal-header">
               <h2>카운터 덱</h2>
             </div>
