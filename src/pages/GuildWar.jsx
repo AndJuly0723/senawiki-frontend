@@ -14,6 +14,17 @@ import { getStoredUser, isAdminUser } from '../utils/authStorage'
 import { getAccessToken } from '../utils/authStorage'
 import { getAllHeroes, getAllPets } from '../utils/contentStorage'
 
+const toDeckIdKey = (value) => (value == null ? '' : String(value))
+
+const resolveCounterParentDeckId = (deck) =>
+  deck?.counterParentDeckId ??
+  deck?.parentDeckId ??
+  deck?.counterParentId ??
+  deck?.sourceDeckId ??
+  deck?.targetDeckId ??
+  deck?.counterOfDeckId ??
+  null
+
 function GuildWar() {
   const navigate = useNavigate()
   const [equipmentState, setEquipmentState] = useState({
@@ -25,7 +36,7 @@ function GuildWar() {
   const [currentUser, setCurrentUser] = useState(getStoredUser())
   const [actionMenuOpenId, setActionMenuOpenId] = useState(null)
   const [writeNoticeOpen, setWriteNoticeOpen] = useState(false)
-  const [counterNoticeOpen, setCounterNoticeOpen] = useState(false)
+  const [counterModalDeck, setCounterModalDeck] = useState(null)
   const [voteNoticeOpen, setVoteNoticeOpen] = useState(false)
   const [voteNoticeMessage, setVoteNoticeMessage] = useState('')
   const [deleteConfirmDeck, setDeleteConfirmDeck] = useState(null)
@@ -101,8 +112,24 @@ function GuildWar() {
     return Boolean(userName && deck?.author && userName === String(deck.author).trim())
   }
 
+  const handleCounterRegister = (deck) => {
+    const accessToken = getAccessToken()
+    if (!accessToken || accessToken === 'null' || accessToken === 'undefined') {
+      setWriteNoticeOpen(true)
+      return
+    }
+    setActionMenuOpenId(null)
+    navigate('/guild/guild-war/write', {
+      state: {
+        counterParentDeckId: deck.id,
+        counterParentDeck: deck,
+      },
+    })
+  }
+
   const requestDeleteDeck = (deck) => {
     if (!deck?.id) return
+    setActionMenuOpenId(null)
     setDeleteConfirmDeck(deck)
   }
 
@@ -112,6 +139,7 @@ function GuildWar() {
     try {
       await deleteGuideDeck(deck.id)
       setDecks((prev) => prev.filter((item) => item.id !== deck.id))
+      setCounterModalDeck((prev) => (prev && toDeckIdKey(prev.id) === toDeckIdKey(deck.id) ? null : prev))
       setDeleteConfirmDeck(null)
     } catch (error) {
       const message =
@@ -214,22 +242,50 @@ function GuildWar() {
     setPage(1)
   }, [sortBy])
 
+  const baseDecks = useMemo(
+    () => decks.filter((deck) => !resolveCounterParentDeckId(deck) && !deck?.isCounterDeck),
+    [decks],
+  )
+  const counterDecksByParent = useMemo(() => {
+    const next = new Map()
+    decks.forEach((deck) => {
+      const parentId = resolveCounterParentDeckId(deck)
+      if (!parentId) return
+      const key = toDeckIdKey(parentId)
+      const list = next.get(key) ?? []
+      list.push(deck)
+      next.set(key, list)
+    })
+    return next
+  }, [decks])
+
   const pageSize = typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches ? 6 : 8
   const sortedDecks = useMemo(() => {
-    const list = [...decks]
+    const list = [...baseDecks]
     if (sortBy === 'likes') {
       list.sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0))
     } else if (sortBy === 'createdAt') {
       list.sort((a, b) => (b.createdAtTs ?? new Date(b.createdAt ?? 0).getTime()) - (a.createdAtTs ?? new Date(a.createdAt ?? 0).getTime()))
     }
     return list
-  }, [decks, sortBy])
+  }, [baseDecks, sortBy])
   const totalPages = Math.ceil(sortedDecks.length / pageSize)
   const currentPage = Math.min(page, Math.max(totalPages, 1))
   const pagedDecks = useMemo(() => {
     const start = (currentPage - 1) * pageSize
     return sortedDecks.slice(start, start + pageSize)
   }, [sortedDecks, currentPage, pageSize])
+
+  const sortedCounterDecks = useMemo(() => {
+    if (!counterModalDeck?.id) return []
+    const list = [...(counterDecksByParent.get(toDeckIdKey(counterModalDeck.id)) ?? [])]
+    list.sort(
+      (a, b) =>
+        (b.createdAtTs ?? new Date(b.createdAt ?? 0).getTime()) -
+        (a.createdAtTs ?? new Date(a.createdAt ?? 0).getTime()),
+    )
+    return list
+  }, [counterDecksByParent, counterModalDeck])
 
   const handleCloseEquipmentModal = () => {
     setEquipmentState({
@@ -269,6 +325,177 @@ function GuildWar() {
         error: message,
       })
     }
+  }
+
+  const renderDeckCard = (deck, { showCounterButton }) => {
+    const canManage = canManageDeck(deck)
+    const counterCount = counterDecksByParent.get(toDeckIdKey(deck.id))?.length ?? 0
+    const actionMenuKey = toDeckIdKey(deck.id)
+    return (
+      <div key={deck.id} className="deck-card">
+        {showCounterButton ? (
+          <div className="deck-card-counter">
+            <button
+              className="deck-counter-button"
+              type="button"
+              onClick={() => {
+                setActionMenuOpenId(null)
+                setCounterModalDeck(deck)
+              }}
+            >
+              카운터{counterCount > 0 ? ` ${counterCount}` : ''}
+            </button>
+          </div>
+        ) : null}
+        <div className="deck-card-actions">
+          <button
+            className="community-action-button"
+            type="button"
+            aria-label="덱 관리"
+            onClick={(event) => {
+              event.stopPropagation()
+              setActionMenuOpenId((prev) => (prev === actionMenuKey ? null : actionMenuKey))
+            }}
+          >
+            <span className="community-action-dot" />
+            <span className="community-action-dot" />
+            <span className="community-action-dot" />
+          </button>
+          {actionMenuOpenId === actionMenuKey ? (
+            <div className="community-action-menu" role="menu">
+              <button
+                className="community-action-item"
+                type="button"
+                onClick={() => handleCounterRegister(deck)}
+              >
+                카운터 등록
+              </button>
+              {canManage ? (
+                <>
+                  <button
+                    className="community-action-item"
+                    type="button"
+                    onClick={() => {
+                      setActionMenuOpenId(null)
+                      navigate('/guild/guild-war/write', {
+                        state: { deckId: deck.id, editDeck: deck },
+                      })
+                    }}
+                  >
+                    수정
+                  </button>
+                  <button
+                    className="community-action-item community-action-item--danger"
+                    type="button"
+                    onClick={() => requestDeleteDeck(deck)}
+                  >
+                    삭제
+                  </button>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+        <div className="deck-head" aria-hidden="true" />
+        <div className="deck-layout">
+          <div className="deck-center">
+            <div className="deck-row">
+              <div className="deck-units deck-units--lineup">
+                {deck.heroes.map((heroKey, index) => {
+                  const hero = heroById.get(heroKey) || heroByName.get(heroKey)
+                  const backPositions = formationBackPositions[deck.formationId] ?? []
+                  const isBack = backPositions.includes(index + 1)
+                  if (!hero) {
+                    return (
+                      <div
+                        key={`${deck.id}-empty-${index}`}
+                        className={`deck-unit deck-unit--view-placeholder${isBack ? ' is-back' : ''}`}
+                        aria-hidden="true"
+                      />
+                    )
+                  }
+                  return (
+                    <button
+                      key={`${deck.id}-${hero.id}-${index}`}
+                      type="button"
+                      className={`deck-unit deck-unit-button${isBack ? ' is-back' : ''}`}
+                      onClick={() => handleOpenEquipmentModal(deck.id, hero.id)}
+                      aria-label={`${hero.name} 장비 보기`}
+                    >
+                      <img src={hero.image} alt={hero.name} loading="lazy" decoding="async" />
+                      <span>{hero.name}</span>
+                    </button>
+                  )
+                })}
+                {(() => {
+                  const pet = petById.get(deck.pet) || petByName.get(deck.pet)
+                  return pet ? (
+                    <div className="deck-unit deck-unit--pet">
+                      <img src={pet.image} alt={pet.name} loading="lazy" decoding="async" />
+                      <span>{pet.name}</span>
+                    </div>
+                  ) : null
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="deck-meta">
+          <div className="deck-meta-row">
+            <span className="deck-meta-label">작성자</span>
+            <span className="deck-meta-value">{deck.author}</span>
+          </div>
+          <div className="deck-meta-row">
+            <span className="deck-meta-label">작성일</span>
+            <span className="deck-meta-value">{formatGuideDeckDate(deck.createdAt)}</span>
+          </div>
+          <div className="deck-meta-row">
+            <span className="deck-meta-label">진형</span>
+            <span className="deck-meta-value">
+              {deck.formationLabel || formationLabelById[deck.formationId] || ''}
+            </span>
+          </div>
+          <div className="deck-meta-row deck-meta-row--skill">
+            <span className="deck-meta-label">스킬순서</span>
+            <DeckSkillOrder items={deck.skillOrderItems} text={deck.skillOrder} />
+          </div>
+        </div>
+        <div className="deck-reactions">
+          <button
+            className="deck-reaction-button"
+            type="button"
+            aria-label="추천"
+            onClick={(event) => {
+              event.stopPropagation()
+              handleVoteDeck(deck.id, 'UP')
+            }}
+            disabled={votePendingDeckId !== null && votePendingDeckId === deck.id}
+          >
+            <svg className="deck-reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M2 10h4v10H2V10zm20 2c0-1.1-.9-2-2-2h-6.3l1-4.6.02-.22c0-.3-.12-.58-.32-.78L13.7 3 7.6 9.1c-.38.38-.6.9-.6 1.4V19c0 1.1.9 2 2 2h7c.82 0 1.54-.5 1.84-1.26l2.16-5.05c.06-.17.1-.34.1-.52v-2z" />
+            </svg>
+            <span>추천</span>
+            <span className="deck-reaction-count">{deck.likes}</span>
+          </button>
+          <button
+            className="deck-reaction-button deck-reaction-button--down"
+            type="button"
+            aria-label="비추천"
+            onClick={(event) => {
+              event.stopPropagation()
+              handleVoteDeck(deck.id, 'DOWN')
+            }}
+            disabled={votePendingDeckId !== null && votePendingDeckId === deck.id}
+          >
+            <svg className="deck-reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M22 14h-4V4h4v10zM4 12c0 1.1.9 2 2 2h6.3l-1 4.6-.02.22c0 .3.12.58.32.78L12.3 21l6.1-6.1c.38-.38.6-.9.6-1.4V5c0-1.1-.9-2-2-2H10c-.82 0-1.54.5-1.84 1.26L6 9.31c-.06.17-.1.34-.1.52v2z" />
+            </svg>
+            <span>비추천</span>
+            <span className="deck-reaction-count">{deck.dislikes}</span>
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -313,160 +540,7 @@ function GuildWar() {
         ) : pagedDecks.length === 0 ? (
           <div className="deck-empty">등록된 덱이 없습니다.</div>
         ) : (
-          pagedDecks.map((deck) => (
-            <div key={deck.id} className="deck-card">
-              <div className="deck-card-counter">
-                <button
-                  className="deck-counter-button"
-                  type="button"
-                  onClick={() => setCounterNoticeOpen(true)}
-                >
-                  카운터
-                </button>
-              </div>
-              {canManageDeck(deck) ? (
-                <div className="deck-card-actions">
-                  <button
-                    className="community-action-button"
-                    type="button"
-                    aria-label="덱 관리"
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      setActionMenuOpenId((prev) => (prev === deck.id ? null : deck.id))
-                    }}
-                  >
-                    <span className="community-action-dot" />
-                    <span className="community-action-dot" />
-                    <span className="community-action-dot" />
-                  </button>
-                  {actionMenuOpenId === deck.id ? (
-                    <div className="community-action-menu" role="menu">
-                      <button
-                        className="community-action-item"
-                        type="button"
-                        onClick={() => {
-                          setActionMenuOpenId(null)
-                          navigate('/guild/guild-war/write', {
-                            state: { deckId: deck.id, editDeck: deck },
-                          })
-                        }}
-                      >
-                        수정
-                      </button>
-                      <button
-                        className="community-action-item community-action-item--danger"
-                        type="button"
-                        onClick={() => {
-                          setActionMenuOpenId(null)
-                          requestDeleteDeck(deck)
-                        }}
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-              <div className="deck-head" aria-hidden="true" />
-              <div className="deck-layout">
-                <div className="deck-center">
-                  <div className="deck-row">
-                    <div className="deck-units deck-units--lineup">
-                      {deck.heroes.map((heroKey, index) => {
-                        const hero = heroById.get(heroKey) || heroByName.get(heroKey)
-                        const backPositions = formationBackPositions[deck.formationId] ?? []
-                        const isBack = backPositions.includes(index + 1)
-                        if (!hero) {
-                          return (
-                            <div
-                              key={`${deck.id}-empty-${index}`}
-                              className={`deck-unit deck-unit--view-placeholder${isBack ? ' is-back' : ''}`}
-                              aria-hidden="true"
-                            />
-                          )
-                        }
-                        return (
-                          <button
-                            key={`${deck.id}-${hero.id}-${index}`}
-                            type="button"
-                            className={`deck-unit deck-unit-button${isBack ? ' is-back' : ''}`}
-                            onClick={() => handleOpenEquipmentModal(deck.id, hero.id)}
-                            aria-label={`${hero.name} 장비 보기`}
-                          >
-                            <img src={hero.image} alt={hero.name} loading="lazy" decoding="async" />
-                            <span>{hero.name}</span>
-                          </button>
-                        )
-                      })}
-                      {(() => {
-                        const pet = petById.get(deck.pet) || petByName.get(deck.pet)
-                        return pet ? (
-                          <div className="deck-unit deck-unit--pet">
-                            <img src={pet.image} alt={pet.name} loading="lazy" decoding="async" />
-                            <span>{pet.name}</span>
-                          </div>
-                        ) : null
-                      })()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="deck-meta">
-                <div className="deck-meta-row">
-                  <span className="deck-meta-label">작성자</span>
-                  <span className="deck-meta-value">{deck.author}</span>
-                </div>
-                <div className="deck-meta-row">
-                  <span className="deck-meta-label">작성일</span>
-                  <span className="deck-meta-value">{formatGuideDeckDate(deck.createdAt)}</span>
-                </div>
-                <div className="deck-meta-row">
-                  <span className="deck-meta-label">진형</span>
-                  <span className="deck-meta-value">
-                    {deck.formationLabel || formationLabelById[deck.formationId] || ''}
-                  </span>
-                </div>
-                <div className="deck-meta-row deck-meta-row--skill">
-                  <span className="deck-meta-label">스킬순서</span>
-                  <DeckSkillOrder items={deck.skillOrderItems} text={deck.skillOrder} />
-                </div>
-              </div>
-              <div className="deck-reactions">
-                <button
-                  className="deck-reaction-button"
-                  type="button"
-                  aria-label="추천"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    handleVoteDeck(deck.id, 'UP')
-                  }}
-                  disabled={votePendingDeckId !== null && votePendingDeckId === deck.id}
-                >
-                  <svg className="deck-reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M2 10h4v10H2V10zm20 2c0-1.1-.9-2-2-2h-6.3l1-4.6.02-.22c0-.3-.12-.58-.32-.78L13.7 3 7.6 9.1c-.38.38-.6.9-.6 1.4V19c0 1.1.9 2 2 2h7c.82 0 1.54-.5 1.84-1.26l2.16-5.05c.06-.17.1-.34.1-.52v-2z" />
-                  </svg>
-                  <span>추천</span>
-                  <span className="deck-reaction-count">{deck.likes}</span>
-                </button>
-                <button
-                  className="deck-reaction-button deck-reaction-button--down"
-                  type="button"
-                  aria-label="비추천"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    handleVoteDeck(deck.id, 'DOWN')
-                  }}
-                  disabled={votePendingDeckId !== null && votePendingDeckId === deck.id}
-                >
-                  <svg className="deck-reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M22 14h-4V4h4v10zM4 12c0 1.1.9 2 2 2h6.3l-1 4.6-.02.22c0 .3.12.58.32.78L12.3 21l6.1-6.1c.38-.38.6-.9.6-1.4V5c0-1.1-.9-2-2-2H10c-.82 0-1.54.5-1.84 1.26L6 9.31c-.06.17-.1.34-.1.52v2z" />
-                  </svg>
-                  <span>비추천</span>
-                  <span className="deck-reaction-count">{deck.dislikes}</span>
-                </button>
-              </div>
-            </div>
-          ))
+          pagedDecks.map((deck) => renderDeckCard(deck, { showCounterButton: true }))
         )}
       </div>
 
@@ -621,26 +695,39 @@ function GuildWar() {
           </div>
         </div>
       ) : null}
-      {counterNoticeOpen ? (
+      {counterModalDeck ? (
         <div className="community-modal" role="dialog" aria-modal="true">
           <button
             className="community-modal-backdrop"
             type="button"
-            onClick={() => setCounterNoticeOpen(false)}
+            onClick={() => setCounterModalDeck(null)}
             aria-label="닫기"
           />
           <div className="community-modal-card">
             <div className="community-modal-header">
-              <h2>알림</h2>
+              <h2>카운터 덱</h2>
             </div>
-            <div className="community-modal-body">
-              카운터 기능은 현재 구현중입니다.
+            <div className="community-modal-body counter-modal-body">
+              {sortedCounterDecks.length === 0 ? (
+                <div className="deck-empty">등록된 카운터 덱이 없습니다.</div>
+              ) : (
+                <div className="deck-list counter-modal-list">
+                  {sortedCounterDecks.map((deck) => renderDeckCard(deck, { showCounterButton: false }))}
+                </div>
+              )}
             </div>
             <div className="community-modal-actions">
               <button
+                className="community-modal-submit"
+                type="button"
+                onClick={() => handleCounterRegister(counterModalDeck)}
+              >
+                카운터 등록
+              </button>
+              <button
                 className="community-modal-cancel"
                 type="button"
-                onClick={() => setCounterNoticeOpen(false)}
+                onClick={() => setCounterModalDeck(null)}
               >
                 확인
               </button>

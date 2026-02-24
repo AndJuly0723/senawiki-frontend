@@ -162,6 +162,7 @@ function GuidesDeckWrite({ mode }) {
   } else if (mode === 'guild-war') {
     label = '길드전'
     backTo = '/guild/guild-war'
+    note = '길드전 공략덱 작성은 회원만 가능합니다.'
   } else if (mode === 'expedition') {
     label = expeditionMeta[expeditionId] ?? '강림원정대'
     backTo = `/guild/expedition/${expeditionId ?? ''}`.replace(/\/$/, '')
@@ -209,6 +210,27 @@ function GuidesDeckWrite({ mode }) {
   const editDeck = location.state?.editDeck ?? null
   const editDeckId = location.state?.deckId ?? editDeck?.id ?? null
   const isEditMode = Boolean(editDeckId)
+  const resolveCounterParentDeckId = (deck) =>
+    deck?.counterParentDeckId ??
+    deck?.parentDeckId ??
+    deck?.counterParentId ??
+    deck?.sourceDeckId ??
+    deck?.targetDeckId ??
+    deck?.counterOfDeckId ??
+    null
+  const counterParentDeckIdFromState =
+    location.state?.counterParentDeckId ??
+    location.state?.counterOfDeckId ??
+    location.state?.parentDeckId ??
+    null
+  const counterParentDeck = location.state?.counterParentDeck ?? null
+  const counterParentDeckId = isGuildWarMode
+    ? (counterParentDeckIdFromState ?? resolveCounterParentDeckId(editDeck))
+    : null
+  const isCounterWriteMode = isGuildWarMode && Boolean(counterParentDeckId) && !isEditMode
+  const guideNote = isCounterWriteMode
+    ? '카운터 덱 등록입니다. 등록된 덱은 원본 덱의 카운터 목록에 노출됩니다.'
+    : note
 
   const heroById = useMemo(() => new Map(heroes.map((hero) => [hero.id, hero])), [heroes])
   const heroByName = useMemo(() => new Map(heroes.map((hero) => [hero.name, hero])), [heroes])
@@ -821,6 +843,13 @@ function GuidesDeckWrite({ mode }) {
           : undefined,
         skillOrders: !isMultiTeamMode ? mergedSkillOrders : undefined,
         heroEquipments: !isMultiTeamMode ? mergedHeroEquipments : undefined,
+        counterParentDeckId: isGuildWarMode && counterParentDeckId ? counterParentDeckId : undefined,
+        parentDeckId: isGuildWarMode && counterParentDeckId ? counterParentDeckId : undefined,
+        counterOfDeckId: isGuildWarMode && counterParentDeckId ? counterParentDeckId : undefined,
+        sourceDeckId: isGuildWarMode && counterParentDeckId ? counterParentDeckId : undefined,
+        targetDeckId: isGuildWarMode && counterParentDeckId ? counterParentDeckId : undefined,
+        isCounter: isGuildWarMode && counterParentDeckId ? true : undefined,
+        counter: isGuildWarMode && counterParentDeckId ? true : undefined,
       }
       if (isEditMode) {
         await updateGuideDeck(editDeckId, payload)
@@ -846,7 +875,13 @@ function GuidesDeckWrite({ mode }) {
       <div className="community-toolbar">
         <div className="community-title">
           <h1>{label} 덱 {isEditMode ? '수정' : '작성'}</h1>
-          <p>{note}</p>
+          <p>{guideNote}</p>
+          {isCounterWriteMode ? (
+            <p className="community-title-note">
+              원본 덱 ID: {counterParentDeckId}
+              {counterParentDeck?.author ? ` · 원본 작성자: ${counterParentDeck.author}` : ''}
+            </p>
+          ) : null}
         </div>
       </div>
 

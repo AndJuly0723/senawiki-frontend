@@ -45,6 +45,13 @@ const normalizeHeroKey = (value) => {
   return value.id || value.heroId || value.heroName || value.name || null
 }
 
+const normalizeDeckId = (value) => {
+  if (value == null || value === '') return null
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  const raw = String(value).trim()
+  return raw || null
+}
+
 const normalizeRaidKey = (value) => {
   if (!value) return null
   const raw = String(value).trim()
@@ -215,6 +222,27 @@ export const normalizeGuideDeckList = (data, heroById, heroByName) => {
 
 export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
   if (!raw) return null
+  const counterParentDeckId = normalizeDeckId(
+    raw.counterParentDeckId ??
+    raw.counterParentId ??
+    raw.parentDeckId ??
+    raw.parentId ??
+    raw.sourceDeckId ??
+    raw.targetDeckId ??
+    raw.originalDeckId ??
+    raw.baseDeckId ??
+    raw.counterOfDeckId ??
+    raw.counter?.parentDeckId ??
+    raw.parentDeck?.id ??
+    raw.parent?.id,
+  )
+  const isCounterDeck = Boolean(
+    counterParentDeckId ??
+    raw.isCounter ??
+    raw.counter ??
+    raw.counterDeck ??
+    raw.isCounterDeck,
+  )
   const normalizeTeam = (teamRaw, fallbackRaw = null) => {
     const heroesRaw =
       teamRaw?.heroes ??
@@ -334,6 +362,8 @@ export const normalizeGuideDeckSummary = (raw, heroById, heroByName) => {
     createdAtTs: toTimestamp(createdAt),
     likes,
     dislikes,
+    counterParentDeckId,
+    isCounterDeck,
     raidId: normalizeRaidKey(
       raw.raidId ??
       raw.raid ??

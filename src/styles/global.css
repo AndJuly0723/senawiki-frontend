@@ -1515,6 +1515,15 @@ body {
   resize: vertical;
 }
 
+.counter-modal-body {
+  max-height: min(70vh, 840px);
+  overflow-y: auto;
+}
+
+.counter-modal-list {
+  margin-top: 0;
+}
+
 .community-modal-error {
   color: #ffb0b0;
   font-size: 13px;
