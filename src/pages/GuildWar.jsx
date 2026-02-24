@@ -329,6 +329,9 @@ function GuildWar() {
 
   const renderDeckCard = (deck, { showCounterButton }) => {
     const canManage = canManageDeck(deck)
+    const isCounterDeck = Boolean(resolveCounterParentDeckId(deck) || deck?.isCounterDeck)
+    const canRegisterCounter = !isCounterDeck
+    const hasActionItems = canRegisterCounter || canManage
     const counterCount = counterDecksByParent.get(toDeckIdKey(deck.id))?.length ?? 0
     const actionMenuKey = toDeckIdKey(deck.id)
     return (
@@ -347,55 +350,59 @@ function GuildWar() {
             </button>
           </div>
         ) : null}
-        <div className="deck-card-actions">
-          <button
-            className="community-action-button"
-            type="button"
-            aria-label="덱 관리"
-            onClick={(event) => {
-              event.stopPropagation()
-              setActionMenuOpenId((prev) => (prev === actionMenuKey ? null : actionMenuKey))
-            }}
-          >
-            <span className="community-action-dot" />
-            <span className="community-action-dot" />
-            <span className="community-action-dot" />
-          </button>
-          {actionMenuOpenId === actionMenuKey ? (
-            <div className="community-action-menu" role="menu">
-              <button
-                className="community-action-item"
-                type="button"
-                onClick={() => handleCounterRegister(deck)}
-              >
-                카운터 등록
-              </button>
-              {canManage ? (
-                <>
+        {hasActionItems ? (
+          <div className="deck-card-actions">
+            <button
+              className="community-action-button"
+              type="button"
+              aria-label="덱 관리"
+              onClick={(event) => {
+                event.stopPropagation()
+                setActionMenuOpenId((prev) => (prev === actionMenuKey ? null : actionMenuKey))
+              }}
+            >
+              <span className="community-action-dot" />
+              <span className="community-action-dot" />
+              <span className="community-action-dot" />
+            </button>
+            {actionMenuOpenId === actionMenuKey ? (
+              <div className="community-action-menu" role="menu">
+                {canRegisterCounter ? (
                   <button
                     className="community-action-item"
                     type="button"
-                    onClick={() => {
-                      setActionMenuOpenId(null)
-                      navigate('/guild/guild-war/write', {
-                        state: { deckId: deck.id, editDeck: deck },
-                      })
-                    }}
+                    onClick={() => handleCounterRegister(deck)}
                   >
-                    수정
+                    카운터 등록
                   </button>
-                  <button
-                    className="community-action-item community-action-item--danger"
-                    type="button"
-                    onClick={() => requestDeleteDeck(deck)}
-                  >
-                    삭제
-                  </button>
-                </>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
+                ) : null}
+                {canManage ? (
+                  <>
+                    <button
+                      className="community-action-item"
+                      type="button"
+                      onClick={() => {
+                        setActionMenuOpenId(null)
+                        navigate('/guild/guild-war/write', {
+                          state: { deckId: deck.id, editDeck: deck },
+                        })
+                      }}
+                    >
+                      수정
+                    </button>
+                    <button
+                      className="community-action-item community-action-item--danger"
+                      type="button"
+                      onClick={() => requestDeleteDeck(deck)}
+                    >
+                      삭제
+                    </button>
+                  </>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         <div className="deck-head" aria-hidden="true" />
         <div className="deck-layout">
           <div className="deck-center">

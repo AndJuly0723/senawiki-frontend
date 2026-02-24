@@ -775,6 +775,12 @@ function GuidesDeckWrite({ mode }) {
         setActiveTeamIndex(i)
         return
       }
+      if (isGuildWarMode && !team.selectedPet) {
+        setStatus('error')
+        setErrorMessage(`${teamLabel}펫을 등록해주세요.`)
+        setActiveTeamIndex(i)
+        return
+      }
       if (team.skillOrder.length === 0) {
         setStatus('error')
         setErrorMessage(`${teamLabel}스킬순서를 지정해주세요.`)
