@@ -25,6 +25,7 @@ function GuildWar() {
   const [currentUser, setCurrentUser] = useState(getStoredUser())
   const [actionMenuOpenId, setActionMenuOpenId] = useState(null)
   const [writeNoticeOpen, setWriteNoticeOpen] = useState(false)
+  const [counterNoticeOpen, setCounterNoticeOpen] = useState(false)
   const [voteNoticeOpen, setVoteNoticeOpen] = useState(false)
   const [voteNoticeMessage, setVoteNoticeMessage] = useState('')
   const [deleteConfirmDeck, setDeleteConfirmDeck] = useState(null)
@@ -314,6 +315,15 @@ function GuildWar() {
         ) : (
           pagedDecks.map((deck) => (
             <div key={deck.id} className="deck-card">
+              <div className="deck-card-counter">
+                <button
+                  className="deck-counter-button"
+                  type="button"
+                  onClick={() => setCounterNoticeOpen(true)}
+                >
+                  카운터
+                </button>
+              </div>
               {canManageDeck(deck) ? (
                 <div className="deck-card-actions">
                   <button
@@ -604,6 +614,33 @@ function GuildWar() {
                 className="community-modal-cancel"
                 type="button"
                 onClick={() => setVoteNoticeOpen(false)}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {counterNoticeOpen ? (
+        <div className="community-modal" role="dialog" aria-modal="true">
+          <button
+            className="community-modal-backdrop"
+            type="button"
+            onClick={() => setCounterNoticeOpen(false)}
+            aria-label="닫기"
+          />
+          <div className="community-modal-card">
+            <div className="community-modal-header">
+              <h2>알림</h2>
+            </div>
+            <div className="community-modal-body">
+              카운터 기능은 현재 구현중입니다.
+            </div>
+            <div className="community-modal-actions">
+              <button
+                className="community-modal-cancel"
+                type="button"
+                onClick={() => setCounterNoticeOpen(false)}
               >
                 확인
               </button>
