@@ -1908,13 +1908,13 @@ body {
 }
 
 .deck-counter-button {
-  min-height: 30px;
-  padding: 0 10px;
+  min-height: 34px;
+  padding: 0 12px;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: #6b0000;
   color: #ffffff;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
