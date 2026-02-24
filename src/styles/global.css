@@ -1564,7 +1564,7 @@ body {
   }
 
   .counter-modal-list .deck-card .deck-unit.is-back {
-    transform: translateY(-8px);
+    transform: translateY(-16px);
   }
 
   .counter-modal-list .deck-card .deck-unit span {
@@ -2094,7 +2094,7 @@ body {
 
 .deck-meta-value--detail {
   display: block;
-  max-height: 120px;
+  max-height: calc(1.45em * 3);
   overflow-y: auto;
   padding-right: 4px;
   line-height: 1.45;
@@ -3811,7 +3811,7 @@ body {
   }
 
   .deck-card .deck-meta-value--detail {
-    max-height: 92px;
+    max-height: calc(1.45em * 3);
   }
 
   .deck-card .deck-reactions {
