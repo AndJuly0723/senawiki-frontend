@@ -2,13 +2,14 @@
 import { Link } from 'react-router-dom'
 import { fetchCommunityPost, fetchCommunityPosts } from '../api/endpoints/community'
 import { fetchTipPost, fetchTipPosts } from '../api/endpoints/tip'
+import { parseApiDateTime } from '../utils/dateTime'
 
 const formatDate = (value) => {
   if (!value) return '-'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return String(value)
+  const date = parseApiDateTime(value)
+  if (!date) return String(value)
   const parts = date
-    .toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
+    .toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit', timeZone: 'Asia/Seoul' })
     .match(/\d+/g)
   if (!parts || parts.length < 2) return String(value)
   return `${parts[0]}-${parts[1]}`
@@ -310,16 +311,16 @@ function Home() {
               <div key={post.id} className={`community-row${post.pinned ? ' is-pinned' : ''}`}>
                 <div className="col-title">
                   {post.pinned ? <span className="post-badge">공지</span> : null}
-                  <span className="post-icon" aria-hidden="true">💬</span>
+                  <span className="post-icon" aria-hidden="true">??</span>
                   {post.hasFile ? (
-                    <span className="post-icon post-icon--file" aria-hidden="true">🖼️</span>
+                    <span className="post-icon post-icon--file" aria-hidden="true">???</span>
                   ) : null}
                   <Link className="post-title-link" to={`/community/${post.id}`}>
                     <span className="post-title" title={post.fullTitle}>{post.title}</span>
                   </Link>
                   {post.commentCount > 0 ? (
                     <span className="post-comment-count" aria-label={`댓글 ${post.commentCount}개`}>
-                      💭 {post.commentCount}
+                      ?? {post.commentCount}
                     </span>
                   ) : null}
                 </div>
@@ -371,16 +372,16 @@ function Home() {
               <div key={post.id} className={`community-row${post.pinned ? ' is-pinned' : ''}`}>
                 <div className="col-title">
                   {post.pinned ? <span className="post-badge">공지</span> : null}
-                  <span className="post-icon" aria-hidden="true">💬</span>
+                  <span className="post-icon" aria-hidden="true">??</span>
                   {post.hasFile ? (
-                    <span className="post-icon post-icon--file" aria-hidden="true">🖼️</span>
+                    <span className="post-icon post-icon--file" aria-hidden="true">???</span>
                   ) : null}
                   <Link className="post-title-link" to={`/info/${post.id}`}>
                     <span className="post-title" title={post.fullTitle}>{post.title}</span>
                   </Link>
                   {post.commentCount > 0 ? (
                     <span className="post-comment-count" aria-label={`댓글 ${post.commentCount}개`}>
-                      💭 {post.commentCount}
+                      ?? {post.commentCount}
                     </span>
                   ) : null}
                 </div>
@@ -397,3 +398,5 @@ function Home() {
 }
 
 export default Home
+
+

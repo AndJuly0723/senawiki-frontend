@@ -13,21 +13,11 @@ import {
   updateBoardComment,
 } from '../api/endpoints/boardComments'
 import { getStoredUser, isAdminUser } from '../utils/authStorage'
+import { formatDateTimeSeoul } from '../utils/dateTime'
 
 const normalizeString = (value) => String(value ?? '').trim().toLowerCase()
 
-const formatDateTime = (value) => {
-  if (!value) return '-'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return String(value)
-  return date.toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
+const formatDateTime = (value) => formatDateTimeSeoul(value)
 
 const resolveFileUrl = (value) => {
   if (!value) return ''

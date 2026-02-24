@@ -5,19 +5,10 @@ import { fetchTipPosts } from '../api/endpoints/tip'
 import { fetchBoardComments } from '../api/endpoints/boardComments'
 import { withdrawUser } from '../api/endpoints/auth'
 import { clearAuth, getStoredUser } from '../utils/authStorage'
+import { formatDateTimeSeoul, parseApiDateTime } from '../utils/dateTime'
 
-const formatDateTime = (value) => {
-  if (!value) return '-'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return String(value)
-  return date.toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
+const formatDateTime = (value) => formatDateTimeSeoul(value)
+const toTimestamp = (value) => parseApiDateTime(value)?.getTime() ?? 0
 
 const extractList = (payload) =>
   Array.isArray(payload)
@@ -146,7 +137,7 @@ function MyPage() {
               post.raw?.email,
             ),
           )
-          .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+          .sort((a, b) => toTimestamp(b.createdAt) - toTimestamp(a.createdAt))
 
         const commentsResults = await Promise.allSettled(
           allPosts
@@ -178,7 +169,7 @@ function MyPage() {
             if (entry.status === 'fulfilled') return acc.concat(entry.value)
             return acc
           }, [])
-          .sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+          .sort((a, b) => toTimestamp(b.createdAt) - toTimestamp(a.createdAt))
 
         if (!active) return
         setMyPosts(myPostList)
