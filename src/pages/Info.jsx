@@ -343,16 +343,16 @@ function Info() {
             <div key={post.id} className={`community-row${post.pinned ? ' is-pinned' : ''}`}>
               <div className="col-title">
                 {post.pinned ? <span className="post-badge">공지</span> : null}
-                <span className="post-icon" aria-hidden="true">??</span>
+                <span className="post-icon" aria-hidden="true">{String.fromCodePoint(0x1F4AC)}</span>
                 {post.hasFile ? (
-                  <span className="post-icon post-icon--file" aria-hidden="true">???</span>
+                  <span className="post-icon post-icon--file" aria-hidden="true">{String.fromCodePoint(0x1F5BC, 0xFE0F)}</span>
                 ) : null}
                 <Link className="post-title-link" to={`/info/${post.id}`}>
                   <span className="post-title" title={post.fullTitle}>{post.title}</span>
                 </Link>
                 {post.commentCount > 0 ? (
                   <span className="post-comment-count" aria-label={`댓글 ${post.commentCount}개`}>
-                    ?? {post.commentCount}
+                    {String.fromCodePoint(0x1F4AD)} {post.commentCount}
                   </span>
                 ) : null}
               </div>
@@ -369,6 +369,9 @@ function Info() {
 }
 
 export default Info
+
+
+
 
 
 
