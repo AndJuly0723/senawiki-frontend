@@ -1544,41 +1544,6 @@ body {
   .community-modal-card--counter {
     width: min(96vw, 680px);
   }
-
-  .counter-modal-list .deck-card .deck-units {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    justify-items: center;
-    align-items: end;
-  }
-
-  .counter-modal-list .deck-card .deck-unit {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .counter-modal-list .deck-card .deck-unit img {
-    width: 44px;
-    height: 44px;
-  }
-
-  .counter-modal-list .deck-card .deck-unit.is-back {
-    transform: translateY(-16px);
-  }
-
-  .counter-modal-list .deck-card .deck-unit span {
-    max-width: 100%;
-    font-size: 11px;
-    line-height: 1.15;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .counter-modal-list .deck-card .deck-unit--view-placeholder {
-    display: none;
-  }
 }
 
 .community-modal-error {
