@@ -31,6 +31,28 @@ function shouldAwaitStore(pathname) {
   return pathname === "/api/guide-decks" || pathname.startsWith("/api/guide-decks/");
 }
 
+function isAdminMutation(method, pathname, prefix) {
+  if (method !== "POST" && method !== "PUT" && method !== "DELETE") return false;
+  return pathname === prefix || pathname.startsWith(prefix + "/");
+}
+
+function getPathEntityId(pathname, prefix) {
+  if (!pathname.startsWith(prefix + "/")) return "";
+  const suffix = pathname.slice(prefix.length + 1);
+  if (!suffix) return "";
+  return suffix.split("/")[0] || "";
+}
+
+async function purgePublicListCache(cache, listPath, detailId) {
+  const targets = [listPath];
+  if (detailId) targets.push(`${listPath}/${detailId}`);
+  await Promise.all(
+    targets.map((path) =>
+      cache.delete(new Request("https://cache.senawiki.internal" + path))
+    )
+  );
+}
+
 function buildCacheKey(url) {
   const params = Array.from(url.searchParams.entries());
   if (!params.length) return url.pathname;
@@ -118,5 +140,17 @@ export async function onRequest(context) {
     });
   }
 
-  return fetch(upstreamReq);
+  const upstreamRes = await fetch(upstreamReq);
+
+  if (upstreamRes.ok) {
+    if (isAdminMutation(method, pathname, "/api/admin/heroes")) {
+      const heroId = getPathEntityId(pathname, "/api/admin/heroes");
+      context.waitUntil(purgePublicListCache(cache, "/api/heroes", heroId));
+    } else if (isAdminMutation(method, pathname, "/api/admin/pets")) {
+      const petId = getPathEntityId(pathname, "/api/admin/pets");
+      context.waitUntil(purgePublicListCache(cache, "/api/pets", petId));
+    }
+  }
+
+  return upstreamRes;
 }
