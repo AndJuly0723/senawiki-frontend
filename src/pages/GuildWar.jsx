@@ -466,12 +466,10 @@ function GuildWar() {
             <span className="deck-meta-label">스킬순서</span>
             <DeckSkillOrder items={deck.skillOrderItems} text={deck.skillOrder} />
           </div>
-          {deck.detail ? (
-            <div className="deck-meta-row">
-              <span className="deck-meta-label">비고</span>
-              <span className="deck-meta-value">{deck.detail}</span>
-            </div>
-          ) : null}
+          <div className="deck-meta-row">
+            <span className="deck-meta-label">비고</span>
+            {deck.detail ? <span className="deck-meta-value">{deck.detail}</span> : null}
+          </div>
         </div>
         <div className="deck-reactions">
           <button

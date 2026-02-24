@@ -937,7 +937,8 @@ body {
 }
 
 .community-form-input,
-.community-form-textarea {
+.community-form-textarea,
+.community-textarea {
   background: #0b0b0b;
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: #f5f5f5;
@@ -948,7 +949,8 @@ body {
 }
 
 .community-form-input:focus,
-.community-form-textarea:focus {
+.community-form-textarea:focus,
+.community-textarea:focus {
   border-color: #f0d38a;
   box-shadow: 0 0 0 2px rgba(240, 211, 138, 0.2);
 }
@@ -957,6 +959,16 @@ body {
   resize: vertical;
   min-height: 160px;
   line-height: 1.5;
+}
+
+.community-textarea {
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.45;
+}
+
+.community-textarea::placeholder {
+  color: rgba(245, 245, 245, 0.55);
 }
 
 .community-file-upload {
@@ -1534,24 +1546,34 @@ body {
   }
 
   .counter-modal-list .deck-card .deck-units {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px 12px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    justify-items: center;
+    align-items: end;
   }
 
   .counter-modal-list .deck-card .deck-unit {
-    width: 56px;
-    min-width: 56px;
+    width: 100%;
+    min-width: 0;
   }
 
   .counter-modal-list .deck-card .deck-unit img {
-    width: 56px;
-    height: 56px;
+    width: 44px;
+    height: 44px;
   }
 
   .counter-modal-list .deck-card .deck-unit.is-back {
-    transform: translateY(-12px);
+    transform: translateY(-8px);
+  }
+
+  .counter-modal-list .deck-card .deck-unit span {
+    max-width: 100%;
+    font-size: 11px;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 

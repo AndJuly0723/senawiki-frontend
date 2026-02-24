@@ -1160,7 +1160,7 @@ function GuidesDeckWrite({ mode }) {
             className="community-textarea"
             value={detail}
             onChange={(event) => setDetail(event.target.value)}
-            placeholder="예: 상대 탱커 강타 대응, 특정 턴 주의사항"
+            placeholder="예: 치확100% 필수 등.."
             rows={3}
           />
         </div>
