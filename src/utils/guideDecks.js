@@ -12,6 +12,21 @@ export const formationBackPositions = {
   protect: [3],
 }
 
+const guildWarBackPositions = {
+  basic: [2],
+  balance: [2],
+  attack: [3],
+  protect: [2],
+}
+
+export const getFormationBackPositions = (formationId, slotCount = 5) => {
+  if (slotCount === 3) {
+    const mapped = guildWarBackPositions[formationId]
+    if (Array.isArray(mapped) && mapped.length) return mapped
+  }
+  return formationBackPositions[formationId] ?? []
+}
+
 export const formationLabelById = formationOptions.reduce((acc, option) => {
   acc[option.id] = option.label
   return acc

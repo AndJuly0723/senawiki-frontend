@@ -5,7 +5,7 @@ import { deleteGuideDeck, fetchGuideDeckEquipment, fetchGuideDecks, voteGuideDec
 import {
   equipmentSlots,
   formatGuideDeckDate,
-  formationBackPositions,
+  getFormationBackPositions,
   formationLabelById,
   normalizeEquipmentResponse,
   normalizeGuideDeckList,
@@ -403,7 +403,7 @@ function GuildWar() {
               <div className="deck-units deck-units--lineup">
                 {deck.heroes.map((heroKey, index) => {
                   const hero = heroById.get(heroKey) || heroByName.get(heroKey)
-                  const backPositions = formationBackPositions[deck.formationId] ?? []
+                  const backPositions = getFormationBackPositions(deck.formationId, deck.heroes.length || 5)
                   const isBack = backPositions.includes(index + 1)
                   if (!hero) {
                     return (

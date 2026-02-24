@@ -1,7 +1,7 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { createGuideDeck, fetchGuideDeckEquipment, updateGuideDeck } from '../api/endpoints/guideDecks'
-import { equipmentSlots, formationBackPositions, formationOptions, normalizeEquipmentResponse } from '../utils/guideDecks'
+import { equipmentSlots, formationOptions, getFormationBackPositions, normalizeEquipmentResponse } from '../utils/guideDecks'
 import { getAccessToken } from '../utils/authStorage'
 import { getAllHeroes, getAllPets } from '../utils/contentStorage'
 
@@ -206,7 +206,7 @@ function GuidesDeckWrite({ mode }) {
   const [initializedFromEdit, setInitializedFromEdit] = useState(false)
   const [equipmentHydrated, setEquipmentHydrated] = useState(false)
   const currentTeam = teamStates[activeTeamIndex]
-  const backPositions = formationBackPositions[currentTeam?.formationId] ?? []
+  const backPositions = getFormationBackPositions(currentTeam?.formationId, heroSlotCount)
   const editDeck = location.state?.editDeck ?? null
   const editDeckId = location.state?.deckId ?? editDeck?.id ?? null
   const isEditMode = Boolean(editDeckId)
