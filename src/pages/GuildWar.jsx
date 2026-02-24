@@ -468,7 +468,7 @@ function GuildWar() {
           </div>
           <div className="deck-meta-row">
             <span className="deck-meta-label">비고</span>
-            {deck.detail ? <span className="deck-meta-value">{deck.detail}</span> : null}
+            {deck.detail ? <span className="deck-meta-value deck-meta-value--detail">{deck.detail}</span> : null}
           </div>
         </div>
         <div className="deck-reactions">

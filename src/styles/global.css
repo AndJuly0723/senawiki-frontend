@@ -1575,6 +1575,10 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  .counter-modal-list .deck-card .deck-unit--view-placeholder {
+    display: none;
+  }
 }
 
 .community-modal-error {
@@ -2086,6 +2090,16 @@ body {
 
 .deck-meta-value {
   color: rgba(255, 255, 255, 0.7);
+}
+
+.deck-meta-value--detail {
+  display: block;
+  max-height: 120px;
+  overflow-y: auto;
+  padding-right: 4px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .deck-meta-row--skill {
@@ -3794,6 +3808,10 @@ body {
 
   .deck-card .deck-meta-label {
     min-width: 0;
+  }
+
+  .deck-card .deck-meta-value--detail {
+    max-height: 92px;
   }
 
   .deck-card .deck-reactions {
