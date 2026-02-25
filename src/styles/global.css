@@ -2163,7 +2163,7 @@ body {
 .equipment-modal {
   position: fixed;
   inset: 0;
-  z-index: 30;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
